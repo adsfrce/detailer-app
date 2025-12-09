@@ -1,41 +1,554 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Coming Soon</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #050816;
-      color: #ffffff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+  <meta charset="UTF-8" />
+  <title>DetailHQ</title>
+  <link rel="icon" type="image/png" href="app_icon.png" />
+  <link rel="apple-touch-icon" href="app_icon.png" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    .coming-soon {
-      font-size: 2rem;
-      letter-spacing: 0.05em;
-    }
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
 
-    .dots::after {
-      content: "...";
-      animation: dots 1.3s steps(3, end) infinite;
-    }
-
-    @keyframes dots {
-      0%   { content: ""; }
-      33%  { content: "."; }
-      66%  { content: ".."; }
-      100% { content: "..."; }
-    }
-  </style>
+  <!-- Supabase JS -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 </head>
-<body>
-  <div class="coming-soon">
-    Coming soon<span class="dots"></span>
+<body class="theme-system">
+  <div id="app-root">
+    <!-- AUTH VIEW -->
+    <div id="auth-view" class="view active">
+      <div class="auth-card glass">
+        <div class="auth-logo-row">
+          <img src="logo_icon.png" alt="DetailHQ Logo" class="app-logo" />
+          <div>
+            <h1 class="app-title">DetailHQ</h1>
+            <p class="app-subtitle">
+              Backoffice für Fahrzeugaufbereitung – Preise, Aufträge, Kalender.
+            </p>
+          </div>
+        </div>
+
+<form id="login-form" class="form">
+  <label class="field-label" for="login-email">E-Mail</label>
+  <input id="login-email" type="email" class="field-input" autocomplete="email" required />
+
+  <label class="field-label" for="login-password">Passwort</label>
+  <input id="login-password" type="password" class="field-input" autocomplete="current-password" required />
+
+  <button type="submit" class="btn btn-primary" id="login-button">
+    Anmelden
+  </button>
+
+  <button type="button" class="link-button" id="password-reset-button">
+    Passwort vergessen?
+  </button>
+
+  <p class="form-hint">
+    Noch kein Konto?
+    <button type="button" class="link-button" id="register-switch">
+      Jetzt registrieren
+    </button>
+  </p>
+</form>
+
+<form id="register-form" class="form hidden">
+  <div class="auth-info-banner">
+    <strong>3 Tage kostenlos testen.</strong><br />
+    Keine Zahlungsmethode nötig für die Testphase.
   </div>
+
+  <label class="field-label" for="register-email">E-Mail</label>
+  <input id="register-email" type="email" class="field-input" autocomplete="email" required />
+
+  <label class="field-label" for="register-password">Passwort</label>
+  <input id="register-password" type="password" class="field-input" autocomplete="new-password" required />
+
+  <button type="submit" class="btn btn-primary" id="register-button">
+    Konto erstellen
+  </button>
+
+  <p class="form-hint">
+    Bereits ein Konto?
+    <button type="button" class="link-button" id="login-switch">
+      Zur Anmeldung
+    </button>
+  </p>
+</form>
+
+        <p id="auth-error" class="error-text"></p>
+      </div>
+    </div>
+
+    <!-- APP VIEW -->
+    <div id="app-view" class="view">
+      <!-- HEADER MIT PROFIL -->
+      <header class="app-header glass">
+        <div class="header-left">
+          <img src="logo_icon.png" alt="DetailHQ Logo" class="header-logo" />
+          <div>
+            <h2 id="header-title">Dashboard</h2>
+            <p id="header-subtitle" class="header-subtitle">
+              Übersicht über deine Aufträge und Umsätze.
+            </p>
+          </div>
+        </div>
+
+        <div class="profile-wrapper">
+<button id="profile-button" class="icon-button profile-avatar" title="Profil">
+  <img
+    id="profile-avatar-image"
+    src="pfp.png"
+    alt="Profilbild"
+    class="profile-avatar-image"
+  />
+</button>
+          <div id="profile-menu" class="profile-menu hidden">
+            <button id="profile-manage-button" class="profile-menu-item">
+              Profil verwalten
+            </button>
+            <button id="profile-logout-button" class="profile-menu-item danger">
+              Abmelden
+            </button>
+          </div>
+        </div>
+      </header>
+      <div id="trial-banner" class="trial-banner hidden">
+  <span id="trial-banner-text"></span>
+  <button id="trial-banner-button" class="trial-banner-button">
+    Jetzt Abo starten
+  </button>
+</div>
+
+      <main class="app-main">
+        <!-- DASHBOARD -->
+        <section id="tab-dashboard" class="tab-section active">
+          <div class="cards-grid">
+            <div class="card glass">
+              <p class="card-label">Umsatz heute</p>
+              <p class="card-value" id="revenue-today">€ 0</p>
+            </div>
+            <div class="card glass">
+              <p class="card-label">Umsatz diese Woche</p>
+              <p class="card-value" id="revenue-week">€ 0</p>
+            </div>
+            <div class="card glass">
+              <p class="card-label">Umsatz 14 Tage</p>
+              <p class="card-value" id="revenue-14days">€ 0</p>
+            </div>
+            <div class="card glass">
+              <p class="card-label">Umsatz diesen Monat</p>
+              <p class="card-value" id="revenue-month">€ 0</p>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <h3>Heutige Aufträge</h3>
+            <button id="new-booking-button" class="btn btn-secondary btn-small">
+              Neuer Auftrag
+            </button>
+          </div>
+          <div id="today-bookings" class="list-container empty-state">
+            <p>Noch keine Aufträge für heute.</p>
+          </div>
+
+          <div class="section-header">
+            <h3>Bewertungen fällig</h3>
+          </div>
+          <div id="review-reminders" class="list-container empty-state">
+            <p>Aktuell keine offenen Bewertungs-Erinnerungen.</p>
+          </div>
+        </section>
+
+        <!-- SCHEDULE -->
+        <section id="tab-schedule" class="tab-section">
+          <div class="section-header">
+            <h3>Zeitplan</h3>
+            <button id="new-booking-button-2" class="btn btn-secondary btn-small">
+              Neuer Auftrag
+            </button>
+          </div>
+          <div id="schedule-list" class="list-container empty-state">
+            <p>Noch keine geplanten Aufträge.</p>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="tab-settings" class="tab-section">
+          <!-- THEME -->
+          <div class="settings-group glass">
+            <h3>Erscheinungsbild</h3>
+            <p class="settings-help">Wähle, wie DetailHQ aussehen soll.</p>
+            <div class="settings-options">
+              <label class="radio-option">
+                <input type="radio" name="theme" value="light" />
+                <span>Hell</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="theme" value="dark" />
+                <span>Dunkel</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="theme" value="system" />
+                <span>System</span>
+              </label>
+            </div>
+          </div>
+
+<!-- DIENSTE & PREISE -->
+<div class="settings-group glass">
+  <h3>Dienste & Preise</h3>
+  <p class="settings-help">
+    Definiere Fahrzeugklassen und Services. Diese nutzt du später beim Anlegen von Aufträgen.
+  </p>
+
+  <!-- Fahrzeugklassen -->
+  <h4 class="settings-subtitle">Fahrzeugklassen</h4>
+  <div id="vehicle-classes-list" class="list-container small">
+    <p class="form-hint">Noch keine Fahrzeugklassen angelegt.</p>
+  </div>
+  <button class="btn btn-secondary btn-small" id="vehicle-class-add-button">
+    Fahrzeugklasse hinzufügen
+  </button>
+
+  <!-- Services -->
+  <h4 class="settings-subtitle" style="margin-top:16px;">Services</h4>
+  <div id="services-list" class="list-container small">
+    <p class="form-hint">Noch keine Services angelegt.</p>
+  </div>
+  <button class="btn btn-secondary btn-small" id="service-add-button">
+    Service hinzufügen
+  </button>
+</div>
+
+<!-- Service-Form Modal -->
+<div id="service-modal" class="profile-modal hidden">
+  <div class="profile-modal-backdrop"></div>
+  <div class="profile-modal-card glass">
+    <div class="profile-modal-header">
+      <h3 id="service-modal-title">Service bearbeiten</h3>
+      <button id="service-modal-close" class="icon-button small" title="Schließen">✕</button>
+    </div>
+    <form id="service-form" class="form">
+      <label class="field-label" for="service-kind">Art</label>
+      <select id="service-kind" class="field-input" required>
+        <option value="package">Paket</option>
+        <option value="single">Einzelleistung</option>
+        <option value="addon">Add-on</option>
+      </select>
+
+      <label class="field-label" for="service-category">Kategorie (optional)</label>
+      <input id="service-category" type="text" class="field-input" placeholder="z.B. Innen, Außen, Premium" />
+
+      <label class="field-label" for="service-name">Name</label>
+      <input id="service-name" type="text" class="field-input" required />
+
+      <label class="field-label" for="service-price">Basispreis (in €)</label>
+      <input id="service-price" type="number" min="0" step="0.01" class="field-input" required />
+
+      <label class="field-label" for="service-duration">Zeitaufwand (Minuten, optional)</label>
+      <input id="service-duration" type="number" min="0" step="5" class="field-input" />
+
+      <label class="field-label" for="service-description">Beschreibung (optional)</label>
+      <textarea id="service-description" class="field-input" rows="3"></textarea>
+
+      <button type="submit" class="btn btn-primary" style="margin-top:12px;">
+        Speichern
+      </button>
+    </form>
+    <p id="service-modal-error" class="error-text"></p>
+  </div>
+</div>
+
+<!-- Vehicle-Class-Form Modal -->
+<div id="vehicle-class-modal" class="profile-modal hidden">
+  <div class="profile-modal-backdrop"></div>
+  <div class="profile-modal-card glass">
+    <div class="profile-modal-header">
+      <h3 id="vehicle-class-modal-title">Fahrzeugklasse bearbeiten</h3>
+      <button id="vehicle-class-modal-close" class="icon-button small" title="Schließen">✕</button>
+    </div>
+    <form id="vehicle-class-form" class="form">
+      <label class="field-label" for="vehicle-class-name">Name</label>
+      <input id="vehicle-class-name" type="text" class="field-input" placeholder="z.B. Kleinwagen, SUV" required />
+
+      <label class="field-label" for="vehicle-class-price-factor">
+        Preisfaktor (1.0 = Basispreis)
+      </label>
+      <input
+        id="vehicle-class-price-factor"
+        type="number"
+        step="0.1"
+        min="0"
+        class="field-input"
+        value="1.0"
+      />
+
+      <label class="field-label" for="vehicle-class-duration-factor">
+        Zeitfaktor (1.0 = Basiszeit)
+      </label>
+      <input
+        id="vehicle-class-duration-factor"
+        type="number"
+        step="0.1"
+        min="0"
+        class="field-input"
+        value="1.0"
+      />
+
+      <button type="submit" class="btn btn-primary" style="margin-top:12px;">
+        Speichern
+      </button>
+    </form>
+    <p id="vehicle-class-modal-error" class="error-text"></p>
+  </div>
+</div>
+
+          <!-- KALENDER -->
+          <div class="settings-group glass">
+            <h3>Kalender</h3>
+            <p class="settings-help">
+              Verbinde deinen DetailHQ-Zeitplan mit Apple Kalender oder Google Kalender.
+            </p>
+
+            <div class="settings-options">
+              <label class="radio-option">
+                <input type="radio" name="calendar-preference" value="apple" />
+                <span>Apple</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="calendar-preference" value="google" />
+                <span>Google</span>
+              </label>
+            </div>
+
+            <button id="calendar-open-button" class="btn btn-secondary btn-block" style="margin-top: 10px;">
+              Im Kalender öffnen
+            </button>
+          </div>
+
+          <!-- BILLING / STRIPE -->
+          <div class="settings-group glass">
+            <h3>Zahlung & Abo</h3>
+            <p class="settings-help">
+              Dein aktueller Tarif, Zahlungsdaten und Wechsel auf Monats-, Jahres- oder Lifetime-Abo.
+            </p>
+            <button
+              class="btn btn-ghost btn-block"
+              id="billing-manage-plan-button"
+            >
+              Abo & Zahlung verwalten (Stripe)
+            </button>
+
+            <button
+              class="btn btn-secondary btn-block"
+              id="billing-subscription-monthly-button"
+            >
+              Monatsabo starten
+            </button>
+
+            <button
+              class="btn btn-secondary btn-block"
+              id="billing-subscription-yearly-button"
+            >
+              Jahresabo starten
+            </button>
+
+            <button
+              class="btn btn-secondary btn-block"
+              id="billing-switch-lifetime-button"
+            >
+              Auf Lifetime wechseln
+            </button>
+          </div>
+
+          <!-- BEWERTUNGEN -->
+  <div class="settings-group glass">
+    <h3>Bewertungen</h3>
+    <p class="settings-help">
+      Hinterlege deinen Google-Profil- oder Bewertungslink für Erinnerungen nach Aufträgen.
+    </p>
+    <label class="field-label" for="settings-review-link">Google Profil-URL</label>
+    <input
+      id="settings-review-link"
+      type="url"
+      class="field-input"
+      placeholder="https://www.google.com/maps/place/..."
+    />
+
+    <button
+      id="settings-review-save-button"
+      class="btn btn-secondary"
+      style="margin-top: 8px;"
+    >
+      Speichern
+    </button>
+    <p id="settings-review-save-status" class="form-hint"></p>
+  </div>
+
+          <!-- SUPPORT -->
+          <div class="settings-group glass">
+            <h3>Support</h3>
+            <p class="settings-help">
+              Bei Fragen oder Problemen melde dich einfach.
+            </p>
+            <a href="mailto:support@detailhq.de" class="btn btn-secondary btn-block">
+              Support per E-Mail
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <!-- PROFIL MODAL -->
+      <div id="profile-modal" class="profile-modal hidden">
+        <div class="profile-modal-backdrop"></div>
+        <div class="profile-modal-card glass">
+          <div class="profile-modal-header">
+            <h3>Profil verwalten</h3>
+            <button id="profile-close-button" class="icon-button small" title="Schließen">
+              ✕
+            </button>
+          </div>
+          <form id="profile-form" class="form">
+            <label class="field-label" for="profile-name">Name</label>
+            <input id="profile-name" type="text" class="field-input" />
+
+            <label class="field-label" for="profile-company">Firma</label>
+            <input id="profile-company" type="text" class="field-input" />
+
+            <label class="field-label" for="profile-address">Adresse</label>
+            <input id="profile-address" type="text" class="field-input" />
+
+            <label class="field-label" for="profile-avatar-file">Profilbild (optional)</label>
+            <input id="profile-avatar-file" type="file" accept="image/*" class="field-input" />
+
+            <button type="submit" class="btn btn-primary">
+              Speichern
+            </button>
+          </form>
+          <p id="profile-save-message" class="form-hint"></p>
+        </div>
+      </div>
+
+<!-- BUCHUNG / NEUER AUFTRAG MODAL -->
+<div id="booking-modal" class="profile-modal hidden">
+  <div class="profile-modal-backdrop"></div>
+  <div class="profile-modal-card glass">
+    <div class="profile-modal-header">
+      <h3>Neuer Auftrag</h3>
+      <button id="booking-close-button" class="icon-button small" title="Schließen">✕</button>
+    </div>
+    <form id="booking-form" class="form">
+      <!-- Fahrzeug -->
+      <label class="field-label" for="booking-vehicle-class">Fahrzeugklasse (optional)</label>
+      <select id="booking-vehicle-class" class="field-input">
+        <option value="">Keine Auswahl</option>
+      </select>
+
+      <label class="field-label" for="booking-car">Fahrzeug (optional)</label>
+      <input id="booking-car" type="text" class="field-input" placeholder="z.B. BMW M3, Kennzeichen" />
+
+      <!-- Services -->
+      <label class="field-label" for="booking-main-service">Paket (optional)</label>
+      <select id="booking-main-service" class="field-input">
+        <option value="">Kein Paket</option>
+      </select>
+
+      <div class="form-hint" style="margin-top:4px;">
+        Zusätzlich kannst du Einzelleistungen und Add-ons wählen.
+      </div>
+
+      <div class="booking-services-group">
+        <h4 class="settings-subtitle">Einzelleistungen</h4>
+        <div id="booking-singles-list" class="list-container small"></div>
+      </div>
+
+      <div class="booking-services-group">
+        <h4 class="settings-subtitle">Add-ons</h4>
+        <div id="booking-addons-list" class="list-container small"></div>
+      </div>
+
+      <!-- Termin -->
+      <h4 class="settings-subtitle">Termin</h4>
+      <div class="booking-datetime-row">
+        <div>
+          <label class="field-label" for="booking-date">Datum</label>
+          <input id="booking-date" type="date" class="field-input" required />
+        </div>
+        <div>
+          <label class="field-label" for="booking-time">Uhrzeit</label>
+          <input id="booking-time" type="time" class="field-input" required />
+        </div>
+      </div>
+
+      <!-- Kunde -->
+      <h4 class="settings-subtitle">Kunde (optional)</h4>
+      <label class="field-label" for="booking-customer-name">Name</label>
+      <input id="booking-customer-name" type="text" class="field-input" />
+
+      <label class="field-label" for="booking-customer-email">E-Mail</label>
+      <input id="booking-customer-email" type="email" class="field-input" />
+
+      <label class="field-label" for="booking-customer-phone">Telefon</label>
+      <input id="booking-customer-phone" type="tel" class="field-input" />
+
+      <label class="field-label" for="booking-customer-address">Adresse</label>
+      <input id="booking-customer-address" type="text" class="field-input" />
+
+      <!-- Notizen -->
+      <label class="field-label" for="booking-notes">Notizen (optional)</label>
+      <textarea id="booking-notes" class="field-input" rows="3"></textarea>
+
+      <!-- Status -->
+      <h4 class="settings-subtitle">Status</h4>
+      <label class="field-label" for="booking-job-status">Auftragsstatus</label>
+      <select id="booking-job-status" class="field-input">
+        <option value="planned">Geplant</option>
+        <option value="in_progress">In Arbeit</option>
+        <option value="done">Abgeschlossen</option>
+        <option value="cancelled">Storniert</option>
+      </select>
+
+      <label class="field-label" for="booking-payment-status">Zahlungsstatus</label>
+      <select id="booking-payment-status" class="field-input">
+        <option value="open">Offen</option>
+        <option value="paid">Bezahlt</option>
+        <option value="partial">Teilzahlung</option>
+        <option value="refunded">Erstattet</option>
+      </select>
+
+      <!-- Zusammenfassung -->
+      <div class="booking-summary glass" style="margin-top:16px; padding:12px;">
+        <p><strong>Gesamtpreis:</strong> <span id="booking-summary-price">€ 0,00</span></p>
+        <p><strong>Gesamtzeit:</strong> <span id="booking-summary-duration">0 Min.</span></p>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top:16px;">
+        Auftrag anlegen
+      </button>
+    </form>
+    <p id="booking-error" class="error-text"></p>
+  </div>
+</div>
+
+      <!-- BOTTOM NAV -->
+      <nav class="bottom-nav glass">
+        <button class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="nav-item" data-tab="schedule">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">Zeitplan</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Einstellungen</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
