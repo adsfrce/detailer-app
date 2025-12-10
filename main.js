@@ -2,12 +2,12 @@
 // Supabase Setup
 // ================================
 const SUPABASE_URL = "https://qcilpodwbtbsxoabjfzc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWxwb2R3YnRic3hvYWJqZnpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzAzNTQsImV4cCI6MjA4MDg0NjM1NH0.RZ4M0bMSVhNpYZnktEyKCuJDFEpSJoyCmLFQhQLXs_w";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWxwb2R3YnRic3hvYWJqZnpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzAzNTQsImV4cCI6MjA4MDg0NjM1NH0.RZ4M0bMSVhNpYZnktEyKCuJDFEpSJoyCmLFQhQLXs_w";
 
 let supabaseClient = null;
 
 try {
-  // global "supabase" kommt aus dem UMD-Script im <head>
   console.log("DetailHQ: Supabase global typeof =", typeof supabase);
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   console.log("DetailHQ: Supabase Client initialisiert");
@@ -26,6 +26,39 @@ let currentProfile = null;
 let currentCalendarUrl = "";
 let vehicleClasses = [];
 let services = [];
+let currentBookingStep = 1;
+let currentDetailBooking = null;
+let lastStatsBookings = [];
+// Review-Reminder State (lokal)
+const REVIEW_REMINDER_STORAGE_KEY = "detailhq_review_reminders";
+let reviewReminderState = {};
+
+function loadReviewReminderState() {
+  try {
+    const raw = localStorage.getItem(REVIEW_REMINDER_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveReviewReminderState() {
+  try {
+    localStorage.setItem(
+      REVIEW_REMINDER_STORAGE_KEY,
+      JSON.stringify(reviewReminderState || {})
+    );
+  } catch (err) {
+    console.error("ReviewReminderState speichern fehlgeschlagen:", err);
+  }
+}
+
+function startReviewReminderTimer() {
+  // aktueller Stand: nur State laden, keine weiteren Aktionen
+  reviewReminderState = loadReviewReminderState();
+}
 
 // ================================
 // DOM REFERENZEN
@@ -53,7 +86,7 @@ const profileMenu = document.getElementById("profile-menu");
 const profileManageButton = document.getElementById("profile-manage-button");
 const profileLogoutButton = document.getElementById("profile-logout-button");
 
-// Avatar – wir gehen von <img id="profile-avatar-image" ...> aus
+// Avatar
 const profileAvatarImage = document.getElementById("profile-avatar-image");
 
 // Trial-Banner
@@ -71,6 +104,59 @@ const profileAddressInput = document.getElementById("profile-address");
 const profileAvatarFile = document.getElementById("profile-avatar-file");
 const profileSaveMessage = document.getElementById("profile-save-message");
 
+// Booking-Detail-Modal
+const bookingDetailModal = document.getElementById("booking-detail-modal");
+const bookingDetailTitle = document.getElementById("booking-detail-title");
+const bookingDetailMeta = document.getElementById("booking-detail-meta");
+const bookingDetailPrice = document.getElementById("booking-detail-price");
+
+// NEU:
+const bookingDetailDateInput = document.getElementById("booking-detail-date");
+const bookingDetailTimeInput = document.getElementById("booking-detail-time");
+const bookingDetailCarInput = document.getElementById("booking-detail-car");
+const bookingDetailVehicleClassSelect = document.getElementById(
+  "booking-detail-vehicle-class"
+);
+const bookingDetailDiscountTypeSelect = document.getElementById(
+  "booking-detail-discount-type"
+);
+const bookingDetailDiscountValueInput = document.getElementById(
+  "booking-detail-discount-value"
+);
+const bookingDetailCustomerNameInput = document.getElementById(
+  "booking-detail-customer-name"
+);
+const bookingDetailCustomerEmailInput = document.getElementById(
+  "booking-detail-customer-email"
+);
+const bookingDetailCustomerPhoneInput = document.getElementById(
+  "booking-detail-customer-phone"
+);
+const bookingDetailCustomerAddressInput = document.getElementById(
+  "booking-detail-customer-address"
+);
+
+const bookingDetailBookingContainer = document.getElementById("booking-detail-booking");
+const bookingDetailCustomerContainer = document.getElementById("booking-detail-customer");
+const bookingDetailNotes = document.getElementById("booking-detail-notes");
+const bookingDetailJobStatusSelect = document.getElementById("booking-detail-job-status");
+const bookingDetailPaymentStatusSelect = document.getElementById("booking-detail-payment-status");
+const bookingDetailCloseButton = document.getElementById("booking-detail-close");
+const bookingDetailSaveButton = document.getElementById("booking-detail-save");
+const bookingDetailDeleteButton = document.getElementById("booking-detail-delete-button");
+const bookingDetailPartialAmountInput = document.getElementById(
+  "booking-detail-partial-amount"
+);
+const bookingDetailPaidOverrideInput = document.getElementById(
+  "booking-detail-paid-override-amount"
+);
+const bookingDetailPartialRow = document.querySelector(
+  ".payment-partial-row"
+);
+const bookingDetailPaidOverrideRow = document.querySelector(
+  ".payment-paid-override-row"
+);
+
 // Theme
 const themeRadioInputs = document.querySelectorAll('input[name="theme"]');
 
@@ -81,27 +167,56 @@ const calendarPreferenceInputs = document.querySelectorAll(
 const calendarOpenButton = document.getElementById("calendar-open-button");
 
 // Billing
-const billingManageButton = document.getElementById("billing-manage-plan-button");
-const billingLifetimeButton = document.getElementById("billing-switch-lifetime-button");
-const billingYearlyButton = document.getElementById("billing-subscription-yearly-button");
-const billingMonthlyButton = document.getElementById("billing-subscription-monthly-button"); // <-- NEU
+const billingManageButton = document.getElementById(
+  "billing-manage-plan-button"
+);
+const billingLifetimeButton = document.getElementById(
+  "billing-switch-lifetime-button"
+);
+const billingYearlyButton = document.getElementById(
+  "billing-subscription-yearly-button"
+);
+const billingMonthlyButton = document.getElementById(
+  "billing-subscription-monthly-button"
+);
 
 // Bewertungen
-const settingsReviewLinkInput = document.getElementById("settings-review-link");
-const settingsReviewSaveButton = document.getElementById("settings-review-save-button");
-const settingsReviewSaveStatus = document.getElementById("settings-review-save-status");
+const settingsReviewLinkInput = document.getElementById(
+  "settings-review-link"
+);
+const settingsReviewSaveButton = document.getElementById(
+  "settings-review-save-button"
+);
+const settingsReviewSaveStatus = document.getElementById(
+  "settings-review-save-status"
+);
 
 // Services / Vehicle Classes
 const vehicleClassesList = document.getElementById("vehicle-classes-list");
-const vehicleClassAddButton = document.getElementById("vehicle-class-add-button");
+const vehicleClassAddButton = document.getElementById(
+  "vehicle-class-add-button"
+);
 const vehicleClassModal = document.getElementById("vehicle-class-modal");
-const vehicleClassModalTitle = document.getElementById("vehicle-class-modal-title");
-const vehicleClassModalClose = document.getElementById("vehicle-class-modal-close");
+const vehicleClassModalTitle = document.getElementById(
+  "vehicle-class-modal-title"
+);
+const vehicleClassModalClose = document.getElementById(
+  "vehicle-class-modal-close"
+);
 const vehicleClassForm = document.getElementById("vehicle-class-form");
 const vehicleClassNameInput = document.getElementById("vehicle-class-name");
-const vehicleClassPriceFactorInput = document.getElementById("vehicle-class-price-factor");
-const vehicleClassDurationFactorInput = document.getElementById("vehicle-class-duration-factor");
-const vehicleClassModalError = document.getElementById("vehicle-class-modal-error");
+const vehicleClassPriceDeltaInput = document.getElementById(
+  "vehicle-class-price-delta"
+);
+const vehicleClassModalError = document.getElementById(
+  "vehicle-class-modal-error"
+);
+const vehicleClassesDropdownToggle = document.getElementById(
+  "vehicle-classes-dropdown-toggle"
+);
+const servicesDropdownToggle = document.getElementById(
+  "services-dropdown-toggle"
+);
 
 const servicesList = document.getElementById("services-list");
 const serviceAddButton = document.getElementById("service-add-button");
@@ -123,26 +238,120 @@ const newBookingButton2 = document.getElementById("new-booking-button-2");
 const bookingModal = document.getElementById("booking-modal");
 const bookingCloseButton = document.getElementById("booking-close-button");
 const bookingForm = document.getElementById("booking-form");
-const bookingVehicleClassSelect = document.getElementById("booking-vehicle-class");
+
+const bookingStep1 = document.getElementById("booking-step-1");
+const bookingStep2 = document.getElementById("booking-step-2");
+const bookingStep3 = document.getElementById("booking-step-3");
+const bookingStepIndicator1 = document.getElementById(
+  "booking-step-indicator-1"
+);
+const bookingStepIndicator2 = document.getElementById(
+  "booking-step-indicator-2"
+);
+const bookingStepIndicator3 = document.getElementById(
+  "booking-step-indicator-3"
+);
+const bookingDiscountTypeSelect = document.getElementById(
+  "booking-discount-type"
+);
+const bookingDiscountValueInput = document.getElementById(
+  "booking-discount-value"
+);
+
+const bookingNext1 = document.getElementById("booking-next-1");
+const bookingNext2 = document.getElementById("booking-next-2");
+const bookingBack2 = document.getElementById("booking-back-2");
+const bookingBack3 = document.getElementById("booking-back-3");
+
+const bookingVehicleClassSelect = document.getElementById(
+  "booking-vehicle-class"
+);
 const bookingCarInput = document.getElementById("booking-car");
-const bookingMainServiceSelect = document.getElementById("booking-main-service");
+const bookingMainServiceSelect = document.getElementById(
+  "booking-main-service"
+);
 const bookingSinglesList = document.getElementById("booking-singles-list");
-const bookingAddonsList = document.getElementById("booking-addons-list");
+const bookingSinglesToggle = document.getElementById("booking-singles-toggle");
+const bookingSinglesMenu = document.getElementById("booking-singles-menu");
+
 const bookingDateInput = document.getElementById("booking-date");
 const bookingTimeInput = document.getElementById("booking-time");
-const bookingCustomerNameInput = document.getElementById("booking-customer-name");
-const bookingCustomerEmailInput = document.getElementById("booking-customer-email");
-const bookingCustomerPhoneInput = document.getElementById("booking-customer-phone");
-const bookingCustomerAddressInput = document.getElementById("booking-customer-address");
+const bookingCustomerNameInput = document.getElementById(
+  "booking-customer-name"
+);
+const bookingCustomerEmailInput = document.getElementById(
+  "booking-customer-email"
+);
+const bookingCustomerPhoneInput = document.getElementById(
+  "booking-customer-phone"
+);
+const bookingCustomerAddressInput = document.getElementById(
+  "booking-customer-address"
+);
 const bookingNotesInput = document.getElementById("booking-notes");
-const bookingJobStatusSelect = document.getElementById("booking-job-status");
-const bookingPaymentStatusSelect = document.getElementById("booking-payment-status");
 const bookingSummaryPrice = document.getElementById("booking-summary-price");
-const bookingSummaryDuration = document.getElementById("booking-summary-duration");
+const bookingSummaryDuration = document.getElementById(
+  "booking-summary-duration"
+);
 const bookingError = document.getElementById("booking-error");
 
+// Dashboard / Schedule Lists
+const todayBookingsContainer = document.getElementById("today-bookings");
+const scheduleListContainer = document.getElementById("schedule-list");
+// Dashboard: Bewertungen fällig
+const reviewRemindersContainer = document.getElementById("review-reminders");
+
+// Review-Modal
+const reviewModal = document.getElementById("review-modal");
+const reviewModalText = document.getElementById("review-modal-text");
+const reviewModalClose = document.getElementById("review-modal-close");
+const reviewModalCopyButton = document.getElementById("review-modal-copy");
+const reviewModalDoneButton = document.getElementById("review-modal-done");
+
+// Aktueller Review-Booking
+let currentReviewBooking = null;
+
+// Dashboard-KPIs
+const revenueTodayElement = document.getElementById("revenue-today");
+const volumeTodayElement = document.getElementById("volume-today");
+const dashboardPeriodToggle = document.getElementById(
+  "dashboard-period-toggle"
+);
+
 // ================================
-// INIT – direkt ausführen (kein DOMContentLoaded-Problem)
+// BOOKING STEP HELPER (global)
+// ================================
+function showBookingStep(step) {
+  currentBookingStep = step;
+
+  const steps = [bookingStep1, bookingStep2, bookingStep3];
+  const indicators = [
+    bookingStepIndicator1,
+    bookingStepIndicator2,
+    bookingStepIndicator3,
+  ];
+
+  steps.forEach((el, idx) => {
+    if (!el) return;
+    const s = idx + 1;
+    if (s === step) {
+      el.classList.remove("hidden");
+    } else {
+      el.classList.add("hidden");
+    }
+  });
+
+  indicators.forEach((el, idx) => {
+    if (!el) return;
+    const s = idx + 1;
+    el.classList.toggle("active", s === step);
+  });
+
+  recalcBookingSummary();
+}
+
+// ================================
+// INIT
 // ================================
 (async function init() {
   console.log("DetailHQ init startet...");
@@ -164,6 +373,10 @@ const bookingError = document.getElementById("booking-error");
   setupReviewSettingsHandlers();
   setupServiceManagementHandlers();
   setupBookingHandlers();
+  setupBookingDetailHandlers();
+  setupDashboardPeriodHandlers();
+  setupReviewModalHandlers();
+  startReviewReminderTimer();
 
   function setupReviewSettingsHandlers() {
     if (!settingsReviewSaveButton || !settingsReviewLinkInput) return;
@@ -188,7 +401,10 @@ const bookingError = document.getElementById("booking-error");
         .eq("id", currentUser.id);
 
       if (error) {
-        console.error("DetailHQ: review_link speichern fehlgeschlagen:", error);
+        console.error(
+          "DetailHQ: review_link speichern fehlgeschlagen:",
+          error
+        );
         if (settingsReviewSaveStatus) {
           settingsReviewSaveStatus.textContent =
             "Fehler beim Speichern. Bitte später erneut versuchen.";
@@ -196,7 +412,6 @@ const bookingError = document.getElementById("booking-error");
         return;
       }
 
-      // lokalen State updaten
       if (currentProfile) {
         currentProfile.review_link = link || null;
       }
@@ -227,9 +442,9 @@ const bookingError = document.getElementById("booking-error");
     await loadProfileIntoForm();
     setupCalendarUrlForUser();
 
-    // NEU: Fahrzeugklassen & Services laden
     await loadVehicleClasses();
     await loadServices();
+    await loadBookingsForDashboardAndSchedule();
 
     showAppView();
   } else {
@@ -307,13 +522,14 @@ function setupAuthHandlers() {
         return;
       }
 
-currentUser = data.user;
-await ensureProfile();
-await loadProfileIntoForm();
-setupCalendarUrlForUser();
-await loadVehicleClasses();
-await loadServices();
-showAppView();
+      currentUser = data.user;
+      await ensureProfile();
+      await loadProfileIntoForm();
+      setupCalendarUrlForUser();
+      await loadVehicleClasses();
+      await loadServices();
+      await loadBookingsForDashboardAndSchedule();
+      showAppView();
     });
   }
 
@@ -355,20 +571,24 @@ showAppView();
         });
 
       if (signInError) {
-        console.error("DetailHQ: Auto-Login nach Register fehlgeschlagen:", signInError);
+        console.error(
+          "DetailHQ: Auto-Login nach Register fehlgeschlagen:",
+          signInError
+        );
         if (authError)
           authError.textContent =
             signInError.message || "Automatische Anmeldung fehlgeschlagen.";
         return;
       }
 
-currentUser = signInData.user;
-await ensureProfile();
-await loadProfileIntoForm();
-setupCalendarUrlForUser();
-await loadVehicleClasses();
-await loadServices();
-showAppView();
+      currentUser = signInData.user;
+      await ensureProfile();
+      await loadProfileIntoForm();
+      setupCalendarUrlForUser();
+      await loadVehicleClasses();
+      await loadServices();
+      await loadBookingsForDashboardAndSchedule();
+      showAppView();
     });
   }
 
@@ -428,10 +648,7 @@ function switchTab(tabName) {
   });
 
   tabSections.forEach((section) => {
-    section.classList.toggle(
-      "active",
-      section.id === `tab-${tabName}`
-    );
+    section.classList.toggle("active", section.id === `tab-${tabName}`);
   });
 
   if (tabName === "dashboard") {
@@ -440,8 +657,7 @@ function switchTab(tabName) {
       "Übersicht über deine Aufträge und Umsätze.";
   } else if (tabName === "schedule") {
     headerTitle.textContent = "Zeitplan";
-    headerSubtitle.textContent =
-      "Alle geplanten Aufträge im Blick.";
+    headerSubtitle.textContent = "Alle geplanten Aufträge im Blick.";
   } else if (tabName === "settings") {
     headerTitle.textContent = "Einstellungen";
     headerSubtitle.textContent =
@@ -453,8 +669,7 @@ function switchTab(tabName) {
 // THEME
 // ================================
 function initThemeFromStorage() {
-  // Standard soll "system" sein
-  const stored = localStorage.getItem(THEME_KEY) || "system";
+  const stored = localStorage.getItem(THEME_KEY) || "light";
   applyTheme(stored);
 
   themeRadioInputs.forEach((input) => {
@@ -509,15 +724,15 @@ async function ensureProfile() {
 
   if (!data) {
     const themeSetting = localStorage.getItem(THEME_KEY) || "system";
-    const { error: insertError } = await supabaseClient
-      .from("profiles")
-      .insert({
-        id: currentUser.id,
-        appearance: themeSetting,
-        // plan_status & trial_ends_at kommen über DB-Defaults
-      });
+    const { error: insertError } = await supabaseClient.from("profiles").insert({
+      id: currentUser.id,
+      appearance: themeSetting,
+    });
     if (insertError) {
-      console.error("DetailHQ: Fehler beim Anlegen des Profils:", insertError);
+      console.error(
+        "DetailHQ: Fehler beim Anlegen des Profils:",
+        insertError
+      );
     }
   }
 }
@@ -541,8 +756,7 @@ async function loadProfileIntoForm() {
   if (profileNameInput) profileNameInput.value = data.full_name || "";
   if (profileCompanyInput)
     profileCompanyInput.value = data.company_name || "";
-  if (profileAddressInput)
-    profileAddressInput.value = data.address || "";
+  if (profileAddressInput) profileAddressInput.value = data.address || "";
 
   if (settingsReviewLinkInput) {
     settingsReviewLinkInput.value = data.review_link || "";
@@ -604,6 +818,32 @@ function setupProfileMenuHandlers() {
     });
   }
 
+  if (profileLogoutButton) {
+    profileLogoutButton.addEventListener("click", async () => {
+      hideProfileMenu();
+      try {
+        await supabaseClient.auth.signOut();
+      } catch (err) {
+        console.error("DetailHQ: Logout Fehler:", err);
+      }
+      currentUser = null;
+      currentProfile = null;
+      vehicleClasses = [];
+      services = [];
+
+      if (todayBookingsContainer) {
+        todayBookingsContainer.innerHTML =
+          '<p>Noch keine Aufträge für heute.</p>';
+      }
+      if (scheduleListContainer) {
+        scheduleListContainer.innerHTML =
+          '<p>Noch keine geplanten Aufträge.</p>';
+      }
+
+      showAuthView();
+    });
+  }
+
   if (profileCloseButton) {
     profileCloseButton.addEventListener("click", () => {
       closeProfileModal();
@@ -646,7 +886,6 @@ function setupProfileMenuHandlers() {
 
       let avatar_url = currentProfile?.avatar_url || null;
 
-      // Profilbild hochladen, falls gewählt
       if (profileAvatarFile && profileAvatarFile.files.length > 0) {
         const file = profileAvatarFile.files[0];
         const ext = file.name.split(".").pop() || "jpg";
@@ -661,7 +900,10 @@ function setupProfileMenuHandlers() {
           });
 
         if (uploadError) {
-          console.error("DetailHQ: Avatar Upload fehlgeschlagen:", uploadError);
+          console.error(
+            "DetailHQ: Avatar Upload fehlgeschlagen:",
+            uploadError
+          );
           if (profileSaveMessage) {
             profileSaveMessage.textContent =
               "Profilbild-Upload fehlgeschlagen, Rest wird gespeichert.";
@@ -669,9 +911,7 @@ function setupProfileMenuHandlers() {
         } else {
           const {
             data: { publicUrl },
-          } = supabaseClient.storage
-            .from("avatars")
-            .getPublicUrl(path);
+          } = supabaseClient.storage.from("avatars").getPublicUrl(path);
 
           console.log("DetailHQ: Avatar public URL:", publicUrl);
           avatar_url = publicUrl || avatar_url;
@@ -778,7 +1018,7 @@ function setupBillingHandlers() {
     });
   }
 
-  if (billingMonthlyButton) { // <-- NEU
+  if (billingMonthlyButton) {
     billingMonthlyButton.addEventListener("click", () => {
       if (!currentUser) return;
       const url = `${apiBase}/billing/subscription?user=${encodeURIComponent(
@@ -795,14 +1035,10 @@ function updateBillingUI() {
   const isLifetime = !!currentProfile.is_lifetime;
   const status = currentProfile.plan_status || null;
 
-  // Lifetime-Button: weg, wenn schon Lifetime
   if (billingLifetimeButton) {
     billingLifetimeButton.style.display = isLifetime ? "none" : "inline-flex";
   }
 
-  // Monatsabo-Button:
-  // - weg, wenn Lifetime
-  // - weg, wenn plan_status === "active" (aktives Monatsabo)
   if (billingMonthlyButton) {
     if (isLifetime || status === "active") {
       billingMonthlyButton.style.display = "none";
@@ -811,9 +1047,6 @@ function updateBillingUI() {
     }
   }
 
-  // Jahresabo-Button:
-  // - weg, wenn Lifetime
-  // - weg, wenn plan_status === "active_yearly"
   if (billingYearlyButton) {
     if (isLifetime || status === "active_yearly") {
       billingYearlyButton.style.display = "none";
@@ -855,12 +1088,10 @@ function updateTrialBanner() {
   trialBanner.classList.remove("hidden");
 }
 
-// Trial-Banner Button -> wechselt nur in Einstellungen-Tab
 function setupTrialBannerHandlers() {
   if (!trialBannerButton) return;
 
   trialBannerButton.addEventListener("click", () => {
-    // nur UI-Tab wechseln, kein Stripe-Call
     switchTab("settings");
   });
 }
@@ -870,26 +1101,28 @@ function setupTrialBannerHandlers() {
 // ================================
 function setupCalendarHandlers() {
   console.log("DetailHQ: setupCalendarHandlers");
-  if (calendarOpenButton) {
-    calendarOpenButton.addEventListener("click", () => {
-      if (!currentCalendarUrl || !currentUser) return;
 
-      let pref = "apple";
-      calendarPreferenceInputs.forEach((inp) => {
-        if (inp.checked) pref = inp.value;
-      });
+  if (!calendarOpenButton) return;
 
-      if (pref === "apple") {
-        const webcalUrl = currentCalendarUrl.replace(/^https?:/, "webcal:");
-        window.location.href = webcalUrl;
-      } else {
-        const googleUrl = `https://calendar.google.com/calendar/u/0/r?cid=${encodeURIComponent(
-          currentCalendarUrl
-        )}`;
-        window.location.href = googleUrl;
-      }
+  calendarOpenButton.addEventListener("click", () => {
+    if (!currentCalendarUrl || !currentUser) return;
+
+    let pref = "apple";
+    calendarPreferenceInputs.forEach((inp) => {
+      if (inp.checked) pref = inp.value;
     });
-  }
+
+    if (pref === "apple") {
+      // iOS / macOS – direkt per webcal öffnen
+      const webcalUrl = currentCalendarUrl.replace(/^https?:/, "webcal:");
+      window.location.href = webcalUrl;
+    } else {
+      // Google Calendar – offizielles Muster: render?cid=webcal://...
+      const webcalUrl = currentCalendarUrl.replace(/^https?:/, "webcal:");
+      const googleUrl = `https://calendar.google.com/calendar/render?cid=${webcalUrl}`;
+      window.open(googleUrl, "_blank");
+    }
+  });
 }
 
 // ================================
@@ -911,18 +1144,16 @@ async function loadVehicleClasses() {
 
   vehicleClasses = data || [];
 
-  // Defaults anlegen, wenn keine vorhanden
   if (vehicleClasses.length === 0) {
     const defaults = [
-      { name: "Kleinwagen", price_factor: 1.0, duration_factor: 1.0, sort_order: 1 },
-      { name: "Mittelklasse", price_factor: 1.2, duration_factor: 1.1, sort_order: 2 },
-      { name: "SUV / Transporter", price_factor: 1.4, duration_factor: 1.2, sort_order: 3 },
-    ].map((v, idx) => ({
+      { name: "Kleinwagen", price_delta_cents: 0, sort_order: 1 },
+      { name: "Limo / Kombi", price_delta_cents: 2000, sort_order: 2 },
+      { name: "SUV / Transporter", price_delta_cents: 4000, sort_order: 3 },
+    ].map((v) => ({
       detailer_id: currentUser.id,
       name: v.name,
-      price_factor: v.price_factor,
-      duration_factor: v.duration_factor,
-      sort_order: v.sort_order ?? idx + 1,
+      price_delta_cents: v.price_delta_cents,
+      sort_order: v.sort_order,
     }));
 
     const { data: inserted, error: insertError } = await supabaseClient
@@ -931,7 +1162,10 @@ async function loadVehicleClasses() {
       .select("*");
 
     if (insertError) {
-      console.error("DetailHQ: default vehicle_classes insert failed:", insertError);
+      console.error(
+        "DetailHQ: default vehicle_classes insert failed:",
+        insertError
+      );
     } else {
       vehicleClasses = inserted || [];
     }
@@ -963,10 +1197,19 @@ function renderVehicleClassesList() {
     const title = document.createElement("div");
     title.className = "settings-row-title";
     title.textContent = vc.name;
+
     const meta = document.createElement("div");
     meta.className = "settings-row-meta";
-    meta.textContent = `Preisfaktor: ${vc.price_factor ?? 1.0} · Zeitfaktor: ${vc.duration_factor ?? 1.0}`;
 
+    const delta = vc.price_delta_cents || 0;
+    const deltaEuro = delta / 100;
+    const sign = deltaEuro > 0 ? "+" : "";
+    const deltaText = deltaEuro.toLocaleString("de-DE", {
+      style: "currency",
+      currency: "EUR",
+    });
+
+    meta.textContent = `Preis-Anpassung: ${sign}${deltaText}`;
     left.appendChild(title);
     left.appendChild(meta);
 
@@ -1004,14 +1247,13 @@ function openVehicleClassModal(vc) {
     vehicleClassModalTitle.textContent = "Fahrzeugklasse bearbeiten";
     vehicleClassModal.dataset.id = vc.id;
     vehicleClassNameInput.value = vc.name || "";
-    vehicleClassPriceFactorInput.value = vc.price_factor ?? 1.0;
-    vehicleClassDurationFactorInput.value = vc.duration_factor ?? 1.0;
+    const deltaEuro = (vc.price_delta_cents || 0) / 100;
+    vehicleClassPriceDeltaInput.value = deltaEuro.toString();
   } else {
     vehicleClassModalTitle.textContent = "Fahrzeugklasse hinzufügen";
     delete vehicleClassModal.dataset.id;
     vehicleClassNameInput.value = "";
-    vehicleClassPriceFactorInput.value = "1.0";
-    vehicleClassDurationFactorInput.value = "1.0";
+    vehicleClassPriceDeltaInput.value = "0";
   }
 
   vehicleClassModal.classList.remove("hidden");
@@ -1093,7 +1335,7 @@ function renderServicesList() {
         ? "Paket"
         : svc.kind === "single"
         ? "Einzelleistung"
-        : "Add-on";
+        : "Service";
 
     const priceEuro = (svc.base_price_cents || 0) / 100;
     const priceText = priceEuro.toLocaleString("de-DE", {
@@ -1101,9 +1343,11 @@ function renderServicesList() {
       currency: "EUR",
     });
 
-    const durationText = svc.base_duration_minutes
-      ? `${svc.base_duration_minutes} Min.`
-      : "ohne Zeitangabe";
+    let durationText = "ohne Zeitangabe";
+    if (svc.duration_minutes && svc.duration_minutes > 0) {
+      const hours = svc.duration_minutes / 60;
+      durationText = `${hours.toFixed(1)} Std.`;
+    }
 
     const categoryText = svc.category ? ` · Kategorie: ${svc.category}` : "";
 
@@ -1148,7 +1392,10 @@ function openServiceModal(svc) {
     serviceCategoryInput.value = svc.category || "";
     serviceNameInput.value = svc.name || "";
     servicePriceInput.value = ((svc.base_price_cents || 0) / 100).toString();
-    serviceDurationInput.value = svc.base_duration_minutes || "";
+    // Speicherung ist in Minuten, Anzeige in Stunden
+    serviceDurationInput.value = svc.duration_minutes
+      ? (svc.duration_minutes / 60).toString()
+      : "";
     serviceDescriptionInput.value = svc.description || "";
   } else {
     serviceModalTitle.textContent = "Service hinzufügen";
@@ -1192,14 +1439,21 @@ async function deleteService(id) {
 function setupServiceManagementHandlers() {
   // Vehicle classes
   if (vehicleClassAddButton) {
-    vehicleClassAddButton.addEventListener("click", () => openVehicleClassModal(null));
+    vehicleClassAddButton.addEventListener("click", () =>
+      openVehicleClassModal(null)
+    );
   }
   if (vehicleClassModalClose) {
-    vehicleClassModalClose.addEventListener("click", () => closeVehicleClassModal());
+    vehicleClassModalClose.addEventListener("click", () =>
+      closeVehicleClassModal()
+    );
   }
   if (vehicleClassModal) {
     vehicleClassModal.addEventListener("click", (e) => {
-      if (e.target === vehicleClassModal || e.target.classList.contains("profile-modal-backdrop")) {
+      if (
+        e.target === vehicleClassModal ||
+        e.target.classList.contains("profile-modal-backdrop")
+      ) {
         closeVehicleClassModal();
       }
     });
@@ -1219,10 +1473,9 @@ function setupServiceManagementHandlers() {
         return;
       }
 
-      const priceFactor = parseFloat(vehicleClassPriceFactorInput.value || "1") || 1.0;
-      const durationFactor = parseFloat(
-        vehicleClassDurationFactorInput.value || "1"
-      ) || 1.0;
+      const deltaEuro =
+        parseFloat(vehicleClassPriceDeltaInput.value || "0") || 0;
+      const price_delta_cents = Math.round(deltaEuro * 100);
 
       const existingId = vehicleClassModal.dataset.id;
       if (existingId) {
@@ -1230,8 +1483,7 @@ function setupServiceManagementHandlers() {
           .from("vehicle_classes")
           .update({
             name,
-            price_factor: priceFactor,
-            duration_factor: durationFactor,
+            price_delta_cents,
           })
           .eq("id", existingId)
           .eq("detailer_id", currentUser.id);
@@ -1251,8 +1503,7 @@ function setupServiceManagementHandlers() {
           .insert({
             detailer_id: currentUser.id,
             name,
-            price_factor: priceFactor,
-            duration_factor: durationFactor,
+            price_delta_cents,
             sort_order: sortOrder,
           })
           .select("*")
@@ -1275,6 +1526,28 @@ function setupServiceManagementHandlers() {
     });
   }
 
+  function setupSettingsDropdownToggles() {
+  }
+  function attachToggle(toggleEl) {
+    if (!toggleEl) return;
+    const wrapper = toggleEl.closest(".settings-dropdown");
+    if (!wrapper) return;
+
+    toggleEl.addEventListener("click", () => {
+      const isOpen = wrapper.classList.contains("open");
+      // alle anderen zu
+      document
+        .querySelectorAll(".settings-dropdown.open")
+        .forEach((el) => el.classList.remove("open"));
+      // dieses auf/zu
+      wrapper.classList.toggle("open", !isOpen);
+    });
+  }
+
+  attachToggle(vehicleClassesDropdownToggle);
+  attachToggle(servicesDropdownToggle);
+}
+
   // Services
   if (serviceAddButton) {
     serviceAddButton.addEventListener("click", () => openServiceModal(null));
@@ -1284,7 +1557,10 @@ function setupServiceManagementHandlers() {
   }
   if (serviceModal) {
     serviceModal.addEventListener("click", (e) => {
-      if (e.target === serviceModal || e.target.classList.contains("profile-modal-backdrop")) {
+      if (
+        e.target === serviceModal ||
+        e.target.classList.contains("profile-modal-backdrop")
+      ) {
         closeServiceModal();
       }
     });
@@ -1300,9 +1576,16 @@ function setupServiceManagementHandlers() {
       const category = serviceCategoryInput.value.trim() || null;
       const name = serviceNameInput.value.trim();
       const priceEuro = parseFloat(servicePriceInput.value || "0") || 0;
-      const durationMinutes = serviceDurationInput.value
-        ? parseInt(serviceDurationInput.value, 10) || 0
+
+      // Eingabe in Stunden -> Speicherung in Minuten
+      const durationHoursRaw = serviceDurationInput.value
+        ? parseFloat(serviceDurationInput.value.replace(",", ".") || "0")
         : 0;
+      const durationHours = Number.isFinite(durationHoursRaw)
+        ? durationHoursRaw
+        : 0;
+      const durationMinutes = durationHours > 0 ? Math.round(durationHours * 60) : 0;
+
       const description = serviceDescriptionInput.value.trim() || null;
 
       if (!name) {
@@ -1321,7 +1604,7 @@ function setupServiceManagementHandlers() {
         name,
         description,
         base_price_cents,
-        base_duration_minutes: durationMinutes,
+        duration_minutes: durationMinutes,
       };
 
       const existingId = serviceModal.dataset.id;
@@ -1342,7 +1625,9 @@ function setupServiceManagementHandlers() {
           return;
         }
       } else {
-        const { error } = await supabaseClient.from("services").insert(payload);
+        const { error } = await supabaseClient
+          .from("services")
+          .insert(payload);
         if (error) {
           console.error("DetailHQ: insert service failed:", error);
           if (serviceModalError) {
@@ -1357,7 +1642,6 @@ function setupServiceManagementHandlers() {
       closeServiceModal();
     });
   }
-}
 
 // Helper: Booking selects
 function refreshBookingVehicleClassOptions() {
@@ -1380,7 +1664,8 @@ function refreshBookingVehicleClassOptions() {
 }
 
 function refreshBookingServiceOptions() {
-  if (!bookingMainServiceSelect || !bookingSinglesList || !bookingAddonsList) return;
+  if (!bookingMainServiceSelect || !bookingSinglesList || !bookingSinglesMenu)
+    return;
 
   // Paket-Dropdown
   bookingMainServiceSelect.innerHTML = "";
@@ -1397,71 +1682,60 @@ function refreshBookingServiceOptions() {
     bookingMainServiceSelect.appendChild(opt);
   });
 
-  // Einzelleistungen
+  // Einzelleistungen: Hidden-Select + schönes Dropdown mit Checkboxen
   bookingSinglesList.innerHTML = "";
+  bookingSinglesMenu.innerHTML = "";
+
   const singles = (services || []).filter((s) => s.kind === "single");
+
   if (singles.length === 0) {
     const p = document.createElement("p");
     p.className = "form-hint";
     p.textContent = "Noch keine Einzelleistungen angelegt.";
-    bookingSinglesList.appendChild(p);
-  } else {
-    singles.forEach((svc) => {
-      const row = document.createElement("label");
-      row.className = "checkbox-row";
-
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.value = svc.id;
-      input.className = "booking-single-checkbox";
-
-      const span = document.createElement("span");
-      const priceEuro = (svc.base_price_cents || 0) / 100;
-      const priceText = priceEuro.toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-      });
-      span.textContent = `${svc.name} (${priceText})`;
-
-      row.appendChild(input);
-      row.appendChild(span);
-
-      bookingSinglesList.appendChild(row);
-    });
+    bookingSinglesMenu.appendChild(p);
+    return;
   }
 
-  // Add-ons
-  bookingAddonsList.innerHTML = "";
-  const addons = (services || []).filter((s) => s.kind === "addon");
-  if (addons.length === 0) {
-    const p = document.createElement("p");
-    p.className = "form-hint";
-    p.textContent = "Noch keine Add-ons definiert.";
-    bookingAddonsList.appendChild(p);
-  } else {
-    addons.forEach((svc) => {
-      const row = document.createElement("label");
-      row.className = "checkbox-row";
-
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.value = svc.id;
-      input.className = "booking-addon-checkbox";
-
-      const span = document.createElement("span");
-      const priceEuro = (svc.base_price_cents || 0) / 100;
-      const priceText = priceEuro.toLocaleString("de-DE", {
-        style: "currency",
-        currency: "EUR",
-      });
-      span.textContent = `${svc.name} (${priceText})`;
-
-      row.appendChild(input);
-      row.appendChild(span);
-
-      bookingAddonsList.appendChild(row);
+  singles.forEach((svc) => {
+    const priceEuro = (svc.base_price_cents || 0) / 100;
+    const priceText = priceEuro.toLocaleString("de-DE", {
+      style: "currency",
+      currency: "EUR",
     });
-  }
+
+    // Hidden-Option für Logik (recalcBookingSummary benutzt selectedOptions)
+    const opt = document.createElement("option");
+    opt.value = svc.id;
+    bookingSinglesList.appendChild(opt);
+
+    // Sichtbarer Eintrag im Dropdown
+    const item = document.createElement("div");
+    item.className = "booking-singles-item";
+    item.dataset.id = svc.id;
+
+    const label = document.createElement("div");
+    label.className = "booking-singles-item-label";
+    label.textContent = `${svc.name} (${priceText})`;
+
+    const checkbox = document.createElement("div");
+    checkbox.className = "booking-singles-item-checkbox";
+
+    item.appendChild(label);
+    item.appendChild(checkbox);
+
+    item.addEventListener("click", () => {
+      const nowSelected = item.classList.toggle("selected");
+      const optEl = bookingSinglesList.querySelector(
+        `option[value="${svc.id}"]`
+      );
+      if (optEl) {
+        optEl.selected = nowSelected;
+      }
+      recalcBookingSummary();
+    });
+
+    bookingSinglesMenu.appendChild(item);
+  });
 }
 
 // ================================
@@ -1479,7 +1753,10 @@ function setupBookingHandlers() {
   }
   if (bookingModal) {
     bookingModal.addEventListener("click", (e) => {
-      if (e.target === bookingModal || e.target.classList.contains("profile-modal-backdrop")) {
+      if (
+        e.target === bookingModal ||
+        e.target.classList.contains("profile-modal-backdrop")
+      ) {
         closeBookingModal();
       }
     });
@@ -1492,6 +1769,27 @@ function setupBookingHandlers() {
     });
   }
 
+  if (bookingNext1) {
+    bookingNext1.addEventListener("click", () => {
+      showBookingStep(2);
+    });
+  }
+  if (bookingNext2) {
+    bookingNext2.addEventListener("click", () => {
+      showBookingStep(3);
+    });
+  }
+  if (bookingBack2) {
+    bookingBack2.addEventListener("click", () => {
+      showBookingStep(1);
+    });
+  }
+  if (bookingBack3) {
+    bookingBack3.addEventListener("click", () => {
+      showBookingStep(2);
+    });
+  }
+
   if (bookingVehicleClassSelect) {
     bookingVehicleClassSelect.addEventListener("change", recalcBookingSummary);
   }
@@ -1499,63 +1797,39 @@ function setupBookingHandlers() {
     bookingMainServiceSelect.addEventListener("change", recalcBookingSummary);
   }
   if (bookingSinglesList) {
-    bookingSinglesList.addEventListener("change", (e) => {
-      if (e.target && e.target.matches(".booking-single-checkbox")) {
-        recalcBookingSummary();
-      }
+    bookingSinglesList.addEventListener("change", () => {
+      recalcBookingSummary();
     });
   }
-  if (bookingAddonsList) {
-    bookingAddonsList.addEventListener("change", (e) => {
-      if (e.target && e.target.matches(".booking-addon-checkbox")) {
-        recalcBookingSummary();
-      }
+
+  if (bookingDiscountTypeSelect) {
+    bookingDiscountTypeSelect.addEventListener("change", recalcBookingSummary);
+  }
+  if (bookingDiscountValueInput) {
+    bookingDiscountValueInput.addEventListener("input", recalcBookingSummary);
+  }
+
+    if (bookingSinglesToggle && bookingSinglesMenu) {
+    bookingSinglesToggle.addEventListener("click", () => {
+      const wrapper = bookingSinglesToggle.closest(".settings-dropdown");
+      if (!wrapper) return;
+      const isOpen = wrapper.classList.contains("open");
+
+      document
+        .querySelectorAll(".settings-dropdown.open")
+        .forEach((el) => el.classList.remove("open"));
+
+      wrapper.classList.toggle("open", !isOpen);
     });
   }
 }
 
 function openBookingModal() {
-  if (!currentUser) {
-    alert("Bitte zuerst anmelden.");
-    return;
-  }
   if (!bookingModal) return;
-
-  const now = new Date();
-  const todayStr = now.toISOString().slice(0, 10);
-  const timeStr = now.toTimeString().slice(0, 5);
-  if (bookingDateInput && !bookingDateInput.value) {
-    bookingDateInput.value = todayStr;
-  }
-  if (bookingTimeInput && !bookingTimeInput.value) {
-    bookingTimeInput.value = timeStr;
-  }
-
   if (bookingError) bookingError.textContent = "";
 
-  if (bookingCarInput) bookingCarInput.value = "";
-  if (bookingCustomerNameInput) bookingCustomerNameInput.value = "";
-  if (bookingCustomerEmailInput) bookingCustomerEmailInput.value = "";
-  if (bookingCustomerPhoneInput) bookingCustomerPhoneInput.value = "";
-  if (bookingCustomerAddressInput) bookingCustomerAddressInput.value = "";
-  if (bookingNotesInput) bookingNotesInput.value = "";
-  if (bookingJobStatusSelect) bookingJobStatusSelect.value = "planned";
-  if (bookingPaymentStatusSelect) bookingPaymentStatusSelect.value = "open";
-
-  if (bookingMainServiceSelect) bookingMainServiceSelect.value = "";
-  if (bookingSinglesList) {
-    bookingSinglesList
-      .querySelectorAll("input[type=checkbox]")
-      .forEach((cb) => (cb.checked = false));
-  }
-  if (bookingAddonsList) {
-    bookingAddonsList
-      .querySelectorAll("input[type=checkbox]")
-      .forEach((cb) => (cb.checked = false));
-  }
-
-  recalcBookingSummary();
-
+  // Form nicht komplett resetten, aber Schritt 1 anzeigen
+  showBookingStep(1);
   bookingModal.classList.remove("hidden");
 }
 
@@ -1567,18 +1841,16 @@ function closeBookingModal() {
 function recalcBookingSummary() {
   if (!bookingSummaryPrice || !bookingSummaryDuration) return;
 
-  let totalPriceCents = 0;
+  let totalBasePriceCents = 0;
   let totalMinutes = 0;
 
-  let priceFactor = 1.0;
-  let durationFactor = 1.0;
+  let classPriceDeltaCents = 0;
 
   if (bookingVehicleClassSelect && bookingVehicleClassSelect.value) {
     const vcId = bookingVehicleClassSelect.value;
     const vc = (vehicleClasses || []).find((v) => v.id === vcId);
     if (vc) {
-      priceFactor = vc.price_factor ?? 1.0;
-      durationFactor = vc.duration_factor ?? 1.0;
+      classPriceDeltaCents = vc.price_delta_cents || 0;
     }
   }
 
@@ -1588,56 +1860,63 @@ function recalcBookingSummary() {
   if (bookingMainServiceSelect && bookingMainServiceSelect.value) {
     const main = getServiceById(bookingMainServiceSelect.value);
     if (main) {
-      totalPriceCents += Math.round((main.base_price_cents || 0) * priceFactor);
-      if (main.base_duration_minutes) {
-        totalMinutes += Math.round(main.base_duration_minutes * durationFactor);
+      totalBasePriceCents += main.base_price_cents || 0;
+      if (main.duration_minutes) {
+        totalMinutes += main.duration_minutes;
       }
     }
   }
 
-  // Einzelleistungen
+  // Einzelleistungen (Mehrfach-Select)
   if (bookingSinglesList) {
-    const checkboxes = bookingSinglesList.querySelectorAll(".booking-single-checkbox");
-    checkboxes.forEach((cb) => {
-      if (!cb.checked) return;
-      const svc = getServiceById(cb.value);
+    const selected = Array.from(bookingSinglesList.selectedOptions || []);
+    selected.forEach((opt) => {
+      if (!opt.value) return;
+      const svc = getServiceById(opt.value);
       if (!svc) return;
-      totalPriceCents += Math.round((svc.base_price_cents || 0) * priceFactor);
-      if (svc.base_duration_minutes) {
-        totalMinutes += Math.round(svc.base_duration_minutes * durationFactor);
+      totalBasePriceCents += svc.base_price_cents || 0;
+      if (svc.duration_minutes) {
+        totalMinutes += svc.duration_minutes;
       }
     });
   }
 
-  // Add-ons
-  if (bookingAddonsList) {
-    const checkboxes = bookingAddonsList.querySelectorAll(".booking-addon-checkbox");
-    checkboxes.forEach((cb) => {
-      if (!cb.checked) return;
-      const svc = getServiceById(cb.value);
-      if (!svc) return;
+  // Rabatt
+  let discountType = bookingDiscountTypeSelect
+    ? bookingDiscountTypeSelect.value
+    : "none";
+  let discountValueRaw = bookingDiscountValueInput
+    ? parseFloat(bookingDiscountValueInput.value || "0")
+    : 0;
+  let discountValue = Number.isFinite(discountValueRaw) ? discountValueRaw : 0;
 
-      if (
-        bookingMainServiceSelect &&
-        bookingMainServiceSelect.value &&
-        bookingMainServiceSelect.value === svc.id
-      ) {
-        return;
-      }
+  let discountAmountCents = 0;
 
-      totalPriceCents += Math.round((svc.base_price_cents || 0) * priceFactor);
-      if (svc.base_duration_minutes) {
-        totalMinutes += Math.round(svc.base_duration_minutes * durationFactor);
-      }
-    });
+  if (discountType === "amount" && discountValue > 0) {
+    discountAmountCents = Math.round(discountValue * 100);
+  } else if (discountType === "percent" && discountValue > 0) {
+    if (discountValue > 100) discountValue = 100;
+    if (discountValue < 0) discountValue = 0;
+    discountAmountCents = Math.round(
+      totalBasePriceCents * (discountValue / 100)
+    );
+  } else {
+    discountType = "none";
+    discountValue = 0;
   }
 
+  const totalPriceCentsRaw =
+    totalBasePriceCents + classPriceDeltaCents - discountAmountCents;
+  const totalPriceCents = Math.max(0, totalPriceCentsRaw);
   const priceEuro = totalPriceCents / 100;
+
   bookingSummaryPrice.textContent = priceEuro.toLocaleString("de-DE", {
     style: "currency",
     currency: "EUR",
   });
-  bookingSummaryDuration.textContent = `${totalMinutes} Min.`;
+
+  const hours = totalMinutes / 60;
+  bookingSummaryDuration.textContent = `${hours.toFixed(1)} Std.`;
 }
 
 async function submitBooking() {
@@ -1651,17 +1930,18 @@ async function submitBooking() {
 
   if (!dateStr) {
     if (bookingError) bookingError.textContent = "Bitte Datum auswählen.";
+    showBookingStep(2);
     return;
   }
 
   const startAt = new Date(`${dateStr}T${timeStr}:00`);
   if (Number.isNaN(startAt.getTime())) {
     if (bookingError) bookingError.textContent = "Ungültiges Datum / Uhrzeit.";
+    showBookingStep(2);
     return;
   }
 
-  let priceFactor = 1.0;
-  let durationFactor = 1.0;
+  let classPriceDeltaCents = 0;
   let vehicleClassId = null;
   let vehicleClassName = null;
 
@@ -1670,118 +1950,129 @@ async function submitBooking() {
     const vc = (vehicleClasses || []).find((v) => v.id === vehicleClassId);
     if (vc) {
       vehicleClassName = vc.name || null;
-      priceFactor = vc.price_factor ?? 1.0;
-      durationFactor = vc.duration_factor ?? 1.0;
+      classPriceDeltaCents = vc.price_delta_cents || 0;
     }
   }
+
+  // =======================================
+// AUFTRAGSNUMMER (#1, #2, #3, ...)
+// =======================================
+const { count: bookingCount, error: countError } = await supabaseClient
+  .from("bookings")
+  .select("*", { count: "exact", head: true });
+
+if (countError) {
+  console.error("Fehler beim Ermitteln der Auftragsnummer:", countError);
+}
+
+const orderNumber = (bookingCount || 0) + 1;
 
   const getServiceById = (id) => (services || []).find((s) => s.id === id);
 
   let items = [];
-  let totalPriceCents = 0;
+  let totalBasePriceCents = 0;
   let totalMinutes = 0;
 
+  // Paket
   let mainServiceName = null;
   if (bookingMainServiceSelect && bookingMainServiceSelect.value) {
     const main = getServiceById(bookingMainServiceSelect.value);
     if (main) {
       mainServiceName = main.name;
-      const price = Math.round((main.base_price_cents || 0) * priceFactor);
-      const dur = main.base_duration_minutes
-        ? Math.round(main.base_duration_minutes * durationFactor)
-        : 0;
+      const basePrice = main.base_price_cents || 0;
+      const baseDur = main.duration_minutes || 0;
+
       items.push({
         role: "package",
         service_id: main.id,
         name: main.name,
-        base_price_cents: main.base_price_cents || 0,
-        price_cents: price,
-        base_duration_minutes: main.base_duration_minutes || 0,
-        duration_minutes: dur,
+        base_price_cents: basePrice,
+        price_cents: basePrice,
+        base_duration_minutes: baseDur,
+        duration_minutes: baseDur,
       });
-      totalPriceCents += price;
-      totalMinutes += dur;
+
+      totalBasePriceCents += basePrice;
+      totalMinutes += baseDur;
     }
   }
 
+  // Einzelleistungen
   if (bookingSinglesList) {
-    const checkboxes = bookingSinglesList.querySelectorAll(".booking-single-checkbox");
-    checkboxes.forEach((cb) => {
-      if (!cb.checked) return;
-      const svc = getServiceById(cb.value);
+    const selected = Array.from(bookingSinglesList.selectedOptions || []);
+    selected.forEach((opt) => {
+      if (!opt.value) return;
+      const svc = getServiceById(opt.value);
       if (!svc) return;
-      const price = Math.round((svc.base_price_cents || 0) * priceFactor);
-      const dur = svc.base_duration_minutes
-        ? Math.round(svc.base_duration_minutes * durationFactor)
-        : 0;
+
+      const basePrice = svc.base_price_cents || 0;
+      const baseDur = svc.duration_minutes || 0;
 
       items.push({
         role: "single",
         service_id: svc.id,
         name: svc.name,
-        base_price_cents: svc.base_price_cents || 0,
-        price_cents: price,
-        base_duration_minutes: svc.base_duration_minutes || 0,
-        duration_minutes: dur,
+        base_price_cents: basePrice,
+        price_cents: basePrice,
+        base_duration_minutes: baseDur,
+        duration_minutes: baseDur,
       });
 
-      totalPriceCents += price;
-      totalMinutes += dur;
+      totalBasePriceCents += basePrice;
+      totalMinutes += baseDur;
     });
   }
 
-  if (bookingAddonsList) {
-    const checkboxes = bookingAddonsList.querySelectorAll(".booking-addon-checkbox");
-    checkboxes.forEach((cb) => {
-      if (!cb.checked) return;
-      const svc = getServiceById(cb.value);
-      if (!svc) return;
 
-      if (
-        bookingMainServiceSelect &&
-        bookingMainServiceSelect.value &&
-        bookingMainServiceSelect.value === svc.id
-      ) {
-        return;
-      }
-
-      const price = Math.round((svc.base_price_cents || 0) * priceFactor);
-      const dur = svc.base_duration_minutes
-        ? Math.round(svc.base_duration_minutes * durationFactor)
-        : 0;
-
-      items.push({
-        role: "addon",
-        service_id: svc.id,
-        name: svc.name,
-        base_price_cents: svc.base_price_cents || 0,
-        price_cents: price,
-        base_duration_minutes: svc.base_duration_minutes || 0,
-        duration_minutes: dur,
-      });
-
-      totalPriceCents += price;
-      totalMinutes += dur;
+  if (classPriceDeltaCents !== 0) {
+    items.push({
+      role: "vehicle_price_adjustment",
+      amount_cents: classPriceDeltaCents,
     });
   }
 
-  const car = bookingCarInput ? bookingCarInput.value.trim() || null : null;
-  const notes = bookingNotesInput ? bookingNotesInput.value.trim() || null : null;
+  let discountType = bookingDiscountTypeSelect
+    ? bookingDiscountTypeSelect.value
+    : "none";
+  let discountValueRaw = bookingDiscountValueInput
+    ? parseFloat(bookingDiscountValueInput.value || "0")
+    : 0;
+  let discountValue = Number.isFinite(discountValueRaw) ? discountValueRaw : 0;
+
+  let discountAmountCents = 0;
+
+  if (discountType === "amount" && discountValue > 0) {
+    discountAmountCents = Math.round(discountValue * 100);
+  } else if (discountType === "percent" && discountValue > 0) {
+    if (discountValue > 100) discountValue = 100;
+    if (discountValue < 0) discountValue = 0;
+    discountAmountCents = Math.round(
+      totalBasePriceCents * (discountValue / 100)
+    );
+  } else {
+    discountType = "none";
+    discountValue = 0;
+  }
+
+  const totalPriceCentsRaw =
+    totalBasePriceCents + classPriceDeltaCents - discountAmountCents;
+  const totalPriceCents = Math.max(0, totalPriceCentsRaw);
+
+  const car = bookingCarInput ? bookingCarInput.value.trim() : null;
+  const notes = bookingNotesInput ? bookingNotesInput.value.trim() : null;
+
   const customerName = bookingCustomerNameInput
-    ? bookingCustomerNameInput.value.trim() || null
+    ? bookingCustomerNameInput.value.trim()
     : null;
   const customerEmail = bookingCustomerEmailInput
-    ? bookingCustomerEmailInput.value.trim() || null
+    ? bookingCustomerEmailInput.value.trim()
     : null;
   const customerPhone = bookingCustomerPhoneInput
-    ? bookingCustomerPhoneInput.value.trim() || null
+    ? bookingCustomerPhoneInput.value.trim()
     : null;
   const customerAddress = bookingCustomerAddressInput
-    ? bookingCustomerAddressInput.value.trim() || null
+    ? bookingCustomerAddressInput.value.trim()
     : null;
-
-  const jobStatus = bookingJobStatusSelect?.value || "planned";
-  const paymentStatus = bookingPaymentStatusSelect?.value || "open";
 
   const payload = {
     detailer_id: currentUser.id,
@@ -1794,12 +2085,13 @@ async function submitBooking() {
     vehicle_class_id: vehicleClassId,
     vehicle_class_name: vehicleClassName,
     items: items,
-    job_status: jobStatus,
-    payment_status: paymentStatus,
     customer_name: customerName,
     customer_email: customerEmail,
     customer_phone: customerPhone,
     customer_address: customerAddress,
+    discount_type: discountType,
+    discount_value: discountValue,
+    discount_amount_cents: discountAmountCents,
   };
 
   const { error } = await supabaseClient.from("bookings").insert(payload);
@@ -1813,9 +2105,1095 @@ async function submitBooking() {
   }
 
   closeBookingModal();
-  // TODO: Später: Dashboard / Zeitplan sofort neu laden
+  console.log("DetailHQ: Booking erfolgreich angelegt", payload);
+
+  await loadBookingsForDashboardAndSchedule();
 }
 
+// ================================
+// BOOKINGS LADEN (Dashboard & Zeitplan)
+// ================================
+function setupDashboardPeriodHandlers() {
+  if (!dashboardPeriodToggle) return;
+
+  dashboardPeriodToggle.addEventListener("click", (e) => {
+    const btn = e.target.closest(".period-chip");
+    if (!btn) return;
+    const period = btn.getAttribute("data-period");
+    if (!period) return;
+
+    const chips =
+      dashboardPeriodToggle.querySelectorAll(".period-chip");
+    chips.forEach((chip) => {
+      chip.classList.toggle("active", chip === btn);
+    });
+
+    if (lastStatsBookings && lastStatsBookings.length > 0) {
+      updateDashboardStats(lastStatsBookings);
+    }
+  });
+}
+
+function getCurrentDashboardPeriod() {
+  if (!dashboardPeriodToggle) return "today";
+  const active = dashboardPeriodToggle.querySelector(".period-chip.active");
+  if (!active) return "today";
+  return active.getAttribute("data-period") || "today";
+}
+
+function getPeriodRange(period) {
+  const now = new Date();
+
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(todayStart);
+  todayEnd.setDate(todayEnd.getDate() + 1);
+
+  if (period === "today") {
+    return { start: todayStart, end: todayEnd };
+  }
+
+  if (period === "week") {
+    // Montag als Wochenbeginn (KW)
+    const day = todayStart.getDay() || 7; // So=0 -> 7
+    const monday = new Date(todayStart);
+    monday.setDate(todayStart.getDate() - (day - 1));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 7);
+    return { start: monday, end: sunday };
+  }
+
+  if (period === "month") {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return { start: monthStart, end: monthEnd };
+  }
+
+  if (period === "year") {
+    const yearStart = new Date(now.getFullYear(), 0, 1);
+    const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+    return { start: yearStart, end: yearEnd };
+  }
+
+  return { start: todayStart, end: todayEnd };
+}
+
+function updateDashboardStats(bookings) {
+  if (!revenueTodayElement || !volumeTodayElement) return;
+  if (!bookings || bookings.length === 0) {
+    revenueTodayElement.textContent = "€ 0";
+    volumeTodayElement.textContent = "€ 0";
+    return;
+  }
+
+  const period = getCurrentDashboardPeriod();
+  const { start, end } = getPeriodRange(period);
+
+  let revenueCents = 0;
+  let volumeCents = 0;
+
+  bookings.forEach((b) => {
+    if (!b.start_at) return;
+    const startAt = new Date(b.start_at);
+    if (startAt < start || startAt >= end) return;
+
+    const totalPriceEuro =
+      typeof b.total_price === "number" ? b.total_price : 0;
+    const totalPriceCents = Math.round(totalPriceEuro * 100);
+
+    volumeCents += totalPriceCents;
+    revenueCents += getBookingRevenueCents(b);
+  });
+
+  revenueTodayElement.textContent = (revenueCents / 100).toLocaleString(
+    "de-DE",
+    { style: "currency", currency: "EUR" }
+  );
+  volumeTodayElement.textContent = (volumeCents / 100).toLocaleString(
+    "de-DE",
+    { style: "currency", currency: "EUR" }
+  );
+}
+
+async function loadBookingsForDashboardAndSchedule() {
+  if (!currentUser || !supabaseClient) return;
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(todayStart);
+  todayEnd.setDate(todayEnd.getDate() + 1);
+
+  // Für KPIs: komplettes aktuelles Jahr laden
+  const now = new Date();
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+  const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+
+  const { data: todayBookings, error: todayError } = await supabaseClient
+    .from("bookings")
+    .select("*")
+    .eq("detailer_id", currentUser.id)
+    .gte("start_at", todayStart.toISOString())
+    .lt("start_at", todayEnd.toISOString())
+    .order("start_at", { ascending: true });
+
+  if (todayError) {
+    console.error("DetailHQ: today bookings load failed:", todayError);
+  }
+
+  const { data: scheduleBookings, error: scheduleError } =
+    await supabaseClient
+      .from("bookings")
+      .select("*")
+      .eq("detailer_id", currentUser.id)
+      .order("start_at", { ascending: true });
+
+  if (scheduleError) {
+    console.error("DetailHQ: schedule bookings load failed:", scheduleError);
+  }
+
+  const { data: statsBookings, error: statsError } = await supabaseClient
+    .from("bookings")
+    .select("*")
+    .eq("detailer_id", currentUser.id)
+    .gte("start_at", yearStart.toISOString())
+    .lt("start_at", yearEnd.toISOString())
+    .order("start_at", { ascending: true });
+
+  if (statsError) {
+    console.error("DetailHQ: stats bookings load failed:", statsError);
+  }
+
+  renderTodayBookings(todayBookings || []);
+  renderScheduleList(scheduleBookings || []);
+
+  lastStatsBookings = statsBookings || [];
+  updateDashboardStats(lastStatsBookings);
+    // Review-Übersicht im Dashboard
+  renderReviewReminders(statsBookings || []);
+}
+
+function formatBookingTitle(booking) {
+  if (!booking) return "Auftrag";
+
+  const hasNumericId =
+    typeof booking.id === "number" || /^[0-9]+$/.test(String(booking.id || ""));
+
+  const base = hasNumericId
+    ? `Auftrag #${booking.id}`
+    : booking.service_name || "Auftrag";
+
+  if (booking.customer_name && booking.customer_name.trim() !== "") {
+    return `${base} – ${booking.customer_name.trim()}`;
+  }
+  return base;
+}
+
+function renderTodayBookings(bookings) {
+  if (!todayBookingsContainer) return;
+
+  if (!bookings || bookings.length === 0) {
+    todayBookingsContainer.classList.add("empty-state");
+    todayBookingsContainer.innerHTML = "<p>Noch keine Aufträge für heute.</p>";
+    return;
+  }
+
+  todayBookingsContainer.classList.remove("empty-state");
+  todayBookingsContainer.innerHTML = "";
+
+  bookings.forEach((b) => {
+    const card = document.createElement("div");
+    card.className = "list-item booking-list-item";
+
+    const title = document.createElement("div");
+    title.className = "list-item-title";
+    title.textContent = formatBookingTitle(b);
+
+    const start = b.start_at ? new Date(b.start_at) : null;
+    let timeStr = "";
+    if (start) {
+      timeStr = start.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    const lineDate = document.createElement("div");
+    lineDate.className = "list-item-meta";
+
+    if (timeStr) {
+      lineDate.textContent = `Termin: ${timeStr}`;
+    } else {
+      lineDate.textContent = "Termin: –";
+    }
+
+    if (b.car) {
+      lineDate.textContent += ` · ${b.car}`;
+    }
+
+    const lineAmount = document.createElement("div");
+    lineAmount.className = "list-item-meta booking-amount";
+    if (typeof b.total_price === "number") {
+      lineAmount.textContent =
+        "Umsatz: " +
+        b.total_price.toLocaleString("de-DE", {
+          style: "currency",
+          currency: "EUR",
+        });
+    } else {
+      lineAmount.textContent = "Umsatz: –";
+    }
+
+    card.appendChild(title);
+    card.appendChild(lineDate);
+    card.appendChild(lineAmount);
+
+    // Klick -> Detail-Modal
+    card.addEventListener("click", () => {
+      openBookingDetail(b);
+    });
+
+    todayBookingsContainer.appendChild(card);
+  });
+}
+
+function renderReviewReminders(bookings) {
+  if (!reviewRemindersContainer) return;
+
+  // Jobs, die abgeschlossen sind und noch keine Review als erledigt markiert haben
+  const pending = (bookings || []).filter(
+    (b) => b.job_status === "done" && !isBookingReviewDone(b)
+  );
+
+  if (pending.length === 0) {
+    reviewRemindersContainer.classList.add("empty-state");
+    reviewRemindersContainer.innerHTML =
+      "<p>Aktuell keine offenen Bewertungs-Erinnerungen.</p>";
+    return;
+  }
+
+  reviewRemindersContainer.classList.remove("empty-state");
+  reviewRemindersContainer.innerHTML = "";
+
+  // nach Datum sortieren (nächster Termin zuerst)
+  pending.sort((a, b) => {
+    const aTime = a.start_at ? new Date(a.start_at).getTime() : 0;
+    const bTime = b.start_at ? new Date(b.start_at).getTime() : 0;
+    return aTime - bTime;
+  });
+
+  pending.forEach((b) => {
+    const card = document.createElement("div");
+    card.className = "list-item booking-list-item";
+
+    const header = document.createElement("div");
+    header.className = "booking-row-header";
+
+    const title = document.createElement("div");
+    title.className = "list-item-title";
+    title.textContent = formatBookingTitle(b);
+
+    const statusPill = document.createElement("span");
+    statusPill.className = "payment-pill payment-pill--open";
+    statusPill.textContent = "Review offen";
+
+    header.appendChild(title);
+    header.appendChild(statusPill);
+
+    const meta = document.createElement("div");
+    meta.className = "list-item-meta";
+
+    if (b.start_at) {
+      const d = new Date(b.start_at);
+      const dateStr = d.toLocaleDateString("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+      });
+      meta.textContent = `Abgeschlossen: ${dateStr}`;
+    } else {
+      meta.textContent = "Abgeschlossen";
+    }
+
+    const copyHint = document.createElement("div");
+    copyHint.className = "list-item-meta";
+    copyHint.textContent = "Klick für Text & Copy";
+
+    card.appendChild(header);
+    card.appendChild(meta);
+    card.appendChild(copyHint);
+
+    card.addEventListener("click", () => {
+      openReviewModal(b);
+    });
+
+    reviewRemindersContainer.appendChild(card);
+  });
+}
+
+function renderScheduleList(bookings) {
+  if (!scheduleListContainer) return;
+
+  if (!bookings || bookings.length === 0) {
+    scheduleListContainer.classList.add("empty-state");
+    scheduleListContainer.innerHTML =
+      "<p>Noch keine geplanten Aufträge.</p>";
+    return;
+  }
+
+  scheduleListContainer.classList.remove("empty-state");
+  scheduleListContainer.innerHTML = "";
+
+  const orderMap = {
+    planned: 0,
+    in_progress: 1,
+    done: 2,
+    canceled: 3,
+  };
+
+  const statusLabelMap = {
+    planned: "Geplant",
+    in_progress: "In Arbeit",
+    done: "Abgeschlossen",
+    canceled: "Storniert",
+  };
+
+  // Sortieren nach Status + Datum
+  const sorted = [...bookings].sort((a, b) => {
+    const aStatus = a.job_status || "planned";
+    const bStatus = b.job_status || "planned";
+    const aRank = orderMap[aStatus] ?? 0;
+    const bRank = orderMap[bStatus] ?? 0;
+
+    if (aRank !== bRank) return aRank - bRank;
+
+    const aTime = a.start_at ? new Date(a.start_at).getTime() : 0;
+    const bTime = b.start_at ? new Date(b.start_at).getTime() : 0;
+    return aTime - bTime;
+  });
+
+  // Gruppieren
+  const grouped = {
+    planned: [],
+    in_progress: [],
+    done: [],
+    canceled: [],
+  };
+
+  sorted.forEach((b) => {
+    const key = b.job_status || "planned";
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(b);
+  });
+
+  // Render: Reihenfolge strikt nach orderMap
+  ["planned", "in_progress", "done", "canceled"].forEach((statusKey) => {
+    const list = grouped[statusKey];
+    if (!list || list.length === 0) return;
+
+    // HEADLINE
+    const h = document.createElement("h4");
+    h.className = "schedule-group-headline";
+    h.textContent = statusLabelMap[statusKey] || statusKey;
+    scheduleListContainer.appendChild(h);
+
+    // LISTE
+    list.forEach((b) => {
+      const row = document.createElement("div");
+      row.className = "list-item booking-list-item";
+
+      // Header: Titel + Zahlungsstatus-Pill
+      const header = document.createElement("div");
+      header.className = "booking-row-header";
+
+      const title = document.createElement("div");
+      title.className = "list-item-title";
+      title.textContent = formatBookingTitle(b);
+
+      const pill = document.createElement("span");
+      pill.classList.add("payment-pill");
+
+      let pillLabel = "Offen";
+      let pillClass = "payment-pill--open";
+      const payStatus = b.payment_status || "open";
+
+      if (payStatus === "paid") {
+        pillLabel = "Bezahlt";
+        pillClass = "payment-pill--paid";
+      } else if (payStatus === "partial") {
+        pillLabel = "Teilzahlung";
+        pillClass = "payment-pill--partial";
+      }
+
+      pill.textContent = pillLabel;
+      pill.classList.add(pillClass);
+
+      header.appendChild(title);
+      header.appendChild(pill);
+
+      // Datum/Uhrzeit
+      const start = b.start_at ? new Date(b.start_at) : null;
+      let dateStr = "";
+      let timeStr = "";
+
+      if (start) {
+        dateStr = start.toLocaleDateString("de-DE", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+        });
+        timeStr = start.toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      const lineDate = document.createElement("div");
+      lineDate.className = "list-item-meta";
+      if (dateStr || timeStr) {
+        lineDate.textContent = `Termin: ${dateStr} ${timeStr}`.trim();
+      } else {
+        lineDate.textContent = "Termin: –";
+      }
+
+      if (b.car) {
+        lineDate.textContent += ` · ${b.car}`;
+      }
+
+      // Statuszeile (text)
+      const statusLine = document.createElement("div");
+      statusLine.className = "list-item-meta";
+      statusLine.textContent = `Status: ${statusLabelMap[statusKey]}`;
+
+      // Umsatz
+      const lineAmount = document.createElement("div");
+      lineAmount.className = "list-item-meta booking-amount";
+      if (typeof b.total_price === "number") {
+        lineAmount.textContent =
+          "Umsatz: " +
+          b.total_price.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          });
+      } else {
+        lineAmount.textContent = "Umsatz: –";
+      }
+
+      row.appendChild(header);
+      row.appendChild(lineDate);
+      row.appendChild(statusLine);
+      row.appendChild(lineAmount);
+
+      row.addEventListener("click", () => {
+        openBookingDetail(b);
+      });
+
+      scheduleListContainer.appendChild(row);
+    });
+  });
+}
+
+function updatePaymentFieldsVisibility() {
+  const status = bookingDetailPaymentStatusSelect
+    ? bookingDetailPaymentStatusSelect.value
+    : "open";
+
+  if (bookingDetailPartialRow) {
+    bookingDetailPartialRow.style.display =
+      status === "partial" ? "block" : "none";
+  }
+  if (bookingDetailPaidOverrideRow) {
+    bookingDetailPaidOverrideRow.style.display =
+      status === "paid" ? "block" : "none";
+  }
+}
+
+function getBookingPaymentMeta(booking) {
+  const result = {
+    partialCents: null,
+    overrideCents: null,
+  };
+
+  if (!booking || !Array.isArray(booking.items)) return result;
+
+  booking.items.forEach((it) => {
+    if (!it || typeof it !== "object") return;
+    if (it.role === "payment_partial" && typeof it.amount_cents === "number") {
+      result.partialCents = it.amount_cents;
+    }
+    if (
+      it.role === "payment_final_override" &&
+      typeof it.amount_cents === "number"
+    ) {
+      result.overrideCents = it.amount_cents;
+    }
+  });
+
+  return result;
+}
+
+function getBookingRevenueCents(booking) {
+  if (!booking) return 0;
+
+  const status = booking.payment_status || "open";
+  const totalPriceEuro =
+    typeof booking.total_price === "number" ? booking.total_price : 0;
+  const totalPriceCents = Math.round(totalPriceEuro * 100);
+
+  const { partialCents, overrideCents } = getBookingPaymentMeta(booking);
+
+  // Voll bezahlt
+  if (status === "paid") {
+    // Wenn abweichende Summe gesetzt, diese verwenden
+    if (overrideCents != null) return overrideCents;
+    // sonst komplettes Auftragsvolumen
+    return totalPriceCents;
+  }
+
+  // Teilzahlung
+  if (status === "partial") {
+    if (partialCents != null) return partialCents;
+    return 0;
+  }
+
+  // Offen oder storniert -> kein Umsatz
+  return 0;
+}
+
+function isBookingReviewDone(booking) {
+  if (!booking || !Array.isArray(booking.items)) return false;
+  return booking.items.some((it) => it && it.role === "review_done");
+}
+
+function parseEuroInputToCents(inputEl) {
+  if (!inputEl) return null;
+  const raw = inputEl.value.trim().replace(",", ".");
+  if (!raw) return null;
+  const num = parseFloat(raw);
+  if (!Number.isFinite(num) || num <= 0) return null;
+  return Math.round(num * 100);
+}
+
+function openBookingDetail(booking) {
+  if (!bookingDetailModal) return;
+  currentDetailBooking = booking;
+
+  // Titel: Auftrag #ID – Kunde
+  if (bookingDetailTitle) {
+    bookingDetailTitle.textContent = formatBookingTitle(booking);
+  }
+
+  // Termin + Fahrzeug
+  const start = booking.start_at ? new Date(booking.start_at) : null;
+  let metaText = "";
+
+  if (start) {
+    const dateStr = start.toLocaleDateString("de-DE", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+    });
+    const timeStr = start.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    metaText = `Termin: ${dateStr} ${timeStr}`;
+  }
+
+    // Termin in Inputs spiegeln
+  if (bookingDetailDateInput) {
+    bookingDetailDateInput.value = start
+      ? start.toISOString().slice(0, 10)
+      : "";
+  }
+  if (bookingDetailTimeInput) {
+    if (start) {
+      const hh = String(start.getHours()).padStart(2, "0");
+      const mm = String(start.getMinutes()).padStart(2, "0");
+      bookingDetailTimeInput.value = `${hh}:${mm}`;
+    } else {
+      bookingDetailTimeInput.value = "";
+    }
+  }
+
+  // Buchungsdetails
+  if (bookingDetailCarInput) {
+    bookingDetailCarInput.value = booking.car || "";
+  }
+  if (bookingDetailVehicleClassSelect) {
+    bookingDetailVehicleClassSelect.value =
+      booking.vehicle_class_id || "";
+  }
+  if (bookingDetailDiscountTypeSelect) {
+    bookingDetailDiscountTypeSelect.value =
+      booking.discount_type || "none";
+  }
+  if (bookingDetailDiscountValueInput) {
+    bookingDetailDiscountValueInput.value =
+      booking.discount_value != null ? booking.discount_value : "";
+  }
+
+  // Kunde
+  if (bookingDetailCustomerNameInput) {
+    bookingDetailCustomerNameInput.value = booking.customer_name || "";
+  }
+  if (bookingDetailCustomerEmailInput) {
+    bookingDetailCustomerEmailInput.value = booking.customer_email || "";
+  }
+  if (bookingDetailCustomerPhoneInput) {
+    bookingDetailCustomerPhoneInput.value = booking.customer_phone || "";
+  }
+  if (bookingDetailCustomerAddressInput) {
+    bookingDetailCustomerAddressInput.value =
+      booking.customer_address || "";
+  }
+
+  if (booking.car) {
+    metaText += metaText ? ` · ${booking.car}` : booking.car;
+  }
+
+  if (bookingDetailMeta) bookingDetailMeta.textContent = metaText || "Termin: –";
+
+  // Auftragsvolumen in €
+  if (bookingDetailPrice) {
+    if (typeof booking.total_price === "number") {
+      bookingDetailPrice.textContent =
+        "Auftragsvolumen: " +
+        booking.total_price.toLocaleString("de-DE", {
+          style: "currency",
+          currency: "EUR",
+        });
+    } else {
+      bookingDetailPrice.textContent = "Auftragsvolumen: –";
+    }
+  }
+
+  // Buchungsdetails (Pakete, Leistungen, Fahrzeugklasse, Rabatt, Dauer)
+  if (bookingDetailBookingContainer) {
+    const parts = [];
+
+    // Leistungen aus items
+    if (Array.isArray(booking.items) && booking.items.length > 0) {
+      const lines = booking.items
+        .filter((it) => it.role === "package" || it.role === "single")
+        .map((it) => {
+          const price =
+            typeof it.price_cents === "number"
+              ? (it.price_cents / 100).toLocaleString("de-DE", {
+                  style: "currency",
+                  currency: "EUR",
+                })
+              : "";
+          const roleLabel =
+            it.role === "package"
+              ? "Paket"
+              : it.role === "single"
+              ? "Einzelleistung"
+              : "Anpassung";
+          return `${roleLabel}: ${it.name || "—"}${
+            price ? ` (${price})` : ""
+          }`;
+        });
+
+      if (lines.length > 0) {
+        parts.push("<strong>Leistungen:</strong><br>" + lines.join("<br>"));
+      }
+    }
+
+    // Fahrzeugklasse
+    if (booking.vehicle_class_name) {
+      parts.push(
+        `<strong>Fahrzeugklasse:</strong> ${booking.vehicle_class_name}`
+      );
+    }
+
+    // Dauer
+    if (typeof booking.duration_minutes === "number" && booking.duration_minutes > 0) {
+      const hours = booking.duration_minutes / 60;
+      parts.push(
+        `<strong>Dauer:</strong> ${hours.toFixed(1).replace(".", ",")} Std.`
+      );
+    }
+
+    // Rabatt
+    if (
+      booking.discount_type &&
+      booking.discount_type !== "none" &&
+      typeof booking.discount_amount_cents === "number" &&
+      booking.discount_amount_cents > 0
+    ) {
+      const discountEuro = booking.discount_amount_cents / 100;
+      if (booking.discount_type === "amount") {
+        parts.push(
+          `<strong>Rabatt:</strong> ${discountEuro.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}`
+        );
+      } else if (booking.discount_type === "percent") {
+        parts.push(
+          `<strong>Rabatt:</strong> ${
+            booking.discount_value || 0
+          }% (${discountEuro.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })})`
+        );
+      }
+    }
+
+    bookingDetailBookingContainer.innerHTML =
+      parts.length > 0 ? parts.join("<br><br>") : "Keine weiteren Details.";
+  }
+
+  // Kunde
+  if (bookingDetailCustomerContainer) {
+    const lines = [];
+
+    if (booking.customer_name) {
+      lines.push(`<strong>Name:</strong> ${booking.customer_name}`);
+    }
+    if (booking.customer_email) {
+      lines.push(`<strong>E-Mail:</strong> ${booking.customer_email}`);
+    }
+    if (booking.customer_phone) {
+      lines.push(`<strong>Telefon:</strong> ${booking.customer_phone}`);
+    }
+    if (booking.customer_address) {
+      lines.push(`<strong>Adresse:</strong> ${booking.customer_address}`);
+    }
+
+    bookingDetailCustomerContainer.innerHTML =
+      lines.length > 0 ? lines.join("<br>") : "Keine Kundendaten hinterlegt.";
+  }
+
+  // Notizen
+  if (bookingDetailNotes) {
+    bookingDetailNotes.value = booking.notes || "";
+  }
+
+  // Status-Felder
+  if (bookingDetailJobStatusSelect) {
+    bookingDetailJobStatusSelect.value = booking.job_status || "planned";
+  }
+
+  if (bookingDetailPaymentStatusSelect) {
+    bookingDetailPaymentStatusSelect.value =
+      booking.payment_status || "open";
+  }
+
+  // Payment-Meta in Inputs spiegeln
+  const { partialCents, overrideCents } = getBookingPaymentMeta(booking);
+
+  if (bookingDetailPartialAmountInput) {
+    bookingDetailPartialAmountInput.value =
+      partialCents != null ? (partialCents / 100).toString() : "";
+  }
+
+  if (bookingDetailPaidOverrideInput) {
+    bookingDetailPaidOverrideInput.value =
+      overrideCents != null ? (overrideCents / 100).toString() : "";
+  }
+
+  updatePaymentFieldsVisibility();
+
+  bookingDetailModal.classList.remove("hidden");
+}
+
+function closeBookingDetailModal() {
+  if (!bookingDetailModal) return;
+  bookingDetailModal.classList.add("hidden");
+  currentDetailBooking = null;
+}
+
+function buildReviewMessage(booking) {
+  const link =
+    (currentProfile && currentProfile.review_link) ||
+    (settingsReviewLinkInput
+      ? settingsReviewLinkInput.value.trim()
+      : "");
+
+  const linkPart = link ? ` ${link}` : "";
+  return `Ich würde mich sehr über eine positive Bewertung freuen. Link dazu:${linkPart}`;
+}
+
+function openReviewModal(booking) {
+  if (!reviewModal || !reviewModalText) return;
+  currentReviewBooking = booking || null;
+
+  reviewModalText.textContent = buildReviewMessage(booking);
+  reviewModal.classList.remove("hidden");
+}
+
+function closeReviewModal() {
+  if (!reviewModal) return;
+  reviewModal.classList.add("hidden");
+  currentReviewBooking = null;
+}
+
+function setupReviewModalHandlers() {
+  if (!reviewModal) return;
+
+  if (reviewModalClose) {
+    reviewModalClose.addEventListener("click", () => {
+      closeReviewModal();
+    });
+  }
+
+  reviewModal.addEventListener("click", (e) => {
+    if (
+      e.target === reviewModal ||
+      e.target.classList.contains("profile-modal-backdrop")
+    ) {
+      closeReviewModal();
+    }
+  });
+
+  if (reviewModalCopyButton && reviewModalText) {
+    reviewModalCopyButton.addEventListener("click", async () => {
+      const txt = reviewModalText.textContent || "";
+      try {
+        if (navigator.clipboard && txt) {
+          await navigator.clipboard.writeText(txt);
+          alert("Text in die Zwischenablage kopiert.");
+        }
+      } catch (err) {
+        console.error("Clipboard Fehler:", err);
+      }
+    });
+  }
+
+  if (reviewModalDoneButton) {
+    reviewModalDoneButton.addEventListener("click", async () => {
+      if (!currentUser || !supabaseClient || !currentReviewBooking) {
+        closeReviewModal();
+        return;
+      }
+
+      let items = Array.isArray(currentReviewBooking.items)
+        ? [...currentReviewBooking.items]
+        : [];
+
+      items = items.filter((it) => it && it.role !== "review_done");
+      items.push({
+        role: "review_done",
+        completed_at: new Date().toISOString(),
+      });
+
+      const { error } = await supabaseClient
+        .from("bookings")
+        .update({ items })
+        .eq("id", currentReviewBooking.id)
+        .eq("detailer_id", currentUser.id);
+
+      if (error) {
+        console.error("DetailHQ: review_done update failed:", error);
+      }
+
+      delete reviewReminderState[currentReviewBooking.id];
+      saveReviewReminderState();
+
+      closeReviewModal();
+      await loadBookingsForDashboardAndSchedule();
+    });
+  }
+}
+
+function setupBookingDetailHandlers() {
+  if (!bookingDetailModal) return;
+
+  if (bookingDetailCloseButton) {
+    bookingDetailCloseButton.addEventListener("click", () => {
+      closeBookingDetailModal();
+    });
+  }
+
+  if (bookingDetailPaymentStatusSelect) {
+    bookingDetailPaymentStatusSelect.addEventListener("change", () => {
+      updatePaymentFieldsVisibility();
+    });
+  }
+
+  bookingDetailModal.addEventListener("click", (e) => {
+    if (
+      e.target === bookingDetailModal ||
+      e.target.classList.contains("profile-modal-backdrop")
+    ) {
+      closeBookingDetailModal();
+    }
+  });
+
+  // Änderungen speichern
+  if (bookingDetailSaveButton) {
+    bookingDetailSaveButton.addEventListener("click", async () => {
+      if (!currentUser || !supabaseClient || !currentDetailBooking) return;
+
+      const patch = {
+        notes: bookingDetailNotes ? bookingDetailNotes.value.trim() : null,
+      };
+
+      // Auftragsstatus
+      let jobStatus = currentDetailBooking.job_status || "planned";
+      if (bookingDetailJobStatusSelect) {
+        jobStatus = bookingDetailJobStatusSelect.value;
+      }
+      patch.job_status = jobStatus;
+
+      // Zahlungsstatus
+      let paymentStatus = currentDetailBooking.payment_status || "open";
+      if (bookingDetailPaymentStatusSelect) {
+        paymentStatus = bookingDetailPaymentStatusSelect.value;
+      }
+      patch.payment_status = paymentStatus;
+
+      // Payment-Meta über items abbilden
+      let items = Array.isArray(currentDetailBooking.items)
+        ? [...currentDetailBooking.items]
+        : [];
+
+      // Alte Payment-Einträge entfernen
+      items = items.filter(
+        (it) =>
+          it &&
+          it.role !== "payment_partial" &&
+          it.role !== "payment_final_override"
+      );
+
+      const partialCents = parseEuroInputToCents(
+        bookingDetailPartialAmountInput
+      );
+      const overrideCents = parseEuroInputToCents(
+        bookingDetailPaidOverrideInput
+      );
+
+      if (paymentStatus === "partial" && partialCents != null) {
+        items.push({
+          role: "payment_partial",
+          amount_cents: partialCents,
+        });
+      }
+
+      if (paymentStatus === "paid") {
+        // Teilzahlung wird „aufgelöst“; override nur wenn gesetzt
+        if (overrideCents != null) {
+          items.push({
+            role: "payment_final_override",
+            amount_cents: overrideCents,
+          });
+        }
+      }
+
+            // Termin
+      if (bookingDetailDateInput && bookingDetailDateInput.value) {
+        const dateStr = bookingDetailDateInput.value;
+        const timeStr =
+          (bookingDetailTimeInput && bookingDetailTimeInput.value) ||
+          "09:00";
+        const newStart = new Date(`${dateStr}T${timeStr}:00`);
+        if (!Number.isNaN(newStart.getTime())) {
+          patch.start_at = newStart.toISOString();
+        }
+      }
+
+      // Fahrzeug / Fahrzeugklasse
+      if (bookingDetailCarInput) {
+        const carVal = bookingDetailCarInput.value.trim();
+        patch.car = carVal || null;
+      }
+
+      if (bookingDetailVehicleClassSelect) {
+        const vcId = bookingDetailVehicleClassSelect.value || null;
+        patch.vehicle_class_id = vcId;
+        let vcName = null;
+        if (vcId && Array.isArray(vehicleClasses)) {
+          const vc = vehicleClasses.find((v) => v.id === vcId);
+          if (vc) vcName = vc.name || null;
+        }
+        patch.vehicle_class_name = vcName;
+      }
+
+      // Rabatt
+      if (bookingDetailDiscountTypeSelect) {
+        let discType = bookingDetailDiscountTypeSelect.value || "none";
+        let discValRaw = bookingDetailDiscountValueInput
+          ? parseFloat(bookingDetailDiscountValueInput.value || "0")
+          : 0;
+        let discVal = Number.isFinite(discValRaw) ? discValRaw : 0;
+
+        if (discType !== "amount" && discType !== "percent") {
+          discType = "none";
+          discVal = 0;
+        }
+
+        patch.discount_type = discType;
+        patch.discount_value = discVal;
+        // discount_amount_cents lassen wir wie gespeichert – können wir später
+        // bei Bedarf sauber neu berechnen.
+      }
+
+      // Kunde
+      if (bookingDetailCustomerNameInput) {
+        const v = bookingDetailCustomerNameInput.value.trim();
+        patch.customer_name = v || null;
+      }
+      if (bookingDetailCustomerEmailInput) {
+        const v = bookingDetailCustomerEmailInput.value.trim();
+        patch.customer_email = v || null;
+      }
+      if (bookingDetailCustomerPhoneInput) {
+        const v = bookingDetailCustomerPhoneInput.value.trim();
+        patch.customer_phone = v || null;
+      }
+      if (bookingDetailCustomerAddressInput) {
+        const v = bookingDetailCustomerAddressInput.value.trim();
+        patch.customer_address = v || null;
+      }
+
+      patch.items = items;
+
+      const { error } = await supabaseClient
+        .from("bookings")
+        .update(patch)
+        .eq("id", currentDetailBooking.id)
+        .eq("detailer_id", currentUser.id);
+
+      if (error) {
+        console.error("DetailHQ: booking update failed:", error);
+        return;
+      }
+
+      closeBookingDetailModal();
+      await loadBookingsForDashboardAndSchedule();
+    });
+  }
+
+  // Auftrag löschen
+  if (bookingDetailDeleteButton) {
+    bookingDetailDeleteButton.addEventListener("click", async () => {
+      if (!currentUser || !supabaseClient || !currentDetailBooking) return;
+      const ok = confirm("Diesen Auftrag wirklich löschen?");
+      if (!ok) return;
+
+      const { error } = await supabaseClient
+        .from("bookings")
+        .delete()
+        .eq("id", currentDetailBooking.id)
+        .eq("detailer_id", currentUser.id);
+
+      if (error) {
+        console.error("DetailHQ: booking delete failed:", error);
+        return;
+      }
+
+      closeBookingDetailModal();
+      currentDetailBooking = null;
+      await loadBookingsForDashboardAndSchedule();
+    });
+  }
+}
+
+// ================================
+// CAL URL
+// ================================
 function setupCalendarUrlForUser() {
   if (!currentUser) return;
   const apiBase = "https://api.detailhq.de";
