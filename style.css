@@ -607,3 +607,384 @@ body {
   font-size: 12px;
   line-height: 1.3;
 }
+
+/* Buchungslisten (Dashboard + Zeitplan) */
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-item {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    background 0.1s ease;
+}
+
+.theme-dark .list-item {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.list-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+.list-item-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.list-item-meta {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.booking-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.booking-detail-meta {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.booking-detail-price {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.booking-detail-body details {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  padding: 8px 10px;
+  background: var(--bg-elevated-soft);
+}
+
+.booking-detail-body summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  list-style: none;
+}
+
+.booking-detail-body summary::-webkit-details-marker {
+  display: none;
+}
+
+.booking-detail-body details > div {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.booking-detail-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.btn.danger {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.theme-dark .list-item-meta {
+  color: #cbd5f5;
+}
+
+.booking-amount {
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+#booking-detail-modal.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#booking-detail-modal .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+}
+
+#booking-detail-modal .modal-card {
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--bg-glass);
+  z-index: 2;
+}
+
+.modal-section {
+  margin: 12px 0;
+}
+
+.modal-section summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-buttons {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.price {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* DASHBOARD: Zeitraum-Toggle oben als Pill */
+
+.dashboard-period-row {
+  margin: 10px 2px 8px;
+}
+
+.dashboard-period-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg-elevated-soft);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+.period-chip {
+  flex: 1;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.period-chip.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+}
+
+.period-chip:focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 1px;
+}
+
+/* explizit 2 Spalten für das Umsatz / Volumen Grid */
+.cards-grid.cards-grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* BUCHUNGS-STEPS: Indikator oben im "Neuer Auftrag" Modal */
+
+.booking-steps-indicator {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg-elevated-soft);
+  border: 1px solid var(--border-subtle);
+}
+
+.booking-step-indicator {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.booking-step-indicator.active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 700; /* -> wird sichtbar fetter */
+}
+
+/* SETTINGS: Custom-Dropdowns für Fahrzeugklassen & Services */
+
+.settings-dropdown {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.settings-dropdown-toggle {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  padding: 8px 11px;
+  font-size: 13px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.settings-dropdown-toggle:hover {
+  background: var(--bg-elevated);
+}
+
+.settings-dropdown-chevron {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* Menü – aktuell immer sichtbar, später machen wir es per JS auf/zu */
+.settings-dropdown-menu {
+  margin-top: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  padding: 6px 8px;
+  font-size: 13px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.settings-dropdown-menu p.form-hint {
+  margin: 0;
+}
+
+.payment-partial-row,
+.payment-paid-override-row {
+  display: none;
+}
+
+.settings-dropdown-menu {
+  display: none; /* <--- NEU: standardmäßig zu */
+  margin-top: 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  padding: 6px 8px;
+  font-size: 13px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+/* Wenn Dropdown geöffnet ist */
+.settings-dropdown.open .settings-dropdown-menu {
+  display: block;
+}
+
+/* Zeitplan: Header mit Zahlungsstatus-Pill */
+.booking-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.payment-pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.payment-pill--paid {
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.6);
+  color: #16a34a;
+}
+
+.payment-pill--partial {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.6);
+  color: #f59e0b;
+}
+
+.payment-pill--open {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ef4444;
+}
+
+/* Einzelleistungen-Dropdown mit Checkboxen */
+.booking-singles-dropdown .settings-dropdown-menu {
+  padding: 4px 6px;
+}
+
+.booking-singles-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.booking-singles-item:hover {
+  background: var(--bg-elevated);
+}
+
+.booking-singles-item.selected {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.booking-singles-item-label {
+  font-size: 13px;
+}
+
+.booking-singles-item-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  flex-shrink: 0;
+}
+
+.booking-singles-item.selected .booking-singles-item-checkbox {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+/* Textareas etwas eckiger als Inputs */
+textarea.field-input {
+  border-radius: var(--radius-lg);
+  min-height: 80px;
+  resize: vertical;
+}
+
+.schedule-group-headline {
+  margin: 20px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
