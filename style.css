@@ -141,6 +141,43 @@ body {
   box-shadow: 0 0 0 1px var(--accent-soft);
 }
 
+/* Datum + Uhrzeit in einer gemeinsamen Pill */
+
+.booking-datetime-row {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 4px;
+
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  overflow: hidden; /* runde Ecken auch innen */
+}
+
+/* beide Hälften teilen sich die Breite */
+.booking-datetime-row > div {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Trennlinie in der Mitte */
+.booking-datetime-row > div + div {
+  border-left: 1px solid var(--border-subtle);
+}
+
+/* Inputs in der Pill: keine eigene Border, kein eigener Shadow */
+.booking-datetime-row input.field-input {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 10px 14px;
+  width: 100%;
+}
+
 /* Datum + Uhrzeit nebeneinander in einer Zeile */
 .booking-datetime-row {
   display: flex;
