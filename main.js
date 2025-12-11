@@ -1156,14 +1156,14 @@ function updateBillingUI() {
     billingLifetimeButton.style.display = isLifetime ? "none" : "inline-flex";
   }
 
-  // Monatsabo-Button
-  // - weg bei: Lifetime, aktives Monatsabo, aktives Jahresabo
+  // Monatsabo-Button:
+  // - weg bei: Lifetime, aktivem Monatsabo, aktivem Jahresabo
   if (billingMonthlyButton) {
     if (
       isLifetime ||
       status === "active" ||        // Monatsabo aktiv
       status === "active_yearly" || // Jahresabo aktiv
-      status === "lifetime"         // Fallback, falls plan_status so gesetzt wird
+      status === "lifetime"         // Fallback
     ) {
       billingMonthlyButton.style.display = "none";
     } else {
@@ -1171,7 +1171,7 @@ function updateBillingUI() {
     }
   }
 
-  // Jahresabo-Button
+  // Jahresabo-Button:
   // - weg bei: Lifetime, aktivem Jahresabo
   if (billingYearlyButton) {
     if (
