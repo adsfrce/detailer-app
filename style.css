@@ -628,7 +628,7 @@ body {
 }
 
 .trial-banner {
-  margin: 8px 0; /* gleich oben + unten */
+  margin: 10px 0; /* gleich oben + unten */
   padding: 6px 10px;
   border-radius: 999px;
   background: rgba(251, 191, 36, 0.1);
