@@ -123,6 +123,14 @@ const bookingDetailDiscountTypeSelect = document.getElementById(
 const bookingDetailDiscountValueInput = document.getElementById(
   "booking-detail-discount-value"
 );
+
+const bookingDetailMainServiceSelect = document.getElementById(
+  "booking-detail-main-service"
+);
+const bookingDetailSinglesSelect = document.getElementById(
+  "booking-detail-singles"
+);
+
 const bookingDetailCustomerNameInput = document.getElementById(
   "booking-detail-customer-name"
 );
@@ -134,6 +142,15 @@ const bookingDetailCustomerPhoneInput = document.getElementById(
 );
 const bookingDetailCustomerAddressInput = document.getElementById(
   "booking-detail-customer-address"
+);
+const bookingDetailSinglesList = document.getElementById(
+  "booking-detail-singles-list"
+);
+const bookingDetailSinglesMenu = document.getElementById(
+  "booking-detail-singles-menu"
+);
+const bookingDetailSinglesToggle = document.getElementById(
+  "booking-detail-singles-toggle"
 );
 
 const bookingDetailBookingContainer = document.getElementById("booking-detail-booking");
@@ -631,6 +648,86 @@ function setupAuthHandlers() {
 // ================================
 // NAVIGATION / TABS
 // ================================
+function isTrialExpiredAndUnpaid(profile) {
+  if (!profile) return false;
+
+  const status = profile.plan_status || "trial";
+
+  // Wenn schon Abo / Lifetime => nicht gesperrt
+  if (
+    status === "active" ||
+    status === "active_yearly" ||
+    status === "lifetime"
+  ) {
+    return false;
+  }
+
+  // Wenn kein trial_ends_at => kein Lock
+  if (!profile.trial_ends_at) return false;
+
+  const endsAt = new Date(profile.trial_ends_at);
+  const today = new Date();
+
+  // Beide auf Mitternacht, damit wir wirklich ganze Tage vergleichen
+  endsAt.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  // Gesperrt erst, wenn Trial-Datum vor "heute" liegt
+  return endsAt.getTime() < today.getTime();
+}
+
+function updateAccessUI() {
+  if (!currentProfile) return;
+
+  const locked = isTrialExpiredAndUnpaid(currentProfile);
+
+  // Bestimmte Settings-Gruppen ausblenden:
+  // - "Dienste & Preise"
+  // - "Kalender"
+  // - "Bewertungen"
+  const settingsGroups = document.querySelectorAll(".settings-group");
+
+  settingsGroups.forEach((group) => {
+    const titleEl = group.querySelector("h3");
+    if (!titleEl) return;
+
+    const title = (titleEl.textContent || "").trim();
+
+    const isServices = title.startsWith("Dienste & Preise");
+    const isCalendar = title.startsWith("Kalender");
+    const isReviews = title.startsWith("Bewertungen");
+
+    if (locked && (isServices || isCalendar || isReviews)) {
+      group.classList.add("hidden");
+    } else {
+      group.classList.remove("hidden");
+    }
+  });
+
+  // Tabs Dashboard / Zeitplan optisch sperren
+  navItems.forEach((item) => {
+    const tab = item.getAttribute("data-tab");
+    if (!tab || tab === "settings") return;
+
+    if (locked) {
+      item.classList.add("nav-item-locked");
+    } else {
+      item.classList.remove("nav-item-locked");
+    }
+  });
+
+  // Wenn gesperrt und aktuell NICHT Einstellungen aktiv:
+  // sofort auf Einstellungen springen (ohne Alert)
+  if (locked) {
+    const activeSettings = document.querySelector(
+      '.nav-item.active[data-tab="settings"]'
+    );
+    if (!activeSettings) {
+      switchTab("settings");
+    }
+  }
+}
+
 function setupNavHandlers() {
   console.log("DetailHQ: setupNavHandlers");
   navItems.forEach((item) => {
@@ -642,6 +739,19 @@ function setupNavHandlers() {
 }
 
 function switchTab(tabName) {
+  // Trial-Lock: Wenn Testphase abgelaufen + kein aktives Abo,
+  // nur Einstellungen erlauben
+  if (
+    tabName !== "settings" &&
+    currentProfile &&
+    isTrialExpiredAndUnpaid(currentProfile)
+  ) {
+    tabName = "settings";
+    alert(
+      "Deine Testphase ist abgelaufen. Bitte schließe ein Abo ab, um DetailHQ weiter zu nutzen."
+    );
+  }
+
   navItems.forEach((item) => {
     const t = item.getAttribute("data-tab");
     item.classList.toggle("active", t === tabName);
@@ -770,6 +880,7 @@ async function loadProfileIntoForm() {
   updateAvatarVisual(data.avatar_url);
   updateBillingUI();
   updateTrialBanner();
+  updateAccessUI();
 }
 
 // Avatar: Default pfp.png, sonst URL
@@ -988,6 +1099,7 @@ function closeProfileModal() {
 function setupBillingHandlers() {
   const apiBase = "https://api.detailhq.de";
 
+  // Billing-Portal (Abo & Zahlung verwalten)
   if (billingManageButton) {
     billingManageButton.addEventListener("click", () => {
       if (!currentUser) return;
@@ -998,6 +1110,7 @@ function setupBillingHandlers() {
     });
   }
 
+  // Lifetime kaufen
   if (billingLifetimeButton) {
     billingLifetimeButton.addEventListener("click", () => {
       if (!currentUser) return;
@@ -1008,6 +1121,7 @@ function setupBillingHandlers() {
     });
   }
 
+  // Jahresabo kaufen
   if (billingYearlyButton) {
     billingYearlyButton.addEventListener("click", () => {
       if (!currentUser) return;
@@ -1018,6 +1132,7 @@ function setupBillingHandlers() {
     });
   }
 
+  // Monatsabo kaufen
   if (billingMonthlyButton) {
     billingMonthlyButton.addEventListener("click", () => {
       if (!currentUser) return;
@@ -1035,20 +1150,35 @@ function updateBillingUI() {
   const isLifetime = !!currentProfile.is_lifetime;
   const status = currentProfile.plan_status || null;
 
+  // Lifetime kaufen
   if (billingLifetimeButton) {
+    // Wenn Lifetime aktiv, Lifetime-Kauf nicht mehr anzeigen
     billingLifetimeButton.style.display = isLifetime ? "none" : "inline-flex";
   }
 
+  // Monatsabo-Button
+  // - weg bei: Lifetime, aktives Monatsabo, aktives Jahresabo
   if (billingMonthlyButton) {
-    if (isLifetime || status === "active") {
+    if (
+      isLifetime ||
+      status === "active" ||        // Monatsabo aktiv
+      status === "active_yearly" || // Jahresabo aktiv
+      status === "lifetime"         // Fallback, falls plan_status so gesetzt wird
+    ) {
       billingMonthlyButton.style.display = "none";
     } else {
       billingMonthlyButton.style.display = "inline-flex";
     }
   }
 
+  // Jahresabo-Button
+  // - weg bei: Lifetime, aktivem Jahresabo
   if (billingYearlyButton) {
-    if (isLifetime || status === "active_yearly") {
+    if (
+      isLifetime ||
+      status === "active_yearly" ||
+      status === "lifetime"
+    ) {
       billingYearlyButton.style.display = "none";
     } else {
       billingYearlyButton.style.display = "inline-flex";
@@ -1060,18 +1190,25 @@ function updateTrialBanner() {
   if (!trialBanner || !currentProfile) return;
 
   const status = currentProfile.plan_status || "trial";
-  const endsAt = currentProfile.trial_ends_at
+  const rawEndsAt = currentProfile.trial_ends_at
     ? new Date(currentProfile.trial_ends_at)
     : null;
 
-  if (status !== "trial" || !endsAt) {
+  if (status !== "trial" || !rawEndsAt) {
     trialBanner.classList.add("hidden");
     return;
   }
 
-  const now = new Date();
-  const diffMs = endsAt.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  // Beide Daten auf 00:00 normalisieren, damit wir echte "Kalendertage" vergleichen
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endsAt = new Date(rawEndsAt);
+  endsAt.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round(
+    (endsAt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
   let msg;
   if (diffDays > 1) {
@@ -1194,6 +1331,7 @@ function renderVehicleClassesList() {
 
     const left = document.createElement("div");
     left.className = "settings-row-main";
+
     const title = document.createElement("div");
     title.className = "settings-row-title";
     title.textContent = vc.name;
@@ -1210,26 +1348,43 @@ function renderVehicleClassesList() {
     });
 
     meta.textContent = `Preis-Anpassung: ${sign}${deltaText}`;
+
     left.appendChild(title);
     left.appendChild(meta);
 
     const right = document.createElement("div");
     right.className = "settings-row-actions";
 
+    const pill = document.createElement("div");
+    pill.className = "action-pill";
+
     const editBtn = document.createElement("button");
     editBtn.type = "button";
-    editBtn.className = "icon-button small";
-    editBtn.textContent = "✏️";
-    editBtn.addEventListener("click", () => openVehicleClassModal(vc));
+    editBtn.className = "action-pill-btn edit";
+    editBtn.textContent = "Bearbeiten";
+    editBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openVehicleClassModal(vc);
+    });
+
+    const sep = document.createElement("span");
+    sep.className = "action-pill-separator";
+    sep.textContent = "|";
 
     const delBtn = document.createElement("button");
     delBtn.type = "button";
-    delBtn.className = "icon-button small danger";
-    delBtn.textContent = "🗑";
-    delBtn.addEventListener("click", () => deleteVehicleClass(vc.id));
+    delBtn.className = "action-pill-btn delete";
+    delBtn.textContent = "Löschen";
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteVehicleClass(vc.id);
+    });
 
-    right.appendChild(editBtn);
-    right.appendChild(delBtn);
+    pill.appendChild(editBtn);
+    pill.appendChild(sep);
+    pill.appendChild(delBtn);
+
+    right.appendChild(pill);
 
     row.appendChild(left);
     row.appendChild(right);
@@ -1301,6 +1456,7 @@ async function loadServices() {
   services = data || [];
   renderServicesList();
   refreshBookingServiceOptions();
+  refreshBookingDetailSinglesOptions();
 }
 
 function renderServicesList() {
@@ -1359,20 +1515,36 @@ function renderServicesList() {
     const right = document.createElement("div");
     right.className = "settings-row-actions";
 
+    const pill = document.createElement("div");
+    pill.className = "action-pill";
+
     const editBtn = document.createElement("button");
     editBtn.type = "button";
-    editBtn.className = "icon-button small";
-    editBtn.textContent = "✏️";
-    editBtn.addEventListener("click", () => openServiceModal(svc));
+    editBtn.className = "action-pill-btn edit";
+    editBtn.textContent = "Bearbeiten";
+    editBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openServiceModal(svc);
+    });
+
+    const sep = document.createElement("span");
+    sep.className = "action-pill-separator";
+    sep.textContent = "|";
 
     const delBtn = document.createElement("button");
     delBtn.type = "button";
-    delBtn.className = "icon-button small danger";
-    delBtn.textContent = "🗑";
-    delBtn.addEventListener("click", () => deleteService(svc.id));
+    delBtn.className = "action-pill-btn delete";
+    delBtn.textContent = "Löschen";
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteService(svc.id);
+    });
 
-    right.appendChild(editBtn);
-    right.appendChild(delBtn);
+    pill.appendChild(editBtn);
+    pill.appendChild(sep);
+    pill.appendChild(delBtn);
+
+    right.appendChild(pill);
 
     row.appendChild(left);
     row.appendChild(right);
@@ -1546,6 +1718,8 @@ function setupServiceManagementHandlers() {
 
   attachToggle(vehicleClassesDropdownToggle);
   attachToggle(servicesDropdownToggle);
+  attachToggle(bookingSinglesToggle);
+  attachToggle(bookingDetailSinglesToggle);
 }
 
   // Services
@@ -1645,21 +1819,27 @@ function setupServiceManagementHandlers() {
 
 // Helper: Booking selects
 function refreshBookingVehicleClassOptions() {
-  if (!bookingVehicleClassSelect) return;
+  const targets = [bookingVehicleClassSelect, bookingDetailVehicleClassSelect];
 
-  bookingVehicleClassSelect.innerHTML = "";
-  const optNone = document.createElement("option");
-  optNone.value = "";
-  optNone.textContent = "Keine Auswahl";
-  bookingVehicleClassSelect.appendChild(optNone);
+  targets.forEach((selectEl) => {
+    if (!selectEl) return;
 
-  if (!vehicleClasses) return;
+    // Reset
+    selectEl.innerHTML = "";
 
-  vehicleClasses.forEach((vc) => {
-    const opt = document.createElement("option");
-    opt.value = vc.id;
-    opt.textContent = vc.name;
-    bookingVehicleClassSelect.appendChild(opt);
+    const optNone = document.createElement("option");
+    optNone.value = "";
+    optNone.textContent = "Keine Auswahl";
+    selectEl.appendChild(optNone);
+
+    if (!vehicleClasses || vehicleClasses.length === 0) return;
+
+    vehicleClasses.forEach((vc) => {
+      const opt = document.createElement("option");
+      opt.value = vc.id;
+      opt.textContent = vc.name;
+      selectEl.appendChild(opt);
+    });
   });
 }
 
@@ -1696,45 +1876,218 @@ function refreshBookingServiceOptions() {
     return;
   }
 
-  singles.forEach((svc) => {
-    const priceEuro = (svc.base_price_cents || 0) / 100;
-    const priceText = priceEuro.toLocaleString("de-DE", {
-      style: "currency",
-      currency: "EUR",
-    });
+  // Nach Kategorie gruppieren
+  const groupsMap = new Map();
 
-    // Hidden-Option für Logik (recalcBookingSummary benutzt selectedOptions)
+  singles.forEach((svc) => {
+    const rawCat = (svc.category || "").trim();
+    const isOther = !rawCat;
+    const key = isOther ? "__zz_other" : rawCat.toLowerCase();
+    const label = isOther ? "Sonstige" : rawCat;
+
+    if (!groupsMap.has(key)) {
+      groupsMap.set(key, { label, services: [] });
+    }
+    groupsMap.get(key).services.push(svc);
+
+    // Hidden-Select Option
     const opt = document.createElement("option");
     opt.value = svc.id;
+    opt.textContent = svc.name;
     bookingSinglesList.appendChild(opt);
+  });
 
-    // Sichtbarer Eintrag im Dropdown
-    const item = document.createElement("div");
-    item.className = "booking-singles-item";
-    item.dataset.id = svc.id;
+  const sortedKeys = Array.from(groupsMap.keys()).sort((a, b) => {
+    if (a === "__zz_other") return 1;
+    if (b === "__zz_other") return -1;
+    const la = groupsMap.get(a).label.toLowerCase();
+    const lb = groupsMap.get(b).label.toLowerCase();
+    return la.localeCompare(lb, "de");
+  });
 
-    const label = document.createElement("div");
-    label.className = "booking-singles-item-label";
-    label.textContent = `${svc.name} (${priceText})`;
+  sortedKeys.forEach((key) => {
+    const group = groupsMap.get(key);
+    const labelText = group.label;
 
-    const checkbox = document.createElement("div");
-    checkbox.className = "booking-singles-item-checkbox";
+    // Kategorie-Überschrift immer anzeigen (inkl. Sonstige)
+    const catHeader = document.createElement("div");
+    catHeader.className = "booking-singles-category";
+    catHeader.textContent = labelText;
+    bookingSinglesMenu.appendChild(catHeader);
 
-    item.appendChild(label);
-    item.appendChild(checkbox);
+    // Services innerhalb der Kategorie nach Name sortieren
+    const servicesSorted = [...group.services].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || "", "de")
+    );
 
-    item.addEventListener("click", () => {
-      const nowSelected = item.classList.toggle("selected");
-      const optEl = bookingSinglesList.querySelector(
-        `option[value="${svc.id}"]`
-      );
-      if (optEl) {
-        optEl.selected = nowSelected;
-      }
-      recalcBookingSummary();
+    servicesSorted.forEach((svc) => {
+      const item = document.createElement("div");
+      item.className = "booking-singles-item";
+      item.dataset.serviceId = svc.id;
+
+      const priceEuro = (svc.base_price_cents || 0) / 100;
+      const priceText = priceEuro.toLocaleString("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      });
+
+      const label = document.createElement("div");
+      label.className = "booking-singles-item-label";
+      label.textContent = `${svc.name} (${priceText})`;
+
+      const checkbox = document.createElement("div");
+      checkbox.className = "booking-singles-item-checkbox";
+
+      item.appendChild(label);
+      item.appendChild(checkbox);
+
+      item.addEventListener("click", () => {
+        const nowSelected = item.classList.toggle("selected");
+        const optEl = bookingSinglesList.querySelector(
+          `option[value="${svc.id}"]`
+        );
+        if (optEl) {
+          optEl.selected = nowSelected;
+        }
+        recalcBookingSummary();
+      });
+
+      bookingSinglesMenu.appendChild(item);
     });
+  });
+}
 
-    bookingSinglesMenu.appendChild(item);
+function refreshBookingDetailServiceOptions() {
+  if (!services || !Array.isArray(services)) return;
+
+  // Pakete
+  if (bookingDetailMainServiceSelect) {
+    bookingDetailMainServiceSelect.innerHTML = "";
+
+    const optNone = document.createElement("option");
+    optNone.value = "";
+    optNone.textContent = "Kein Paket";
+    bookingDetailMainServiceSelect.appendChild(optNone);
+
+    const packages = services.filter((s) => s.kind === "package");
+
+    packages.forEach((svc) => {
+      const opt = document.createElement("option");
+      opt.value = svc.id;
+      opt.textContent = svc.name;
+      bookingDetailMainServiceSelect.appendChild(opt);
+    });
+  }
+
+  // Einzelleistungen
+  if (bookingDetailSinglesSelect) {
+    bookingDetailSinglesSelect.innerHTML = "";
+
+    const singles = services.filter((s) => s.kind === "single");
+
+    singles.forEach((svc) => {
+      const opt = document.createElement("option");
+      opt.value = svc.id;
+      // Kategorie voranstellen, wenn vorhanden
+      const prefix = svc.category ? `[${svc.category}] ` : "";
+      opt.textContent = prefix + svc.name;
+      bookingDetailSinglesSelect.appendChild(opt);
+    });
+  }
+}
+
+function refreshBookingDetailSinglesOptions() {
+  if (!bookingDetailSinglesList || !bookingDetailSinglesMenu) return;
+
+  bookingDetailSinglesList.innerHTML = "";
+  bookingDetailSinglesMenu.innerHTML = "";
+
+  const singles = (services || []).filter((s) => s.kind === "single");
+
+  if (singles.length === 0) {
+    const p = document.createElement("p");
+    p.className = "form-hint";
+    p.textContent = "Noch keine Einzelleistungen angelegt.";
+    bookingDetailSinglesMenu.appendChild(p);
+    return;
+  }
+
+  // Nach Kategorie gruppieren
+  const groupsMap = new Map();
+
+  singles.forEach((svc) => {
+    const rawCat = (svc.category || "").trim();
+    const isOther = !rawCat;
+    const key = isOther ? "__zz_other" : rawCat.toLowerCase();
+    const label = isOther ? "Sonstige" : rawCat;
+
+    if (!groupsMap.has(key)) {
+      groupsMap.set(key, { label, services: [] });
+    }
+    groupsMap.get(key).services.push(svc);
+
+    // Hidden-Select Option
+    const opt = document.createElement("option");
+    opt.value = svc.id;
+    opt.textContent = svc.name;
+    bookingDetailSinglesList.appendChild(opt);
+  });
+
+  const sortedKeys = Array.from(groupsMap.keys()).sort((a, b) => {
+    if (a === "__zz_other") return 1;
+    if (b === "__zz_other") return -1;
+    const la = groupsMap.get(a).label.toLowerCase();
+    const lb = groupsMap.get(b).label.toLowerCase();
+    return la.localeCompare(lb, "de");
+  });
+
+  sortedKeys.forEach((key) => {
+    const group = groupsMap.get(key);
+    const labelText = group.label;
+
+    // Kategorie-Überschrift auch im Detail-Modal
+    const catHeader = document.createElement("div");
+    catHeader.className = "booking-singles-category";
+    catHeader.textContent = labelText;
+    bookingDetailSinglesMenu.appendChild(catHeader);
+
+    const servicesSorted = [...group.services].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || "", "de")
+    );
+
+    servicesSorted.forEach((svc) => {
+      const item = document.createElement("div");
+      item.className = "booking-singles-item";
+      item.dataset.serviceId = svc.id;
+
+      const priceEuro = (svc.base_price_cents || 0) / 100;
+      const priceText = priceEuro.toLocaleString("de-DE", {
+        style: "currency",
+        currency: "EUR",
+      });
+
+      const labelEl = document.createElement("div");
+      labelEl.className = "booking-singles-item-label";
+      labelEl.textContent = `${svc.name} (${priceText})`;
+
+      const checkbox = document.createElement("div");
+      checkbox.className = "booking-singles-item-checkbox";
+
+      item.appendChild(labelEl);
+      item.appendChild(checkbox);
+
+      item.addEventListener("click", () => {
+        const nowSelected = item.classList.toggle("selected");
+        const optEl = bookingDetailSinglesList.querySelector(
+          `option[value="${svc.id}"]`
+        );
+        if (optEl) {
+          optEl.selected = nowSelected;
+        }
+      });
+
+      bookingDetailSinglesMenu.appendChild(item);
+    });
   });
 }
 
@@ -2677,6 +3030,11 @@ function openBookingDetail(booking) {
   if (!bookingDetailModal) return;
   currentDetailBooking = booking;
 
+    // Sicherstellen, dass alle Selects / Dropdowns aktuell sind
+  refreshBookingVehicleClassOptions();
+  refreshBookingDetailServiceOptions();
+  refreshBookingDetailSinglesOptions();
+
   // Titel: Auftrag #ID – Kunde
   if (bookingDetailTitle) {
     bookingDetailTitle.textContent = formatBookingTitle(booking);
@@ -2731,6 +3089,82 @@ function openBookingDetail(booking) {
     bookingDetailDiscountValueInput.value =
       booking.discount_value != null ? booking.discount_value : "";
   }
+
+  // Services in die Detail-Selects spiegeln
+  if (services && Array.isArray(services)) {
+    // Wir orientieren uns an den Items, die beim Anlegen / Bearbeiten
+    // geschrieben werden: role === "package" / "single"
+    const serviceItems = Array.isArray(booking.items)
+      ? booking.items.filter(
+          (it) => it && (it.role === "package" || it.role === "single")
+        )
+      : [];
+
+    const mainServiceItem = serviceItems.find((it) => it.role === "package");
+    const singleServiceItems = serviceItems.filter(
+      (it) => it.role === "single"
+    );
+
+    // Paket
+    if (bookingDetailMainServiceSelect) {
+      // sicherstellen, dass Optionen aktuell sind
+      refreshBookingDetailServiceOptions();
+
+      if (mainServiceItem && mainServiceItem.service_id) {
+        bookingDetailMainServiceSelect.value = String(
+          mainServiceItem.service_id
+        );
+      } else {
+        bookingDetailMainServiceSelect.value = "";
+      }
+    }
+
+    // Einzelleistungen
+    if (bookingDetailSinglesSelect) {
+      // sicherstellen, dass Optionen aktuell sind
+      refreshBookingDetailServiceOptions();
+
+      const singleIds = new Set(
+        singleServiceItems
+          .map((it) => it.service_id)
+          .filter((id) => id != null)
+          .map(String)
+      );
+
+      for (const opt of bookingDetailSinglesSelect.options) {
+        opt.selected = singleIds.has(opt.value);
+      }
+    }
+  }
+
+  // Einzelleistungen im Detail-Dropdown spiegeln
+  if (bookingDetailSinglesList && bookingDetailSinglesMenu) {
+    // sicherstellen, dass die Optionen aktuell sind
+    refreshBookingDetailSinglesOptions();
+
+    const selectedIds = new Set(
+      (Array.isArray(booking.items) ? booking.items : [])
+        .filter((it) => it && it.role === "single")
+        .map((it) => String(it.service_id))
+        .filter(Boolean)
+    );
+
+    // Hidden-Select markieren
+    for (const opt of bookingDetailSinglesList.options) {
+      opt.selected = selectedIds.has(opt.value);
+    }
+
+    // Visuelle Checkbox-Pills markieren
+    bookingDetailSinglesMenu
+      .querySelectorAll(".booking-singles-item")
+      .forEach((item) => {
+        const id = item.dataset.serviceId;
+        if (!id) return;
+        const isSelected = selectedIds.has(String(id));
+        item.classList.toggle("selected", isSelected);
+      });
+  }
+
 
   // Kunde
   if (bookingDetailCustomerNameInput) {
@@ -3034,30 +3468,184 @@ function setupBookingDetailHandlers() {
       // Auftragsstatus
       let jobStatus = currentDetailBooking.job_status || "planned";
       if (bookingDetailJobStatusSelect) {
-        jobStatus = bookingDetailJobStatusSelect.value;
+        jobStatus = bookingDetailJobStatusSelect.value || "planned";
       }
       patch.job_status = jobStatus;
 
       // Zahlungsstatus
       let paymentStatus = currentDetailBooking.payment_status || "open";
       if (bookingDetailPaymentStatusSelect) {
-        paymentStatus = bookingDetailPaymentStatusSelect.value;
+        paymentStatus = bookingDetailPaymentStatusSelect.value || "open";
       }
       patch.payment_status = paymentStatus;
 
-      // Payment-Meta über items abbilden
+      // Basis für Items
       let items = Array.isArray(currentDetailBooking.items)
         ? [...currentDetailBooking.items]
         : [];
 
-      // Alte Payment-Einträge entfernen
+      // Alte Service-/Klassen-/Payment-Items rauswerfen
       items = items.filter(
         (it) =>
           it &&
+          it.role !== "package" &&
+          it.role !== "single" &&
+          it.role !== "vehicle_price_adjustment" &&
           it.role !== "payment_partial" &&
           it.role !== "payment_final_override"
       );
 
+      // ==============================
+      // Services + Preis & Dauer neu berechnen
+      // ==============================
+      const getServiceById = (id) =>
+        (services || []).find((s) => String(s.id) === String(id));
+
+      let totalBasePriceCents = 0;
+      let totalMinutes = 0;
+      let mainServiceName = null;
+
+      // Paket (Detail-Select)
+      let mainServiceId = null;
+      if (bookingDetailMainServiceSelect) {
+        const v = bookingDetailMainServiceSelect.value;
+        mainServiceId = v ? v : null;
+      }
+
+      if (mainServiceId) {
+        const main = getServiceById(mainServiceId);
+        if (main) {
+          mainServiceName = main.name;
+          const basePrice = main.base_price_cents || 0;
+          const baseDur = main.duration_minutes || 0;
+
+          items.push({
+            role: "package",
+            service_id: main.id,
+            name: main.name,
+            base_price_cents: basePrice,
+            price_cents: basePrice,
+            base_duration_minutes: baseDur,
+            duration_minutes: baseDur,
+          });
+
+          totalBasePriceCents += basePrice;
+          totalMinutes += baseDur;
+        }
+      }
+
+      // Einzelleistungen (Detail-Multi-Select aus dem Hidden-Select)
+      const singleIds = [];
+      if (bookingDetailSinglesList) {
+        for (const opt of bookingDetailSinglesList.options) {
+          if (opt.selected && opt.value) {
+            singleIds.push(opt.value);
+          }
+        }
+      }
+
+      singleIds.forEach((id) => {
+        const svc = getServiceById(id);
+        if (!svc) return;
+
+        const basePrice = svc.base_price_cents || 0;
+        const baseDur = svc.duration_minutes || 0;
+
+        items.push({
+          role: "single",
+          service_id: svc.id,
+          name: svc.name,
+          base_price_cents: basePrice,
+          price_cents: basePrice,
+          base_duration_minutes: baseDur,
+          duration_minutes: baseDur,
+        });
+
+        totalBasePriceCents += basePrice;
+        totalMinutes += baseDur;
+      });
+
+      // ==============================
+      // Fahrzeugklasse + Preis-Delta
+      // ==============================
+      let vehicleClassId = null;
+      let vehicleClassName = null;
+      let classPriceDeltaCents = 0;
+
+      if (bookingDetailVehicleClassSelect) {
+        vehicleClassId = bookingDetailVehicleClassSelect.value || null;
+      }
+
+      if (vehicleClassId && Array.isArray(vehicleClasses)) {
+        const vc = vehicleClasses.find((v) => String(v.id) === String(vehicleClassId));
+        if (vc) {
+          vehicleClassName = vc.name || null;
+          classPriceDeltaCents = vc.price_delta_cents || 0;
+        }
+      }
+
+      patch.vehicle_class_id = vehicleClassId;
+      patch.vehicle_class_name = vehicleClassName;
+
+      if (classPriceDeltaCents !== 0) {
+        items.push({
+          role: "vehicle_price_adjustment",
+          amount_cents: classPriceDeltaCents,
+        });
+      }
+
+      // ==============================
+      // Rabatt
+      // ==============================
+      let discType = "none";
+      let discVal = 0;
+
+      if (bookingDetailDiscountTypeSelect) {
+        discType = bookingDetailDiscountTypeSelect.value || "none";
+      }
+      if (bookingDetailDiscountValueInput) {
+        const raw = parseFloat(bookingDetailDiscountValueInput.value || "0");
+        discVal = Number.isFinite(raw) ? raw : 0;
+      }
+
+      if (discType !== "amount" && discType !== "percent") {
+        discType = "none";
+        discVal = 0;
+      }
+
+      let discountAmountCents = 0;
+      if (discType === "amount" && discVal > 0) {
+        discountAmountCents = Math.round(discVal * 100);
+      } else if (discType === "percent" && discVal > 0) {
+        if (discVal > 100) discVal = 100;
+        if (discVal < 0) discVal = 0;
+        discountAmountCents = Math.round(
+          totalBasePriceCents * (discVal / 100)
+        );
+      } else {
+        discType = "none";
+        discVal = 0;
+      }
+
+      patch.discount_type = discType;
+      patch.discount_value = discVal;
+      patch.discount_amount_cents = discountAmountCents;
+
+      // ==============================
+      // Gesamtpreis & Dauer
+      // ==============================
+      const totalPriceCentsRaw =
+        totalBasePriceCents + classPriceDeltaCents - discountAmountCents;
+      const totalPriceCents = Math.max(0, totalPriceCentsRaw);
+      patch.total_price = totalPriceCents / 100;
+      patch.duration_minutes = totalMinutes;
+
+      // service_name für Übersicht / Kalender
+      patch.service_name = mainServiceName || "Auftrag";
+
+      // ==============================
+      // Payment-Meta
+      // ==============================
       const partialCents = parseEuroInputToCents(
         bookingDetailPartialAmountInput
       );
@@ -3073,7 +3661,6 @@ function setupBookingDetailHandlers() {
       }
 
       if (paymentStatus === "paid") {
-        // Teilzahlung wird „aufgelöst“; override nur wenn gesetzt
         if (overrideCents != null) {
           items.push({
             role: "payment_final_override",
@@ -3082,7 +3669,9 @@ function setupBookingDetailHandlers() {
         }
       }
 
-            // Termin
+      // ==============================
+      // Termin
+      // ==============================
       if (bookingDetailDateInput && bookingDetailDateInput.value) {
         const dateStr = bookingDetailDateInput.value;
         const timeStr =
@@ -3094,40 +3683,10 @@ function setupBookingDetailHandlers() {
         }
       }
 
-      // Fahrzeug / Fahrzeugklasse
+      // Fahrzeug
       if (bookingDetailCarInput) {
         const carVal = bookingDetailCarInput.value.trim();
         patch.car = carVal || null;
-      }
-
-      if (bookingDetailVehicleClassSelect) {
-        const vcId = bookingDetailVehicleClassSelect.value || null;
-        patch.vehicle_class_id = vcId;
-        let vcName = null;
-        if (vcId && Array.isArray(vehicleClasses)) {
-          const vc = vehicleClasses.find((v) => v.id === vcId);
-          if (vc) vcName = vc.name || null;
-        }
-        patch.vehicle_class_name = vcName;
-      }
-
-      // Rabatt
-      if (bookingDetailDiscountTypeSelect) {
-        let discType = bookingDetailDiscountTypeSelect.value || "none";
-        let discValRaw = bookingDetailDiscountValueInput
-          ? parseFloat(bookingDetailDiscountValueInput.value || "0")
-          : 0;
-        let discVal = Number.isFinite(discValRaw) ? discValRaw : 0;
-
-        if (discType !== "amount" && discType !== "percent") {
-          discType = "none";
-          discVal = 0;
-        }
-
-        patch.discount_type = discType;
-        patch.discount_value = discVal;
-        // discount_amount_cents lassen wir wie gespeichert – können wir später
-        // bei Bedarf sauber neu berechnen.
       }
 
       // Kunde
@@ -3148,6 +3707,7 @@ function setupBookingDetailHandlers() {
         patch.customer_address = v || null;
       }
 
+      // Items anhängen
       patch.items = items;
 
       const { error } = await supabaseClient
