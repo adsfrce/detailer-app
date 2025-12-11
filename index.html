@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>DetailHQ</title>
-  <link rel="icon" type="image/png" href="app_icon.PNG" />
-  <link rel="apple-touch-icon" href="app_icon.PNG" />
+  <link rel="icon" type="image/png" href="app_icon.png" />
+  <link rel="apple-touch-icon" href="app_icon.png" />
   <meta name="theme-color" content="#000000" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -20,7 +20,7 @@
     <div id="auth-view" class="view active">
       <div class="auth-card glass">
         <div class="auth-logo-row">
-          <img src="logo_icon.PNG" alt="DetailHQ Logo" class="app-logo" />
+          <img src="logo_icon.png" alt="DetailHQ Logo" class="app-logo" />
           <div>
             <h1 class="app-title">DetailHQ</h1>
             <p class="app-subtitle">
@@ -85,7 +85,7 @@
       <!-- HEADER MIT PROFIL -->
       <header class="app-header glass">
         <div class="header-left">
-          <img src="logo_icon.PNG" alt="DetailHQ Logo" class="header-logo" />
+          <img src="logo_icon.png" alt="DetailHQ Logo" class="header-logo" />
           <div>
             <h2 id="header-title">Dashboard</h2>
             <p id="header-subtitle" class="header-subtitle">
@@ -713,50 +713,95 @@
     </div>
   </div>
 
-              <div class="modal-section">
-                <label class="field-label" for="booking-detail-car">Fahrzeug</label>
-                <input
-                  id="booking-detail-car"
-                  type="text"
-                  class="field-input"
-                  placeholder="z.B. BMW M3, Kennzeichen"
-                />
-              </div>
+  <div class="modal-section">
+    <label class="field-label" for="booking-detail-car">Fahrzeug</label>
+    <input
+      id="booking-detail-car"
+      type="text"
+      class="field-input"
+      placeholder="z.B. BMW M3, Kennzeichen"
+    />
+  </div>
 
-              <div class="modal-section">
-                <label class="field-label" for="booking-detail-vehicle-class">
-                  Fahrzeugklasse
-                </label>
-                <select id="booking-detail-vehicle-class" class="field-input">
-                  <option value="">Keine Auswahl</option>
-                  <!-- Optionen werden per JS geladen -->
-                </select>
-              </div>
+  <div class="modal-section">
+    <label class="field-label" for="booking-detail-vehicle-class">
+      Fahrzeugklasse
+    </label>
+    <select id="booking-detail-vehicle-class" class="field-input">
+      <option value="">Keine Auswahl</option>
+      <!-- Optionen werden per JS geladen -->
+    </select>
+  </div>
 
-              <div class="modal-section">
-                <label class="field-label" for="booking-detail-discount-type">
-                  Rabattart
-                </label>
-                <select id="booking-detail-discount-type" class="field-input">
-                  <option value="none">Kein Rabatt</option>
-                  <option value="amount">Betrag (€)</option>
-                  <option value="percent">Prozent (%)</option>
-                </select>
-              </div>
+  <!-- NEU: Paket -->
+  <div class="modal-section">
+    <label class="field-label" for="booking-detail-main-service">
+      Paket (optional)
+    </label>
+    <select id="booking-detail-main-service" class="field-input">
+      <option value="">Kein Paket</option>
+      <!-- Optionen per JS -->
+    </select>
+    <p class="form-hint">
+      Optionales Hauptpaket für diesen Auftrag.
+    </p>
+  </div>
 
-              <div class="modal-section">
-                <label class="field-label" for="booking-detail-discount-value">
-                  Rabattwert
-                </label>
-                <input
-                  id="booking-detail-discount-value"
-                  type="number"
-                  class="field-input"
-                  step="0.01"
-                  min="0"
-                  placeholder="z.B. 10"
-                />
-              </div>
+<div class="modal-section">
+  <label class="field-label">Einzelleistungen</label>
+
+  <!-- Custom Dropdown mit Checkboxen (wie Neuer Auftrag) -->
+  <div class="settings-dropdown booking-singles-dropdown">
+    <button
+      type="button"
+      class="settings-dropdown-toggle"
+      id="booking-detail-singles-toggle"
+    >
+      Einzelleistungen wählen
+      <span class="settings-dropdown-chevron">▾</span>
+    </button>
+    <div
+      class="settings-dropdown-menu"
+      id="booking-detail-singles-menu"
+    >
+      <p class="form-hint">Noch keine Einzelleistungen angelegt.</p>
+    </div>
+  </div>
+
+  <!-- Hidden Multi-Select als Datenbasis -->
+  <select
+    id="booking-detail-singles-list"
+    multiple
+    class="hidden"
+  ></select>
+
+  <p class="form-hint">Mehrere Einzelleistungen wählbar.</p>
+</div>
+
+  <div class="modal-section">
+    <label class="field-label" for="booking-detail-discount-type">
+      Rabattart
+    </label>
+    <select id="booking-detail-discount-type" class="field-input">
+      <option value="none">Kein Rabatt</option>
+      <option value="amount">Betrag (€)</option>
+      <option value="percent">Prozent (%)</option>
+    </select>
+  </div>
+
+  <div class="modal-section">
+    <label class="field-label" for="booking-detail-discount-value">
+      Rabattwert
+    </label>
+    <input
+      id="booking-detail-discount-value"
+      type="number"
+      class="field-input"
+      step="0.01"
+      min="0"
+      placeholder="z.B. 10"
+    />
+  </div>
             </details>
 
             <!-- KUNDE (editierbar) -->
@@ -947,22 +992,27 @@
       <!-- BOTTOM NAV -->
       <nav class="bottom-nav glass">
         <button class="nav-item active" data-tab="dashboard">
-          <span class="nav-icon">📊</span>
+          <span class="nav-icon">
+            <img src="dashboard-icon.PNG" alt="Dashboard" />
+          </span>
           <span class="nav-label">Dashboard</span>
         </button>
         <button class="nav-item" data-tab="schedule">
-          <span class="nav-icon">📅</span>
+          <span class="nav-icon">
+            <img src="zeitplan-icon.PNG" alt="Zeitplan" />
+          </span>
           <span class="nav-label">Zeitplan</span>
         </button>
         <button class="nav-item" data-tab="settings">
-          <span class="nav-icon">⚙️</span>
+          <span class="nav-icon">
+            <img src="einstellungen-icon.PNG" alt="Einstellungen" />
+          </span>
           <span class="nav-label">Einstellungen</span>
         </button>
       </nav>
     </div>
   </div>
 
-  <script src="main.js?v=20251211-1"></script>
-  <link rel="stylesheet" href="style.css?v=20251210-1">
+  <script src="main.js"></script>
 </body>
 </html>
