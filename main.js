@@ -7,6 +7,33 @@ const SUPABASE_ANON_KEY =
 
 let supabaseClient = null;
 
+let supabaseClient = null;
+
+try {
+  console.log("DetailHQ: Supabase global typeof =", typeof supabase);
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log("DetailHQ: Supabase Client initialisiert");
+} catch (err) {
+  console.error("DetailHQ: Supabase initialisation FAILED:", err);
+}
+
+// Make Webhook
+const MAKE_WEBHOOK_URL =
+  "https://hook.eu1.make.com/6tf25stiy013xfr1v7ox1ewb9t9qdrth";
+
+async function notifyMakeNewUser() {
+  if (!MAKE_WEBHOOK_URL) return;
+  try {
+    await fetch(MAKE_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "new_user" }),
+    });
+  } catch (err) {
+    console.error("DetailHQ: Make new_user notification failed:", err);
+  }
+}
+
 try {
   console.log("DetailHQ: Supabase global typeof =", typeof supabase);
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -614,6 +641,8 @@ function setupAuthHandlers() {
             signInError.message || "Automatische Anmeldung fehlgeschlagen.";
         return;
       }
+
+      await notifyMakeNewUser();
 
       currentUser = signInData.user;
       await ensureProfile();
