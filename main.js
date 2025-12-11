@@ -7,8 +7,6 @@ const SUPABASE_ANON_KEY =
 
 let supabaseClient = null;
 
-let supabaseClient = null;
-
 try {
   console.log("DetailHQ: Supabase global typeof =", typeof supabase);
   supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -22,24 +20,18 @@ const MAKE_WEBHOOK_URL =
   "https://hook.eu1.make.com/6tf25stiy013xfr1v7ox1ewb9t9qdrth";
 
 async function notifyMakeNewUser() {
+  console.log("DetailHQ: notifyMakeNewUser CALLED");
   if (!MAKE_WEBHOOK_URL) return;
   try {
-    await fetch(MAKE_WEBHOOK_URL, {
+    const res = await fetch(MAKE_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "new_user" }),
     });
+    console.log("DetailHQ: Make new_user response", res.status);
   } catch (err) {
     console.error("DetailHQ: Make new_user notification failed:", err);
   }
-}
-
-try {
-  console.log("DetailHQ: Supabase global typeof =", typeof supabase);
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log("DetailHQ: Supabase Client initialisiert");
-} catch (err) {
-  console.error("DetailHQ: Supabase initialisation FAILED:", err);
 }
 
 // Theme Key muss VOR init bekannt sein
@@ -594,66 +586,71 @@ function setupAuthHandlers() {
     });
   }
 
-  if (registerForm) {
-    registerForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (authError) authError.textContent = "";
-      console.log("DetailHQ: Register submit");
+if (registerForm) {
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (authError) authError.textContent = "";
+    console.log("DetailHQ: Register submit");
 
-      const emailEl = document.getElementById("register-email");
-      const pwEl = document.getElementById("register-password");
-      const email = emailEl ? emailEl.value.trim() : "";
-      const password = pwEl ? pwEl.value.trim() : "";
+    const emailEl = document.getElementById("register-email");
+    const pwEl = document.getElementById("register-password");
+    const email = emailEl ? emailEl.value.trim() : "";
+    const password = pwEl ? pwEl.value.trim() : "";
 
-      if (!email || !password) {
-        if (authError)
-          authError.textContent =
-            "Bitte E-Mail und Passwort eingeben.";
-        return;
-      }
+    if (!email || !password) {
+      if (authError)
+        authError.textContent = "Bitte E-Mail und Passwort eingeben.";
+      return;
+    }
 
-      const { data, error } = await supabaseClient.auth.signUp({
+    // 1) REGISTRIEREN
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error("DetailHQ: Register-Fehler:", error);
+      if (authError)
+        authError.textContent =
+          error.message || "Registrierung fehlgeschlagen.";
+      return;
+    }
+
+    // 2) SOFORT Make informieren (NEUER NUTZER)
+    await notifyMakeNewUser();
+
+    // 3) Auto-Login (optional – nur für UX)
+    const { data: signInData, error: signInError } =
+      await supabaseClient.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        console.error("DetailHQ: Register-Fehler:", error);
-        if (authError)
-          authError.textContent =
-            error.message || "Registrierung fehlgeschlagen.";
-        return;
-      }
+    if (signInError) {
+      console.error(
+        "DetailHQ: Auto-Login nach Register fehlgeschlagen:",
+        signInError
+      );
+      if (authError)
+        authError.textContent =
+          signInError.message || "Automatische Anmeldung fehlgeschlagen.";
+      // Wichtig: hier KEIN return, weil User ist zumindest registriert
+      // aber wir brechen UI-Aufbau ab
+      return;
+    }
 
-      const { data: signInData, error: signInError } =
-        await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
+    currentUser = signInData.user;
+    await ensureProfile();
+    await loadProfileIntoForm();
+    setupCalendarUrlForUser();
+    await loadVehicleClasses();
+    await loadServices();
+    await loadBookingsForDashboardAndSchedule();
+    showAppView();
+  });
+}
 
-      if (signInError) {
-        console.error(
-          "DetailHQ: Auto-Login nach Register fehlgeschlagen:",
-          signInError
-        );
-        if (authError)
-          authError.textContent =
-            signInError.message || "Automatische Anmeldung fehlgeschlagen.";
-        return;
-      }
-
-      await notifyMakeNewUser();
-
-      currentUser = signInData.user;
-      await ensureProfile();
-      await loadProfileIntoForm();
-      setupCalendarUrlForUser();
-      await loadVehicleClasses();
-      await loadServices();
-      await loadBookingsForDashboardAndSchedule();
-      showAppView();
-    });
-  }
 
   if (passwordResetButton) {
     passwordResetButton.addEventListener("click", async () => {
