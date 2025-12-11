@@ -1735,8 +1735,6 @@ function setupServiceManagementHandlers() {
 
   attachToggle(vehicleClassesDropdownToggle);
   attachToggle(servicesDropdownToggle);
-  attachToggle(bookingSinglesToggle);
-  attachToggle(bookingDetailSinglesToggle);
 }
 
   // Services
@@ -2179,19 +2177,42 @@ function setupBookingHandlers() {
     bookingDiscountValueInput.addEventListener("input", recalcBookingSummary);
   }
 
-    if (bookingSinglesToggle && bookingSinglesMenu) {
-    bookingSinglesToggle.addEventListener("click", () => {
-      const wrapper = bookingSinglesToggle.closest(".settings-dropdown");
-      if (!wrapper) return;
+  // Helper für Dropdown-Toggle (Neuer Auftrag + Detail-Modal)
+  function attachBookingDropdown(wrapperSelector, toggleEl, menuEl) {
+    if (!toggleEl || !menuEl) return;
+
+    const wrapper =
+      (wrapperSelector && document.querySelector(wrapperSelector)) ||
+      toggleEl.closest(".settings-dropdown");
+
+    if (!wrapper) return;
+
+    toggleEl.addEventListener("click", () => {
       const isOpen = wrapper.classList.contains("open");
 
+      // alle anderen Dropdowns schließen
       document
         .querySelectorAll(".settings-dropdown.open")
         .forEach((el) => el.classList.remove("open"));
 
       wrapper.classList.toggle("open", !isOpen);
+      toggleEl.setAttribute("aria-expanded", !isOpen ? "true" : "false");
     });
   }
+
+  // Neuer Auftrag – Einzelleistungen
+  attachBookingDropdown(
+    ".booking-singles-dropdown",
+    bookingSinglesToggle,
+    bookingSinglesMenu
+  );
+
+  // Bestehender Auftrag – Einzelleistungen
+  attachBookingDropdown(
+    ".booking-detail-singles-dropdown",
+    bookingDetailSinglesToggle,
+    bookingDetailSinglesMenu
+  );
 }
 
 function openBookingModal() {
