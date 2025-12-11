@@ -135,6 +135,18 @@ body {
   box-shadow: 0 0 0 1px var(--accent-soft);
 }
 
+/* Datum + Uhrzeit nebeneinander in einer Zeile */
+.booking-datetime-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.booking-datetime-row > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 /* BUTTONS */
 
 .btn {
@@ -374,6 +386,16 @@ body {
   backdrop-filter: blur(var(--blur));
   -webkit-backdrop-filter: blur(var(--blur));
   border: 1px solid var(--border-subtle);
+}
+
+/* Apple-Liquid-Glass für Header, Bottom-Nav und Modals */
+.app-header.glass,
+.bottom-nav.glass,
+.profile-modal-card.glass {
+  background: rgba(255, 255, 255, 0.50);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .app-header.glass,
