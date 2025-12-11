@@ -379,7 +379,7 @@ body {
 .app-header.glass,
 .bottom-nav.glass {
   background: rgba(255, 255, 255, 0.35); /* oder var(--nav-glass-bg); */
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.6); /* oder var(--nav-glass-border); */
 }
