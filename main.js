@@ -395,6 +395,23 @@ function showBookingStep(step) {
   setupReviewModalHandlers();
   startReviewReminderTimer();
 
+function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
+  const wrapper = wrapperSelector
+    ? document.querySelector(wrapperSelector)
+    : null;
+  const toggle = document.getElementById(toggleId);
+  const menu = document.getElementById(menuId);
+
+  if (!toggle || !menu) return;
+
+  toggle.addEventListener("click", () => {
+    const container = wrapper || toggle.closest(".settings-dropdown");
+    if (!container) return;
+    const isOpen = container.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+}
+
   function setupReviewSettingsHandlers() {
     if (!settingsReviewSaveButton || !settingsReviewLinkInput) return;
 
