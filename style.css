@@ -13,9 +13,11 @@
   --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.7);
   --radius-lg: 20px;
   --radius-xl: 28px;
-  --blur: 26px;
-  --nav-glass-bg: rgba(255, 255, 255, 0.35);
-  --nav-glass-border: rgba(255, 255, 255, 0.6);
+  --blur: 3px;
+
+  /* NAV-GLASS für DARK MODE */
+  --nav-glass-bg: rgba(15, 23, 42, 0.35);
+  --nav-glass-border: rgba(148, 163, 184, 0.35);
 }
 
 /* LIGHT THEME OVERRIDES */
@@ -30,6 +32,10 @@ body.theme-light {
   --text: #0b1120;
   --text-soft: #6b7280;
   --shadow-soft: 0 18px 35px rgba(15, 23, 42, 0.12);
+
+  /* NAV-GLASS für LIGHT MODE */
+  --nav-glass-bg: rgba(255, 255, 255, 0.35);
+  --nav-glass-border: rgba(148, 163, 184, 0.35);
 }
 
 /* System: wird durch JS auf light/dark gesetzt */
@@ -373,37 +379,32 @@ body {
 .bottom-nav {
   position: fixed;
   bottom: 20px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: calc(100% - 32px);
   max-width: 480px;
-  padding: 6px 8px;
+
+  padding: 8px 10px;
   display: flex;
   justify-content: space-between;
   gap: 4px;
+
   border-radius: 999px;
-  background: var(--bg-elevated);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border: 1px solid var(--border-subtle);
+
+  /* Grundglass, Details kommen über .glass-Override */
+  background: transparent;
+  border: none;
 }
 
 /* Apple-Liquid-Glass für Header, Bottom-Nav und Modals */
 .app-header.glass,
 .bottom-nav.glass,
 .profile-modal-card.glass {
-  background: rgba(255, 255, 255, 0.50);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-.app-header.glass,
-.bottom-nav.glass {
-  background: rgba(255, 255, 255, 0.35); /* oder var(--nav-glass-bg); */
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.6); /* oder var(--nav-glass-border); */
+  background: var(--nav-glass-bg);
+  border: 0.5px solid var(--nav-glass-border);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
 }
 
 .nav-item {
@@ -424,6 +425,8 @@ body {
 .nav-item.active {
   background: var(--accent-soft);
   color: var(--accent-strong);
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
 }
 
 .nav-icon {
