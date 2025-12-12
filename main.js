@@ -34,6 +34,51 @@ async function notifyMakeNewUser() {
   }
 }
 
+// ================================
+// AFFILIATE (first-touch)
+// ================================
+function getAffiliateRefFromUrl() {
+  const url = new URL(window.location.href);
+  const ref = (url.searchParams.get("ref") || "").trim();
+  return ref || null;
+}
+
+function saveAffiliateRefFirstTouch() {
+  const ref = getAffiliateRefFromUrl();
+  if (!ref) return;
+
+  if (!localStorage.getItem("affiliate_ref")) {
+    localStorage.setItem("affiliate_ref", ref);
+    localStorage.setItem("affiliate_first_touch_at", new Date().toISOString());
+  }
+}
+
+async function persistAffiliateRefToProfileIfMissing() {
+  if (!currentUser || !supabaseClient) return;
+
+  const ref = localStorage.getItem("affiliate_ref");
+  const firstTouch = localStorage.getItem("affiliate_first_touch_at");
+  if (!ref) return;
+
+  // nur setzen, wenn im Profil noch leer
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("affiliate_ref")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  if (error) return;
+  if (data?.affiliate_ref) return;
+
+  await supabaseClient
+    .from("profiles")
+    .update({
+      affiliate_ref: ref,
+      affiliate_first_touch_at: firstTouch || new Date().toISOString(),
+    })
+    .eq("id", currentUser.id);
+}
+
 // Theme Key muss VOR init bekannt sein
 const THEME_KEY = "detailhq_theme";
 
@@ -391,6 +436,7 @@ function showBookingStep(step) {
 // ================================
 (async function init() {
   console.log("DetailHQ init startet...");
+  saveAffiliateRefFirstTouch();
 
   if (!supabaseClient) {
     console.error("DetailHQ: Kein Supabase-Client – Auth funktioniert nicht.");
@@ -577,6 +623,7 @@ function setupAuthHandlers() {
 
       currentUser = data.user;
       await ensureProfile();
+      await persistAffiliateRefToProfileIfMissing();
       await loadProfileIntoForm();
       setupCalendarUrlForUser();
       await loadVehicleClasses();
@@ -641,7 +688,12 @@ if (registerForm) {
     }
 
     currentUser = signInData.user;
+    // Signup Event einmalig loggen (für Monatsreport)
+try {
+  await supabaseClient.from("signup_events").insert({ user_id: currentUser.id });
+} catch (e) {}
     await ensureProfile();
+    await persistAffiliateRefToProfileIfMissing();
     await loadProfileIntoForm();
     setupCalendarUrlForUser();
     await loadVehicleClasses();
