@@ -623,7 +623,6 @@ function setupAuthHandlers() {
 
       currentUser = data.user;
       await ensureProfile();
-      await persistAffiliateRefToProfileIfMissing();
       await loadProfileIntoForm();
       setupCalendarUrlForUser();
       await loadVehicleClasses();
