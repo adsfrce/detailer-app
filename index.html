@@ -304,6 +304,24 @@
                 <label class="field-label" for="service-price">Basispreis (in €)</label>
                 <input id="service-price" type="number" min="0" step="0.01" class="field-input" required />
 
+                <!-- Empfohlener Preisrahmen (nur Einzelleistung + Keyword-Match) -->
+<div id="service-price-reco" class="service-price-reco hidden">
+  <div class="service-price-reco-head">
+    <span class="service-price-reco-title">Empfohlener Preisrahmen</span>
+  </div>
+
+  <div class="service-price-reco-pill" aria-label="Empfohlener Preisrahmen">
+    <div class="service-price-reco-pill-fill"></div>
+  </div>
+
+  <div class="service-price-reco-values">
+    <span id="service-price-reco-min" class="service-price-reco-value">€ 0</span>
+    <span id="service-price-reco-max" class="service-price-reco-value">€ 0</span>
+  </div>
+
+  <p id="service-price-reco-hint" class="form-hint" style="margin-top:6px;"></p>
+</div>
+
                 <label class="field-label" for="service-duration">Zeitaufwand (Stunden, optional)</label>
                 <input id="service-duration" type="number" min="0" step="0.25" class="field-input" />
 
