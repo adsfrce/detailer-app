@@ -15,9 +15,13 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
 </head>
 <body class="theme-system">
+  <div id="loadingView" style="display:none; height:100vh; align-items:center; justify-content:center;">
+  Loading...
+</div>
+
   <div id="app-root">
     <!-- AUTH VIEW -->
-    <div id="auth-view" class="view active">
+    <div id="auth-view" class="view">
       <div class="auth-card glass">
         <div class="auth-logo-row">
           <img src="logo_icon.PNG" alt="DetailHQ Logo" class="app-logo" />
@@ -375,7 +379,7 @@
           </div>
 
           <!-- BILLING / STRIPE -->
-          <div class="settings-group glass">
+          <div class="settings-group glass" id="settings-billing">
             <h3>Zahlung & Abo</h3>
             <p class="settings-help">
               Dein aktueller Tarif, Zahlungsdaten und Wechsel auf Monats-, Jahres- oder Lifetime-Abo.
