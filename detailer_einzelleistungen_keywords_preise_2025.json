@@ -1,0 +1,794 @@
+[
+  {
+    "id": "aussen_handwaesche",
+    "keywords": [
+      "handwäsche",
+      "handwaesche",
+      "wäsche per hand",
+      "autowäsche per hand"
+    ],
+    "minEuro": 25,
+    "maxEuro": 70,
+    "hint": ""
+  },
+  {
+    "id": "aussen_intensivwaesche",
+    "keywords": [
+      "intensiv-außenwäsche",
+      "intensiv aussenwaesche",
+      "premium außenwäsche",
+      "detailwäsche außen"
+    ],
+    "minEuro": 60,
+    "maxEuro": 140,
+    "hint": ""
+  },
+  {
+    "id": "felgen_basis",
+    "keywords": [
+      "felgenreinigung",
+      "felgen reinigen",
+      "alufelgen reinigen",
+      "felgen basis"
+    ],
+    "minEuro": 15,
+    "maxEuro": 45,
+    "hint": ""
+  },
+  {
+    "id": "felgen_intensiv",
+    "keywords": [
+      "felgenreinigung intensiv",
+      "bremsstaub entfernen felgen",
+      "felgen tiefenreinigen",
+      "felgen intensiv"
+    ],
+    "minEuro": 25,
+    "maxEuro": 80,
+    "hint": ""
+  },
+  {
+    "id": "radkaesten",
+    "keywords": [
+      "radkastenreinigung",
+      "radkästen reinigen",
+      "radhäuser reinigen",
+      "radhaus reinigen"
+    ],
+    "minEuro": 15,
+    "maxEuro": 50,
+    "hint": ""
+  },
+  {
+    "id": "insektenentfernung",
+    "keywords": [
+      "insektenreste entfernen",
+      "insektenentfernung",
+      "front von insekten",
+      "insektenlöser behandlung"
+    ],
+    "minEuro": 10,
+    "maxEuro": 35,
+    "hint": ""
+  },
+  {
+    "id": "teerentfernung",
+    "keywords": [
+      "teerflecken entfernen",
+      "teerentfernung",
+      "asphaltflecken entfernen",
+      "bitumen entfernen lack"
+    ],
+    "minEuro": 20,
+    "maxEuro": 90,
+    "hint": ""
+  },
+  {
+    "id": "flugrostentfernung",
+    "keywords": [
+      "flugrost entfernen",
+      "flugrostentfernung",
+      "eisenpartikel entfernen",
+      "metallpartikel entfernen lack"
+    ],
+    "minEuro": 40,
+    "maxEuro": 150,
+    "hint": ""
+  },
+  {
+    "id": "baumharzentfernung",
+    "keywords": [
+      "baumharz entfernen",
+      "harzflecken entfernen",
+      "harzentfernung lack",
+      "harz entfernen auto"
+    ],
+    "minEuro": 25,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "lackdekontamination_komplett",
+    "keywords": [
+      "lackdekontamination",
+      "chemische lackreinigung",
+      "lack kontamination entfernen",
+      "lackreinigung dekontamination"
+    ],
+    "minEuro": 80,
+    "maxEuro": 220,
+    "hint": ""
+  },
+  {
+    "id": "kunststoffpflege_aussen",
+    "keywords": [
+      "kunststoffpflege außen",
+      "trim auffrischen",
+      "kunststoff außen auffrischen",
+      "kunststoff außen pflegen"
+    ],
+    "minEuro": 15,
+    "maxEuro": 80,
+    "hint": ""
+  },
+  {
+    "id": "reifenpflege",
+    "keywords": [
+      "reifenpflege",
+      "reifen dressing",
+      "reifenglanz",
+      "reifen schwärzen"
+    ],
+    "minEuro": 10,
+    "maxEuro": 40,
+    "hint": ""
+  },
+  {
+    "id": "tuerfalze",
+    "keywords": [
+      "türfalze reinigen",
+      "türfalze reinigen",
+      "falzreinigung türen",
+      "einstiege falze reinigen"
+    ],
+    "minEuro": 10,
+    "maxEuro": 40,
+    "hint": ""
+  },
+  {
+    "id": "motorhaube_innen",
+    "keywords": [
+      "motorhaube innen reinigen",
+      "motorhaubeninnenraum reinigen",
+      "haube innen reinigen",
+      "motorhaube innenseite reinigen"
+    ],
+    "minEuro": 15,
+    "maxEuro": 60,
+    "hint": ""
+  },
+  {
+    "id": "innen_basis",
+    "keywords": [
+      "innenreinigung basis",
+      "innen saugen",
+      "aussaugen innenraum",
+      "innenraum basisreinigung"
+    ],
+    "minEuro": 30,
+    "maxEuro": 90,
+    "hint": ""
+  },
+  {
+    "id": "innen_komplett",
+    "keywords": [
+      "innenreinigung komplett",
+      "innenraum komplett reinigen",
+      "innenraumaufbereitung",
+      "komplett innen reinigen"
+    ],
+    "minEuro": 120,
+    "maxEuro": 250,
+    "hint": ""
+  },
+  {
+    "id": "innen_tiefenreinigung",
+    "keywords": [
+      "innenraum tiefenreinigung",
+      "intensiv innenraumreinigung",
+      "interior detailing",
+      "detail innenraum"
+    ],
+    "minEuro": 180,
+    "maxEuro": 450,
+    "hint": ""
+  },
+  {
+    "id": "kofferraum",
+    "keywords": [
+      "kofferraumreinigung",
+      "kofferraum reinigen",
+      "kofferraum saugen",
+      "kofferraum aufbereitung"
+    ],
+    "minEuro": 15,
+    "maxEuro": 60,
+    "hint": ""
+  },
+  {
+    "id": "cockpit",
+    "keywords": [
+      "cockpitreinigung",
+      "armaturen reinigen",
+      "dashboard reinigen",
+      "mittelkonsole reinigen"
+    ],
+    "minEuro": 15,
+    "maxEuro": 70,
+    "hint": ""
+  },
+  {
+    "id": "kunststoffpflege_innen",
+    "keywords": [
+      "kunststoffpflege innen",
+      "armaturen pflegen",
+      "innenraumkunststoff pflegen",
+      "kunststoff innen auffrischen"
+    ],
+    "minEuro": 20,
+    "maxEuro": 90,
+    "hint": ""
+  },
+  {
+    "id": "scheiben_innen",
+    "keywords": [
+      "scheiben innen reinigen",
+      "glas innen reinigen",
+      "fenster innen putzen",
+      "frontscheibe innen reinigen"
+    ],
+    "minEuro": 10,
+    "maxEuro": 35,
+    "hint": ""
+  },
+  {
+    "id": "dampfreinigung_innen",
+    "keywords": [
+      "dampfreinigung innenraum",
+      "innenraum dampfen",
+      "dampf innenraumreinigung",
+      "dampfgerät innenraum"
+    ],
+    "minEuro": 60,
+    "maxEuro": 220,
+    "hint": ""
+  },
+  {
+    "id": "tierhaare",
+    "keywords": [
+      "tierhaare entfernen",
+      "hundehaare entfernen",
+      "katzenhaare entfernen",
+      "haare aus polstern entfernen"
+    ],
+    "minEuro": 30,
+    "maxEuro": 180,
+    "hint": ""
+  },
+  {
+    "id": "flecken_polster",
+    "keywords": [
+      "flecken entfernen polster",
+      "fleckenbehandlung polster",
+      "polster flecken entfernen",
+      "teppich flecken entfernen"
+    ],
+    "minEuro": 20,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "raucherauto",
+    "keywords": [
+      "raucherauto reinigung",
+      "nikotin entfernen",
+      "rauchgeruch entfernen",
+      "entnikotinisierung innenraum"
+    ],
+    "minEuro": 180,
+    "maxEuro": 600,
+    "hint": ""
+  },
+  {
+    "id": "sitzreinigung_pro_sitz",
+    "keywords": [
+      "sitzreinigung pro sitz",
+      "polstersitz reinigen",
+      "sitz shampoonieren",
+      "sitz nasssaugen"
+    ],
+    "minEuro": 30,
+    "maxEuro": 80,
+    "hint": ""
+  },
+  {
+    "id": "polsterreinigung_komplett",
+    "keywords": [
+      "polsterreinigung komplett",
+      "polster tiefenreinigen",
+      "polster nass reinigen",
+      "polster shampoonieren"
+    ],
+    "minEuro": 120,
+    "maxEuro": 350,
+    "hint": ""
+  },
+  {
+    "id": "teppichreinigung",
+    "keywords": [
+      "teppichreinigung",
+      "fußraum teppich reinigen",
+      "teppich nasssaugen",
+      "teppich shampoonieren"
+    ],
+    "minEuro": 30,
+    "maxEuro": 160,
+    "hint": ""
+  },
+  {
+    "id": "fussmatten",
+    "keywords": [
+      "fußmatten reinigen",
+      "stoffmatten reinigen",
+      "gummimatten reinigen",
+      "matten waschen"
+    ],
+    "minEuro": 10,
+    "maxEuro": 50,
+    "hint": ""
+  },
+  {
+    "id": "dachhimmel",
+    "keywords": [
+      "dachhimmelreinigung",
+      "dachhimmel reinigen",
+      "himmelreinigung",
+      "dachhimmel flecken entfernen"
+    ],
+    "minEuro": 60,
+    "maxEuro": 220,
+    "hint": ""
+  },
+  {
+    "id": "leder_reinigung_pflege",
+    "keywords": [
+      "leder reinigen und pflegen",
+      "lederpflege",
+      "ledersitze pflegen",
+      "lederaufbereitung"
+    ],
+    "minEuro": 50,
+    "maxEuro": 220,
+    "hint": ""
+  },
+  {
+    "id": "leder_tiefenreinigung",
+    "keywords": [
+      "leder tiefenreinigung",
+      "intensive lederreinigung",
+      "leder entfetten",
+      "leder porentief reinigen"
+    ],
+    "minEuro": 120,
+    "maxEuro": 450,
+    "hint": ""
+  },
+  {
+    "id": "alcantara",
+    "keywords": [
+      "alcantara reinigen",
+      "alcantara pflege",
+      "alcantara sitze reinigen",
+      "mikrofaserleder reinigen"
+    ],
+    "minEuro": 80,
+    "maxEuro": 300,
+    "hint": ""
+  },
+  {
+    "id": "leder_versiegelung",
+    "keywords": [
+      "ledersitze versiegeln",
+      "lederschutz versiegelung",
+      "leder coating",
+      "leder versiegelung"
+    ],
+    "minEuro": 80,
+    "maxEuro": 350,
+    "hint": ""
+  },
+  {
+    "id": "leder_smartrepair",
+    "keywords": [
+      "leder smart repair",
+      "leder reparieren",
+      "leder färben",
+      "risse im leder reparieren"
+    ],
+    "minEuro": 150,
+    "maxEuro": 700,
+    "hint": ""
+  },
+  {
+    "id": "ozon",
+    "keywords": [
+      "ozonbehandlung",
+      "ozonreinigung",
+      "ozon innenraum",
+      "geruchsneutralisierung ozon"
+    ],
+    "minEuro": 50,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "klimaanlage_desinfektion",
+    "keywords": [
+      "klimaanlage desinfizieren",
+      "klimaanlagenreinigung",
+      "klimareinigung antibakteriell",
+      "klima desinfektion"
+    ],
+    "minEuro": 40,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "innenraum_desinfektion",
+    "keywords": [
+      "innenraum desinfektion",
+      "innenraum desinfizieren",
+      "hygienereinigung innenraum",
+      "keime entfernen innenraum"
+    ],
+    "minEuro": 40,
+    "maxEuro": 140,
+    "hint": ""
+  },
+  {
+    "id": "politur_glanz",
+    "keywords": [
+      "glanzpolitur",
+      "lackpolitur einfach",
+      "hochglanzpolitur",
+      "finish politur glanz"
+    ],
+    "minEuro": 100,
+    "maxEuro": 250,
+    "hint": ""
+  },
+  {
+    "id": "politur_one_step",
+    "keywords": [
+      "one step politur",
+      "einstufige politur",
+      "politur in einem schritt",
+      "one-step lackkorrektur"
+    ],
+    "minEuro": 180,
+    "maxEuro": 450,
+    "hint": ""
+  },
+  {
+    "id": "politur_zweistufig",
+    "keywords": [
+      "zweistufige lackkorrektur",
+      "zweistufige politur",
+      "cut and finish",
+      "zwei stufen politur"
+    ],
+    "minEuro": 350,
+    "maxEuro": 900,
+    "hint": ""
+  },
+  {
+    "id": "politur_dreistufig",
+    "keywords": [
+      "dreistufige lackkorrektur",
+      "dreistufige politur",
+      "heavy cut medium cut finish",
+      "drei stufen politur"
+    ],
+    "minEuro": 600,
+    "maxEuro": 1500,
+    "hint": ""
+  },
+  {
+    "id": "hologramme",
+    "keywords": [
+      "hologramme entfernen",
+      "anti-hologramm finish",
+      "schlieren entfernen lack",
+      "hologrammfrei polieren"
+    ],
+    "minEuro": 150,
+    "maxEuro": 500,
+    "hint": ""
+  },
+  {
+    "id": "kratzer_spot",
+    "keywords": [
+      "spot repair politur",
+      "teilbereich polieren",
+      "lokale lackkorrektur",
+      "spot politur"
+    ],
+    "minEuro": 60,
+    "maxEuro": 220,
+    "hint": ""
+  },
+  {
+    "id": "kratzer_entfernen",
+    "keywords": [
+      "kratzer entfernen",
+      "lackkratzer entfernen",
+      "tiefe kratzer reduzieren",
+      "kratzerpolitur"
+    ],
+    "minEuro": 80,
+    "maxEuro": 600,
+    "hint": ""
+  },
+  {
+    "id": "swirls_waschkratzer",
+    "keywords": [
+      "waschstraßenkratzer entfernen",
+      "swirls entfernen",
+      "mikrokratzer entfernen",
+      "waschkratzer entfernen"
+    ],
+    "minEuro": 250,
+    "maxEuro": 1200,
+    "hint": ""
+  },
+  {
+    "id": "wachsversiegelung",
+    "keywords": [
+      "wachsversiegelung",
+      "hartwachs auftragen",
+      "lackwachs",
+      "carnaubawachs"
+    ],
+    "minEuro": 60,
+    "maxEuro": 180,
+    "hint": ""
+  },
+  {
+    "id": "polymerversiegelung",
+    "keywords": [
+      "polymerversiegelung",
+      "synthetische versiegelung",
+      "polymer lackschutz",
+      "lackschutz polymer"
+    ],
+    "minEuro": 80,
+    "maxEuro": 250,
+    "hint": ""
+  },
+  {
+    "id": "spruehversiegelung",
+    "keywords": [
+      "sprühversiegelung",
+      "quick detailer schutz",
+      "lackschutz spray",
+      "spray sealant"
+    ],
+    "minEuro": 30,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "keramik_light",
+    "keywords": [
+      "keramikversiegelung light",
+      "keramik coating light",
+      "keramikschutz einstieg",
+      "ceramic coating light"
+    ],
+    "minEuro": 350,
+    "maxEuro": 900,
+    "hint": ""
+  },
+  {
+    "id": "keramik_premium",
+    "keywords": [
+      "keramikversiegelung premium",
+      "mehrschicht keramik coating",
+      "high end keramik coating",
+      "keramikveredelung"
+    ],
+    "minEuro": 900,
+    "maxEuro": 2500,
+    "hint": ""
+  },
+  {
+    "id": "graphen",
+    "keywords": [
+      "graphenversiegelung",
+      "graphene coating",
+      "graphen coating",
+      "graphen lackschutz"
+    ],
+    "minEuro": 900,
+    "maxEuro": 2800,
+    "hint": ""
+  },
+  {
+    "id": "felgen_keramik",
+    "keywords": [
+      "felgen keramisch versiegeln",
+      "felgen keramik coating",
+      "felgen coating",
+      "felgenversiegelung keramik"
+    ],
+    "minEuro": 80,
+    "maxEuro": 250,
+    "hint": ""
+  },
+  {
+    "id": "glasversiegelung",
+    "keywords": [
+      "glasversiegelung",
+      "scheibenversiegelung",
+      "frontscheibe versiegeln",
+      "regenabweiser versiegelung"
+    ],
+    "minEuro": 40,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "scheinwerfer",
+    "keywords": [
+      "scheinwerfer aufbereiten",
+      "scheinwerfer polieren",
+      "scheinwerfer entgilben",
+      "scheinwerfer klar machen"
+    ],
+    "minEuro": 80,
+    "maxEuro": 250,
+    "hint": ""
+  },
+  {
+    "id": "chrom",
+    "keywords": [
+      "chrom polieren",
+      "chrompflege",
+      "chrom aufbereiten",
+      "zierleisten chrom polieren"
+    ],
+    "minEuro": 30,
+    "maxEuro": 180,
+    "hint": ""
+  },
+  {
+    "id": "gummipflege",
+    "keywords": [
+      "gummipflege",
+      "türdichtungen pflegen",
+      "gummis pflegen",
+      "dichtungen pflege"
+    ],
+    "minEuro": 15,
+    "maxEuro": 60,
+    "hint": ""
+  },
+  {
+    "id": "verdeck_reinigen",
+    "keywords": [
+      "cabrioverdeck reinigen",
+      "verdeck reinigen",
+      "stoffverdeck reinigen",
+      "softtop reinigen"
+    ],
+    "minEuro": 60,
+    "maxEuro": 220,
+    "hint": ""
+  },
+  {
+    "id": "verdeck_impraegnieren",
+    "keywords": [
+      "verdeck imprägnieren",
+      "cabrioverdeck imprägnieren",
+      "stoffverdeck imprägnieren",
+      "softtop imprägnieren"
+    ],
+    "minEuro": 50,
+    "maxEuro": 160,
+    "hint": ""
+  },
+  {
+    "id": "verdeck_komplett",
+    "keywords": [
+      "verdeck reinigen und imprägnieren",
+      "cabrioverdeck pflegepaket",
+      "verdeckpflege komplett",
+      "softtop pflege komplett"
+    ],
+    "minEuro": 120,
+    "maxEuro": 350,
+    "hint": ""
+  },
+  {
+    "id": "motorraum",
+    "keywords": [
+      "motorraumreinigung",
+      "motorraum reinigen",
+      "motorraum säubern",
+      "motorraum pflegen"
+    ],
+    "minEuro": 20,
+    "maxEuro": 90,
+    "hint": ""
+  },
+  {
+    "id": "motorraum_versiegeln",
+    "keywords": [
+      "motorraum versiegelung",
+      "motorraum konservieren",
+      "motorraum dressing",
+      "motorraum schutz"
+    ],
+    "minEuro": 30,
+    "maxEuro": 120,
+    "hint": ""
+  },
+  {
+    "id": "aufkleber_entfernen",
+    "keywords": [
+      "aufkleber entfernen",
+      "folienreste entfernen",
+      "entkleben",
+      "klebereste entfernen"
+    ],
+    "minEuro": 25,
+    "maxEuro": 180,
+    "hint": ""
+  },
+  {
+    "id": "leasingrueckgabe",
+    "keywords": [
+      "leasingrückgabe aufbereitung",
+      "leasingrückläufer aufbereitung",
+      "leasing rückgabe paket",
+      "leasingrückgabe reinigung"
+    ],
+    "minEuro": 180,
+    "maxEuro": 650,
+    "hint": ""
+  },
+  {
+    "id": "verkaufsvorbereitung",
+    "keywords": [
+      "verkaufsvorbereitung auto",
+      "verkaufsaufbereitung",
+      "auto für verkauf aufbereiten",
+      "verkaufsfertig aufbereiten"
+    ],
+    "minEuro": 250,
+    "maxEuro": 800,
+    "hint": ""
+  },
+  {
+    "id": "komplettaufbereitung",
+    "keywords": [
+      "komplettaufbereitung",
+      "full detail",
+      "innen und außen aufbereitung",
+      "komplettpaket aufbereitung"
+    ],
+    "minEuro": 300,
+    "maxEuro": 1200,
+    "hint": ""
+  }
+]
