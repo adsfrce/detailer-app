@@ -9,7 +9,15 @@ let supabaseClient = null;
 
 try {
   console.log("DetailHQ: Supabase global typeof =", typeof supabase);
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: window.localStorage,
+  },
+});
+
   console.log("DetailHQ: Supabase Client initialisiert");
 } catch (err) {
   console.error("DetailHQ: Supabase initialisation FAILED:", err);
@@ -440,6 +448,21 @@ function showBookingStep(step) {
 
   if (!supabaseClient) {
     console.error("DetailHQ: Kein Supabase-Client – Auth funktioniert nicht.");
+    showLoadingView(); // du brauchst eine minimale Loading-View (oder einfach auth/app ausblenden)
+
+const { data: { session } } = await supabaseClient.auth.getSession();
+
+if (session?.user) {
+  currentUser = session.user;
+  await ensureProfile();
+  applyDevAccountHides();
+  await loadAppData();     // deine bisherigen Loader
+  showAppView();
+} else {
+  showAuthView();
+}
+hideLoadingView();
+
     showAuthView();
     return;
   }
@@ -555,6 +578,15 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
 // ================================
 // VIEW SWITCHING
 // ================================
+function showLoadingView() {
+  document.getElementById("authView").style.display = "none";
+  document.getElementById("appView").style.display = "none";
+  document.getElementById("loadingView").style.display = "flex";
+}
+function hideLoadingView() {
+  document.getElementById("loadingView").style.display = "none";
+}
+
 function showAuthView() {
   console.log("DetailHQ: showAuthView");
   if (authView) authView.classList.add("active");
@@ -941,6 +973,18 @@ async function ensureProfile() {
   }
 }
 
+function applyDevAccountHides() {
+  const email = currentUser?.email?.toLowerCase() || "";
+  const billingSection = document.getElementById("settings-billing");
+  if (!billingSection) return;
+
+  if (email === "dev@detailhq.de") {
+    billingSection.style.display = "none";
+  } else {
+    billingSection.style.display = "";
+  }
+}
+
 async function loadProfileIntoForm() {
   if (!currentUser || !profileForm) return;
 
@@ -975,6 +1019,7 @@ async function loadProfileIntoForm() {
   updateBillingUI();
   updateTrialBanner();
   updateAccessUI();
+  applyDevAccountHides();
 }
 
 // Avatar: Default pfp.png, sonst URL
