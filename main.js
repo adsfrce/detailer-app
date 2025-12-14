@@ -320,6 +320,11 @@ const servicePriceInput = document.getElementById("service-price");
 const serviceDurationInput = document.getElementById("service-duration");
 const serviceDescriptionInput = document.getElementById("service-description");
 const serviceModalError = document.getElementById("service-modal-error");
+// Service Preis-Empfehlung UI
+const servicePriceRecoWrap = document.getElementById("service-price-reco");
+const servicePriceRecoMin = document.getElementById("service-price-reco-min");
+const servicePriceRecoMax = document.getElementById("service-price-reco-max");
+const servicePriceRecoHint = document.getElementById("service-price-reco-hint");
 
 // Booking modal / New order
 const newBookingButton = document.getElementById("new-booking-button");
@@ -439,6 +444,11 @@ function showBookingStep(step) {
   recalcBookingSummary();
 }
 
+const SERVICE_PRICE_RULES_URL = "./detailer_einzelleistungen_keywords_preise_2025.json?v=1.5";
+let SERVICE_PRICE_RULES = [];
+let servicePriceRulesLoaded = false;
+let servicePriceRulesLoadPromise = null;
+
 // ================================
 // INIT
 // ================================
@@ -448,21 +458,7 @@ function showBookingStep(step) {
 
   if (!supabaseClient) {
     console.error("DetailHQ: Kein Supabase-Client – Auth funktioniert nicht.");
-    showLoadingView(); // du brauchst eine minimale Loading-View (oder einfach auth/app ausblenden)
-
-const { data: { session } } = await supabaseClient.auth.getSession();
-
-if (session?.user) {
-  currentUser = session.user;
-  await ensureProfile();
-  applyDevAccountHides();
-  await loadAppData();     // deine bisherigen Loader
-  showAppView();
-} else {
-  showAuthView();
-}
-hideLoadingView();
-
+    // Kein supabaseClient => NICHTS davon aufrufen. Nur Login anzeigen.
     showAuthView();
     return;
   }
@@ -477,6 +473,7 @@ hideLoadingView();
   setupTrialBannerHandlers();
   setupReviewSettingsHandlers();
   setupServiceManagementHandlers();
+  await loadServicePriceRules();
   setupBookingHandlers();
   setupBookingDetailHandlers();
   setupDashboardPeriodHandlers();
@@ -579,12 +576,15 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
 // VIEW SWITCHING
 // ================================
 function showLoadingView() {
-  document.getElementById("authView").style.display = "none";
-  document.getElementById("appView").style.display = "none";
-  document.getElementById("loadingView").style.display = "flex";
+  if (authView) authView.classList.remove("active");
+  if (appView) appView.classList.remove("active");
+  const lv = document.getElementById("loadingView");
+  if (lv) lv.style.display = "flex";
 }
+
 function hideLoadingView() {
-  document.getElementById("loadingView").style.display = "none";
+  const lv = document.getElementById("loadingView");
+  if (lv) lv.style.display = "none";
 }
 
 function showAuthView() {
@@ -1719,6 +1719,8 @@ function openServiceModal(svc) {
     serviceDescriptionInput.value = "";
   }
 
+// Empfehlung direkt setzen, sobald Modal befüllt ist
+  updateServicePriceRecommendationUI();
   serviceModal.classList.remove("hidden");
 }
 
@@ -1745,6 +1747,191 @@ async function deleteService(id) {
   services = services.filter((svc) => svc.id !== id);
   renderServicesList();
   refreshBookingServiceOptions();
+}
+
+// ================================
+// SERVICE PRICE RECOMMENDER (v1.5)
+// ================================
+//
+// Regeln kommen aus JSON (Repo-Datei) und werden 1x geladen.
+// Match: OR-Logik pro Regel (keywords[]).
+// Überschneidungen: es gewinnt IMMER nur 1 Regel – die mit dem längsten gematchten Keyword.
+
+function normalizeServiceText(s) {
+  return (s || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+// kompakte Form: entfernt alles außer a-z0-9, mappt Umlaute/ß
+function normalizeServiceKey(s) {
+  const t = (s || "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss");
+
+  // alles raus außer a-z0-9
+  return t.replace(/[^a-z0-9]/g, "");
+}
+
+function sanitizeRule(rule) {
+  if (!rule || typeof rule !== "object") return null;
+
+  const minEuro = Number(rule.minEuro);
+  const maxEuro = Number(rule.maxEuro);
+  if (!Number.isFinite(minEuro) || !Number.isFinite(maxEuro)) return null;
+
+  const keywordsRaw = Array.isArray(rule.keywords) ? rule.keywords : [];
+
+  const keywordsNorm = keywordsRaw
+    .map((k) => normalizeServiceText(k))
+    .filter(Boolean);
+
+  const keywordsKey = keywordsRaw
+    .map((k) => normalizeServiceKey(k))
+    .filter(Boolean);
+
+  if (keywordsNorm.length === 0 && keywordsKey.length === 0) return null;
+
+  return {
+    id: rule.id || null,
+    minEuro,
+    maxEuro,
+    hint: rule.hint || "",
+    _keywordsNorm: keywordsNorm,
+    _keywordsKey: keywordsKey,
+  };
+}
+
+async function loadServicePriceRules() {
+  if (servicePriceRulesLoaded) return SERVICE_PRICE_RULES;
+  if (servicePriceRulesLoadPromise) return servicePriceRulesLoadPromise;
+
+  servicePriceRulesLoadPromise = (async () => {
+    try {
+      const res = await fetch(SERVICE_PRICE_RULES_URL, { cache: "force-cache" });
+      if (!res.ok) {
+        console.warn("DetailHQ: Service-Preisregeln konnten nicht geladen werden:", res.status);
+        SERVICE_PRICE_RULES = [];
+        servicePriceRulesLoaded = true;
+        return SERVICE_PRICE_RULES;
+      }
+
+      const raw = await res.json();
+      const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.rules) ? raw.rules : []);
+      SERVICE_PRICE_RULES = list.map(sanitizeRule).filter(Boolean);
+
+      servicePriceRulesLoaded = true;
+      return SERVICE_PRICE_RULES;
+    } catch (e) {
+      console.warn("DetailHQ: Service-Preisregeln Load Error:", e);
+      SERVICE_PRICE_RULES = [];
+      servicePriceRulesLoaded = true;
+      return SERVICE_PRICE_RULES;
+    } finally {
+      // Promise wieder freigeben (falls du später manuell reloaden willst)
+      servicePriceRulesLoadPromise = null;
+    }
+  })();
+
+  return servicePriceRulesLoadPromise;
+}
+
+function findServicePriceRecommendation(serviceName) {
+  const hay = normalizeServiceText(serviceName);
+  const hayKey = normalizeServiceKey(serviceName);
+
+  if (!hay && !hayKey) return null;
+
+  // Beste Regel = längstes gematchtes Keyword (spezifischer gewinnt)
+  let best = null;
+  let bestLen = 0;
+
+  for (const rule of SERVICE_PRICE_RULES) {
+    // 1) match gegen "lesbar"
+    const keysNorm = Array.isArray(rule._keywordsNorm) ? rule._keywordsNorm : [];
+    for (const needle of keysNorm) {
+      if (!needle) continue;
+const parts = needle.split(" ").filter(Boolean);
+
+let matched = false;
+
+// 2-Wort-Keywords: Reihenfolge egal (z.B. "reifen dressing" == "dressing reifen")
+if (parts.length === 2) {
+  matched = hay.includes(parts[0]) && hay.includes(parts[1]);
+} else {
+  matched = hay.includes(needle);
+}
+
+if (matched) {
+  const len = needle.length;
+  if (len > bestLen) {
+    bestLen = len;
+    best = rule;
+  }
+}
+    }
+
+    // 2) match gegen "kompakt" (spaces, bindestriche, sonderzeichen egal)
+    const keysKey = Array.isArray(rule._keywordsKey) ? rule._keywordsKey : [];
+    for (const needleKey of keysKey) {
+      if (!needleKey) continue;
+      if (hayKey.includes(needleKey)) {
+        const len = needleKey.length;
+        if (len > bestLen) {
+          bestLen = len;
+          best = rule;
+        }
+      }
+    }
+  }
+
+  if (!best) return null;
+
+  return {
+    id: best.id || null,
+    minEuro: best.minEuro,
+    maxEuro: best.maxEuro,
+    hint: best.hint || "",
+  };
+}
+
+function formatEuro(euro) {
+  const v = Number(euro) || 0;
+  return v.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+}
+
+function updateServicePriceRecommendationUI() {
+  if (!servicePriceRecoWrap) return;
+
+  const kind = serviceKindInput ? serviceKindInput.value : "";
+  const name = serviceNameInput ? serviceNameInput.value : "";
+
+  // Nur für Einzelleistung
+  if (kind !== "single") {
+    servicePriceRecoWrap.classList.add("hidden");
+    if (servicePriceRecoHint) servicePriceRecoHint.textContent = "";
+    return;
+  }
+
+  const reco = findServicePriceRecommendation(name);
+
+  if (!reco) {
+    servicePriceRecoWrap.classList.add("hidden");
+    if (servicePriceRecoHint) servicePriceRecoHint.textContent = "";
+    return;
+  }
+
+  servicePriceRecoWrap.classList.remove("hidden");
+  if (servicePriceRecoMin) servicePriceRecoMin.textContent = formatEuro(reco.minEuro);
+  if (servicePriceRecoMax) servicePriceRecoMax.textContent = formatEuro(reco.maxEuro);
+  if (servicePriceRecoHint) servicePriceRecoHint.textContent = reco.hint || "";
 }
 
 function setupServiceManagementHandlers() {
@@ -1876,6 +2063,13 @@ function setupServiceManagementHandlers() {
       }
     });
   }
+  // Live-Update Preis-Empfehlung
+if (serviceNameInput) {
+  serviceNameInput.addEventListener("input", updateServicePriceRecommendationUI);
+}
+if (serviceKindInput) {
+  serviceKindInput.addEventListener("change", updateServicePriceRecommendationUI);
+}
   if (serviceForm) {
     serviceForm.addEventListener("submit", async (e) => {
       e.preventDefault();
