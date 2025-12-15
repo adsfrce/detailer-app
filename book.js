@@ -47,6 +47,69 @@ const bookingSinglesList = $("booking-singles-list");
 const bookingDateInput = $("booking-date");
 const bookingTimeInput = $("booking-time");
 
+function pad2(n) { return String(n).padStart(2, "0"); }
+
+function minutesFromHHMM(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function hhmmFromMinutes(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${pad2(h)}:${pad2(m)}`;
+}
+
+function overlaps(aStart, aEnd, bStart, bEnd) {
+  return aStart < bEnd && bStart < aEnd;
+}
+
+async function fetchAvailability(detailerId, day) {
+  const r = await fetch(`${API_BASE}/public/availability?user=${encodeURIComponent(detailerId)}&day=${encodeURIComponent(day)}`);
+  if (!r.ok) throw new Error("availability_failed");
+  return await r.json(); // { day, blocked: [{start_at,end_at,...}] }
+}
+
+async function rebuildTimeOptionsForDay(detailerId, day, durationMinutes) {
+  const timeSelect = document.getElementById("booking-time");
+  const hint = document.getElementById("booking-time-hint");
+  if (!timeSelect) return;
+
+  timeSelect.innerHTML = `<option value="">Bitte wählen</option>`;
+  if (hint) hint.textContent = "Lädt verfügbare Zeiten...";
+
+  const data = await fetchAvailability(detailerId, day);
+  const blocked = (data.blocked || []).map(x => ({
+    start: new Date(x.start_at),
+    end: new Date(x.end_at),
+  }));
+
+  // Basis-Zeitraum (kannst du später aus Profil übernehmen)
+  const DAY_START = 7 * 60;   // 07:00
+  const DAY_END = 20 * 60;    // 20:00
+  const STEP = 15;
+
+  const dur = Math.max(15, Number(durationMinutes || 0)); // minimum 15
+  const options = [];
+
+  for (let t = DAY_START; t + dur <= DAY_END; t += STEP) {
+    const start = new Date(`${day}T${hhmmFromMinutes(t)}:00`);
+    const end = new Date(start.getTime() + dur * 60000);
+
+    const isBlocked = blocked.some(b => overlaps(start, end, b.start, b.end));
+    if (!isBlocked) options.push(hhmmFromMinutes(t));
+  }
+
+  for (const hhmm of options) {
+    const opt = document.createElement("option");
+    opt.value = hhmm;
+    opt.textContent = hhmm;
+    timeSelect.appendChild(opt);
+  }
+
+  if (hint) hint.textContent = options.length ? "" : "Keine freien Zeiten an diesem Tag.";
+}
+
 const bookingCustomerNameInput = $("booking-customer-name");
 const bookingCustomerEmailInput = $("booking-customer-email");
 const bookingCustomerPhoneInput = $("booking-customer-phone");
