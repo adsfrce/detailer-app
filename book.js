@@ -10,6 +10,32 @@ const bookingError = $("booking-error");
 const publicError = $("public-error");
 const publicSuccess = $("public-success");
 
+function showSuccessScreen(summary) {
+  // summary: { car, vehicleClassName, dateStr, timeStr, durationMinutes, totalPriceCents, packageName, singlesNames[] }
+  const durH = Math.round((summary.durationMinutes || 0) / 6) / 10;
+
+  publicSuccess.innerHTML = `
+    <div class="success-card">
+      <div class="success-title">Terminanfrage gesendet</div>
+      <div class="success-meta">Du bekommst eine Rückmeldung vom Aufbereiter.</div>
+
+      <div class="success-line"><strong>Fahrzeug:</strong> ${summary.car}</div>
+      <div class="success-line"><strong>Fahrzeugklasse:</strong> ${summary.vehicleClassName || "—"}</div>
+      <div class="success-line"><strong>Termin:</strong> ${summary.dateStr} · ${summary.timeStr}</div>
+      <div class="success-line"><strong>Dauer:</strong> ${durH} Std.</div>
+      <div class="success-line"><strong>Preis:</strong> ${euro(summary.totalPriceCents)}</div>
+
+      <div class="success-line" style="margin-top:12px;">
+        <strong>Leistungen:</strong><br>
+        ${summary.packageName ? `Paket: ${summary.packageName}<br>` : ""}
+        ${summary.singlesNames && summary.singlesNames.length ? `Einzelleistungen: ${summary.singlesNames.join(", ")}` : ""}
+      </div>
+    </div>
+  `;
+
+  publicSuccess.style.display = "block";
+}
+
 const bookingCarInput = $("booking-car");
 const bookingVehicleClassSelect = $("booking-vehicle-class");
 const bookingMainServiceSelect = $("booking-main-service");
@@ -66,8 +92,10 @@ function getPathDetailerId() {
   const path = (location.pathname || "/").replace(/^\/+|\/+$/g, "");
   if (path && path !== "book.html" && path !== "book") return path;
 
-  const u = new URLSearchParams(location.search).get("u");
-  return u || null;
+const params = new URLSearchParams(location.search);
+const u = params.get("u");
+const d = params.get("detailer");
+return u || d || null;
 }
 
 function euro(cents) {
@@ -204,8 +232,8 @@ async function init() {
     // Provider Info optional (Name etc.) – wenn du das später willst, Route ist schon vorbereitet.
     // const provider = await apiGet(`/public/provider?user=${encodeURIComponent(detailerId)}`);
 
-    vehicleClasses = await apiGet(`/public/vehicle-classes?user=${encodeURIComponent(detailerId)}`);
-    services = await apiGet(`/public/services?user=${encodeURIComponent(detailerId)}`);
+    vehicleClasses = await apiGet(`/public/vehicle-classes?detailer=${encodeURIComponent(detailerId)}`);
+    services = await apiGet(`/public/services?detailer=${encodeURIComponent(detailerId)}`);
 
     renderVehicleClasses();
     renderPackages();
@@ -296,21 +324,23 @@ bookingForm.addEventListener("submit", async (e) => {
   if (packageSvc) {
     durationMinutes += Number(packageSvc.duration_minutes || 0);
     totalPriceCents += Number(packageSvc.base_price_cents || 0);
-    items.push({ kind: "package", id: packageSvc.id, name: packageSvc.name, price_cents: packageSvc.base_price_cents || 0 });
+items.push({ role: "package", kind: "package", id: packageSvc.id, name: packageSvc.name, price_cents: packageSvc.base_price_cents || 0 });
   }
 
   singlesSvcs.forEach((s) => {
     durationMinutes += Number(s.duration_minutes || 0);
     totalPriceCents += Number(s.base_price_cents || 0);
-    items.push({ kind: "single", id: s.id, name: s.name, price_cents: s.base_price_cents || 0 });
+items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents: s.base_price_cents || 0 });
   });
 
   const payload = {
     detailer_id: detailerId,
+
     customer_name: customerName,
     customer_email: customerEmail,
     customer_phone: customerPhone,
     customer_address: customerAddress || null,
+
     car: car,
     notes: notes || null,
 
@@ -320,21 +350,51 @@ bookingForm.addEventListener("submit", async (e) => {
     start_at: startAt.toISOString(),
     duration_minutes: durationMinutes,
 
-    status: "requested",
-    payment_status: "unpaid",
+    // Kompatibilität: Tabelle hat "status", App nutzt teils "job_status"
+    status: "planned",
+    job_status: "planned",
 
-    // legacy text fields in deiner Tabelle
-    service_name: packageSvc ? packageSvc.name : (singlesSvcs[0]?.name || "Terminanfrage"),
-    service_price: Math.round(totalPriceCents / 100),
+    // App-Logik nutzt open/paid/partial (nicht "unpaid")
+    payment_status: "open",
 
-    total_price: Math.round(totalPriceCents / 100),
-    items: items,
+    // legacy fields (optional, aber bei dir existieren sie)
+    service_name: packageSvc ? packageSvc.name : (singlesSvcs[0]?.name || "Auftrag"),
+    service_price: (totalPriceCents / 100),
+
+    total_price: (totalPriceCents / 100),
+
+    // Items im selben Format wie deine App (service_id statt id)
+    items: items.map((it) => ({
+      role: it.role,
+      service_id: it.id,
+      name: it.name,
+      price_cents: it.price_cents,
+    })),
   };
 
   try {
     await apiPost(`/public/booking/request`, payload);
-    publicSuccess.style.display = "block";
-    bookingForm.querySelector("#public-submit").disabled = true;
+
+    const dateStr = new Date(payload.start_at).toLocaleDateString("de-DE", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    showSuccessScreen({
+      car,
+      vehicleClassName,
+      dateStr,
+      timeStr: bookingTimeInput.value,
+      durationMinutes,
+      totalPriceCents,
+      packageName: packageSvc ? packageSvc.name : "",
+      singlesNames: singlesSvcs.map(s => s.name),
+    });
+
+    const submitBtn = bookingForm.querySelector("#public-submit");
+    if (submitBtn) submitBtn.disabled = true;
   } catch (err) {
     console.error(err);
     publicError.style.display = "block";
