@@ -20,6 +20,8 @@ function showThankYouPage(summary) {
   step3.classList.add("hidden");
   step4.classList.add("hidden");
 
+  document.querySelector(".booking-steps-indicator")?.classList.add("hidden");
+
   if (thankYouContent) {
     thankYouContent.innerHTML = `
       <div class="success-title">Vielen Dank für deine Buchung.</div>
@@ -40,32 +42,6 @@ function showThankYouPage(summary) {
   }
 
   if (thankYouSection) thankYouSection.classList.remove("hidden");
-}
-
-function showSuccessScreen(summary) {
-  // summary: { car, vehicleClassName, dateStr, timeStr, durationMinutes, totalPriceCents, packageName, singlesNames[] }
-  const durH = Math.round((summary.durationMinutes || 0) / 6) / 10;
-
-  publicSuccess.innerHTML = `
-    <div class="success-card">
-      <div class="success-title">Terminanfrage gesendet</div>
-      <div class="success-meta">Du bekommst eine Rückmeldung vom Aufbereiter.</div>
-
-      <div class="success-line"><strong>Fahrzeug:</strong> ${summary.car}</div>
-      <div class="success-line"><strong>Fahrzeugklasse:</strong> ${summary.vehicleClassName || "—"}</div>
-      <div class="success-line"><strong>Termin:</strong> ${summary.dateStr} · ${summary.timeStr}</div>
-      <div class="success-line"><strong>Dauer:</strong> ${durH} Std.</div>
-      <div class="success-line"><strong>Preis:</strong> ${euro(summary.totalPriceCents)}</div>
-
-      <div class="success-line" style="margin-top:12px;">
-        <strong>Leistungen:</strong><br>
-        ${summary.packageName ? `Paket: ${summary.packageName}<br>` : ""}
-        ${summary.singlesNames && summary.singlesNames.length ? `Einzelleistungen: ${summary.singlesNames.join(", ")}` : ""}
-      </div>
-    </div>
-  `;
-
-  publicSuccess.style.display = "block";
 }
 
 const bookingCarInput = $("booking-car");
@@ -225,13 +201,11 @@ function getPathDetailerId() {
   // Fallback: wenn jemand direkt /<uuid> ohne weitere Segmente hat, aber nicht als UUID erkannt (sollte nicht passieren)
   if (rawPath && rawPath !== "book.html" && rawPath !== "book") return rawPath;
 
-const params = new URLSearchParams(window.location.search);
-const u = params.get("u");
-const d = params.get("detailer");
-const user = params.get("user");
-return u || d || user || null;
-
-  return null;
+  const params = new URLSearchParams(window.location.search);
+  const u = params.get("u");
+  const d = params.get("detailer");
+  const user = params.get("user");
+  return u || d || user || null;
 }
 
 function euro(cents) {
@@ -438,7 +412,6 @@ bookingForm.addEventListener("submit", async (e) => {
 
   bookingError.textContent = "";
   publicError.style.display = "none";
-  publicSuccess.style.display = "none";
 
   const car = safeText(bookingCarInput.value);
   const vehicleClassId = bookingVehicleClassSelect.value;
@@ -571,6 +544,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
