@@ -111,7 +111,7 @@ function showThankYouPage(summary) {
   if (thankYouSection) thankYouSection.classList.remove("hidden");
 
   // Ganz nach oben, damit die Section nicht “unten” wirkt
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.querySelector(".auth-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 const bookingCarInput = $("booking-car");
@@ -615,3 +615,4 @@ showThankYouPage({
 });
 
 init();
+
