@@ -510,6 +510,7 @@ if (qs.get("reset") === "1") {
 
   initThemeFromStorage();
   setupAuthHandlers();
+  setupPasswordToggleButtons();
   setupNavHandlers();
   setupThemeHandlers();
   setupProfileMenuHandlers();
@@ -524,6 +525,23 @@ if (qs.get("reset") === "1") {
   setupDashboardPeriodHandlers();
   setupReviewModalHandlers();
   startReviewReminderTimer();
+
+  function setupPasswordToggleButtons() {
+  const buttons = document.querySelectorAll(".password-toggle[data-target]");
+  if (!buttons || buttons.length === 0) return;
+
+  buttons.forEach((btn) => {
+    const targetId = btn.getAttribute("data-target");
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    btn.addEventListener("click", () => {
+      const isHidden = input.getAttribute("type") === "password";
+      input.setAttribute("type", isHidden ? "text" : "password");
+      btn.textContent = isHidden ? "Verbergen" : "Anzeigen";
+    });
+  });
+}
 
 function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
   const wrapper = wrapperSelector
