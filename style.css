@@ -900,19 +900,19 @@ body {
 /* BUCHUNGS-STEPS: Indikator oben */
 
 .booking-steps-indicator {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center;   /* Steps mittig */
 
   gap: 6px;
   padding: 4px;
+
+  width: 100%;               /* <<< FULL WIDTH */
+  box-sizing: border-box;
+
   border-radius: 999px;
   background: var(--bg-elevated-soft);
   border: 1px solid var(--border-subtle);
-
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .booking-step-indicator {
