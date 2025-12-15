@@ -86,7 +86,7 @@ async function rebuildTimeOptionsForDay(detailerId, day, durationMinutes) {
 
   // Basis-Zeitraum (kannst du später aus Profil übernehmen)
   const DAY_START = 7 * 60;   // 07:00
-  const DAY_END = 20 * 60;    // 20:00
+  const DAY_END = 20 * 60;    // 23:30
   const STEP = 15;
 
   const dur = Math.max(15, Number(durationMinutes || 0)); // minimum 15
@@ -531,6 +531,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
