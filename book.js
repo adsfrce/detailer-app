@@ -170,11 +170,11 @@ function getPathDetailerId() {
   // Fallback: wenn jemand direkt /<uuid> ohne weitere Segmente hat, aber nicht als UUID erkannt (sollte nicht passieren)
   if (rawPath && rawPath !== "book.html" && rawPath !== "book") return rawPath;
 
-  const params = new URLSearchParams(location.search);
-  const u = params.get("u");
-  const d = params.get("detailer");
-  if (u && uuidRe.test(u)) return u;
-  if (d && uuidRe.test(d)) return d;
+const params = new URLSearchParams(window.location.search);
+const u = params.get("u");
+const d = params.get("detailer");
+const user = params.get("user");
+return u || d || user || null;
 
   return null;
 }
@@ -490,4 +490,5 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
