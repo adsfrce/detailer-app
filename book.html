@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>DetailHQ – Termin anfragen</title>
+  <link rel="icon" type="image/png" href="app_icon.PNG" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="theme-system">
+  <div id="app-root">
+    <div class="view" style="padding:24px; max-width:560px; margin:0 auto;">
+      <div class="auth-card glass" style="width:100%;">
+        <div class="auth-logo-row" style="margin-bottom:14px;">
+          <img src="logo_icon.PNG" alt="DetailHQ Logo" class="app-logo" />
+          <div>
+            <h1 class="app-title" id="public-title">Termin anfragen</h1>
+            <p class="app-subtitle" id="public-subtitle">Wähle Leistungen und schicke eine Terminanfrage.</p>
+          </div>
+        </div>
+
+        <!-- Fehler/Info -->
+        <p id="public-error" class="form-hint" style="display:none;"></p>
+
+        <!-- Schritt-Indikator -->
+        <div class="booking-steps-indicator" style="margin-top:10px;">
+          <span id="booking-step-indicator-1" class="booking-step-indicator active">1. Fahrzeug</span>
+          <span id="booking-step-indicator-2" class="booking-step-indicator">2. Leistungen</span>
+          <span id="booking-step-indicator-3" class="booking-step-indicator">3. Termin</span>
+          <span id="booking-step-indicator-4" class="booking-step-indicator">4. Kontakt</span>
+        </div>
+
+        <form id="booking-form" class="form" style="margin-top:10px;">
+          <!-- STEP 1: Fahrzeug -->
+          <div class="booking-step" id="booking-step-1" data-step="1">
+            <label class="field-label" for="booking-car">Fahrzeug</label>
+            <input id="booking-car" type="text" class="field-input" placeholder="Marke & Modell" required />
+
+            <label class="field-label" for="booking-vehicle-class">Fahrzeugklasse</label>
+            <select id="booking-vehicle-class" class="field-input" required>
+              <option value="">Bitte wählen</option>
+            </select>
+
+            <button type="button" class="btn btn-primary" id="booking-next-1" style="margin-top:12px;">
+              Weiter
+            </button>
+          </div>
+
+          <!-- STEP 2: Leistungen -->
+          <div class="booking-step hidden" id="booking-step-2" data-step="2">
+            <label class="field-label" for="booking-main-service">Paket (optional)</label>
+            <select id="booking-main-service" class="field-input">
+              <option value="">Kein Paket</option>
+            </select>
+
+            <div class="form-hint" style="margin-top:6px;">
+              Mindestens Paket oder Einzelleistung auswählen.
+            </div>
+
+            <div class="booking-services-group" style="margin-top:10px;">
+              <h4 class="settings-subtitle">Einzelleistungen</h4>
+
+              <div class="settings-dropdown booking-singles-dropdown">
+                <button type="button" class="settings-dropdown-toggle" id="booking-singles-toggle">
+                  Einzelleistungen wählen
+                  <span class="settings-dropdown-chevron">▾</span>
+                </button>
+
+                <div id="booking-singles-menu" class="settings-dropdown-menu">
+                  <p class="form-hint">Lädt...</p>
+                </div>
+              </div>
+
+              <div id="booking-singles-list" class="form-hint" style="margin-top:8px;"></div>
+            </div>
+
+            <p id="booking-error" class="form-hint" style="margin-top:10px; color:var(--danger);"></p>
+
+            <div style="display:flex; gap:10px; margin-top:12px;">
+              <button type="button" class="btn btn-secondary" id="booking-back-2">Zurück</button>
+              <button type="button" class="btn btn-primary" id="booking-next-2">Weiter</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: Termin -->
+          <div class="booking-step hidden" id="booking-step-3" data-step="3">
+            <label class="field-label" for="booking-date">Wunschtermin (Datum)</label>
+            <input id="booking-date" type="date" class="field-input" required />
+
+            <label class="field-label" for="booking-time">Wunschtermin (Uhrzeit)</label>
+            <input id="booking-time" type="time" class="field-input" required />
+
+            <div style="display:flex; gap:10px; margin-top:12px;">
+              <button type="button" class="btn btn-secondary" id="booking-back-3">Zurück</button>
+              <button type="button" class="btn btn-primary" id="booking-next-3">Weiter</button>
+            </div>
+          </div>
+
+          <!-- STEP 4: Kontakt -->
+          <div class="booking-step hidden" id="booking-step-4" data-step="4">
+            <label class="field-label" for="booking-customer-name">Name</label>
+            <input id="booking-customer-name" type="text" class="field-input" required />
+
+            <label class="field-label" for="booking-customer-phone">Telefon</label>
+            <input id="booking-customer-phone" type="tel" class="field-input" required />
+
+            <label class="field-label" for="booking-customer-email">E-Mail</label>
+            <input id="booking-customer-email" type="email" class="field-input" required />
+
+            <label class="field-label" for="booking-customer-address">Adresse (optional)</label>
+            <input id="booking-customer-address" type="text" class="field-input" />
+
+            <label class="field-label" for="booking-notes">Anmerkungen (optional)</label>
+            <textarea id="booking-notes" class="field-input" rows="4" placeholder="Sonderwünsche, worauf geachtet werden soll..."></textarea>
+
+            <button type="submit" class="btn btn-primary" id="public-submit" style="margin-top:12px;">
+              Terminanfrage senden
+            </button>
+
+            <p class="form-hint" id="public-success" style="display:none; margin-top:10px;">
+              Anfrage gesendet. Du bekommst eine Rückmeldung per E-Mail.
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="book.js?v1.0"></script>
+</body>
+</html>
