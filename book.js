@@ -151,14 +151,32 @@ function showStep(step) {
 }
 
 function getPathDetailerId() {
-  // /<uuid> oder /book.html?u=<uuid>
-  const path = (location.pathname || "/").replace(/^\/+|\/+$/g, "");
-  if (path && path !== "book.html" && path !== "book") return path;
+  // Unterstützt:
+  // - /<uuid>
+  // - /book/<uuid>
+  // - /book.html?u=<uuid>
+  // - /book.html?detailer=<uuid>
 
-const params = new URLSearchParams(location.search);
-const u = params.get("u");
-const d = params.get("detailer");
-return u || d || null;
+  const rawPath = (location.pathname || "/").replace(/^\/+|\/+$/g, "");
+  const parts = rawPath ? rawPath.split("/") : [];
+
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const seg = (parts[i] || "").trim();
+    if (uuidRe.test(seg)) return seg;
+  }
+
+  // Fallback: wenn jemand direkt /<uuid> ohne weitere Segmente hat, aber nicht als UUID erkannt (sollte nicht passieren)
+  if (rawPath && rawPath !== "book.html" && rawPath !== "book") return rawPath;
+
+  const params = new URLSearchParams(location.search);
+  const u = params.get("u");
+  const d = params.get("detailer");
+  if (u && uuidRe.test(u)) return u;
+  if (d && uuidRe.test(d)) return d;
+
+  return null;
 }
 
 function euro(cents) {
@@ -472,3 +490,4 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
