@@ -11,9 +11,6 @@ const publicError = $("public-error");
 const thankYouSection = $("booking-thankyou");
 const thankYouContent = $("booking-thankyou-content");
 
-const thankYouSection = $("booking-thankyou");
-const thankYouContent = $("booking-thankyou-content");
-
 function showThankYouPage(summary) {
   const durH = Math.round((summary.durationMinutes || 0) / 6) / 10;
 
@@ -574,6 +571,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
