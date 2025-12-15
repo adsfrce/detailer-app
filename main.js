@@ -458,13 +458,17 @@ let servicePriceRulesLoadPromise = null;
 // INIT
 // ================================
 (async function init() {
-  // ================================
+// ================================
 // PASSWORD RECOVERY GUARD
 // ================================
 const hash = window.location.hash || "";
 if (hash.includes("type=recovery")) {
   console.log("DetailHQ: Password recovery flow detected");
-  // Nichts redirecten, reset-password.html regelt alles
+
+  // Wenn Supabase auf /#... (root) landet, direkt auf die Reset-Seite umleiten
+  // Hash muss mit, weil access_token/refresh_token da drin stehen
+  const target = `/reset-password.html${hash}`;
+  window.location.replace(target);
   return;
 }
 
