@@ -37,8 +37,11 @@
           <label class="field-label" for="login-email">E-Mail</label>
           <input id="login-email" type="email" class="field-input" autocomplete="email" required />
 
-          <label class="field-label" for="login-password">Passwort</label>
-          <input id="login-password" type="password" class="field-input" autocomplete="current-password" required />
+<label class="field-label" for="login-password">Passwort</label>
+<div class="password-wrap">
+  <input id="login-password" type="password" class="field-input" autocomplete="current-password" required />
+  <button type="button" class="password-toggle" data-target="login-password">Anzeigen</button>
+</div>
 
           <button type="submit" class="btn btn-primary" id="login-button">
             Anmelden
@@ -64,9 +67,12 @@
 
           <label class="field-label" for="register-email">E-Mail</label>
           <input id="register-email" type="email" class="field-input" autocomplete="email" required />
-
-          <label class="field-label" for="register-password">Passwort</label>
-          <input id="register-password" type="password" class="field-input" autocomplete="new-password" required />
+          
+<label class="field-label" for="register-password">Passwort</label>
+<div class="password-wrap">
+  <input id="register-password" type="password" class="field-input" autocomplete="new-password" required />
+  <button type="button" class="password-toggle" data-target="register-password">Anzeigen</button>
+</div>
 
           <button type="submit" class="btn btn-primary" id="register-button">
             Konto erstellen
