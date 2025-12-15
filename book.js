@@ -85,9 +85,6 @@ function showThankYouPage(summary) {
     ].filter(Boolean).join("<br>");
 
     thankYouContent.innerHTML = `
-      <p class="form-hint" style="margin:0 0 14px 0;">
-        Du erhältst eine Bestätigung per E-Mail, sobald der Termin final bestätigt ist.
-      </p>
 
       <div class="success-line"><strong>Fahrzeug:</strong> ${summary.car}</div>
       <div class="success-line"><strong>Fahrzeugklasse:</strong> ${summary.vehicleClassName || "—"}</div>
@@ -618,6 +615,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
