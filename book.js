@@ -112,21 +112,29 @@ async function rebuildTimeOptionsForDay(detailerId, day, durationMinutes) {
   timeSelect.innerHTML = `<option value="">Bitte wählen</option>`;
   if (hint) hint.textContent = "Lädt verfügbare Zeiten...";
 
+  // Sonntag blockieren (0 = Sonntag)
+  const dow = new Date(`${day}T12:00:00`).getDay();
+  if (dow === 0) {
+    if (hint) hint.textContent = "Sonntags geschlossen.";
+    return;
+  }
+
   const data = await fetchAvailability(detailerId, day);
   const blocked = (data.blocked || []).map(x => ({
     start: new Date(x.start_at),
     end: new Date(x.end_at),
   }));
 
-  // Basis-Zeitraum (kannst du später aus Profil übernehmen)
+  // Öffnungszeiten fest
   const DAY_START = 7 * 60;   // 07:00
-  const DAY_END = 20 * 60;    // 23:30
+  const DAY_END = 19 * 60;    // 19:00
   const STEP = 15;
 
-  const dur = Math.max(15, Number(durationMinutes || 0)); // minimum 15
+  // Dauer wird NICHT zur Einschränkung der Startzeiten genutzt
+  const dur = 15;
   const options = [];
 
-  for (let t = DAY_START; t + dur <= DAY_END; t += STEP) {
+  for (let t = DAY_START; t <= DAY_END; t += STEP) {
     const start = new Date(`${day}T${hhmmFromMinutes(t)}:00`);
     const end = new Date(start.getTime() + dur * 60000);
 
@@ -565,6 +573,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
