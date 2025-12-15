@@ -280,6 +280,11 @@ const settingsReviewSaveStatus = document.getElementById(
   "settings-review-save-status"
 );
 
+const settingsBookingLinkInput = document.getElementById("settings-booking-link");
+const settingsBookingLinkCopyBtn = document.getElementById("settings-booking-link-copy");
+const settingsBookingLinkOpenBtn = document.getElementById("settings-booking-link-open");
+const settingsBookingLinkStatus = document.getElementById("settings-booking-link-status");
+
 // Services / Vehicle Classes
 const vehicleClassesList = document.getElementById("vehicle-classes-list");
 const vehicleClassAddButton = document.getElementById(
@@ -1020,6 +1025,7 @@ async function loadProfileIntoForm() {
   updateTrialBanner();
   updateAccessUI();
   applyDevAccountHides();
+  updateBookingLinkUI();
 }
 
 // Avatar: Default pfp.png, sonst URL
@@ -1322,6 +1328,34 @@ function updateBillingUI() {
     } else {
       billingYearlyButton.style.display = "inline-flex";
     }
+  }
+}
+
+function updateBookingLinkUI() {
+  if (!currentUser) return;
+
+  const link = `https://detailhq.de/${currentUser.id}`;
+
+  if (settingsBookingLinkInput) settingsBookingLinkInput.value = link;
+
+  if (settingsBookingLinkCopyBtn) {
+    settingsBookingLinkCopyBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(link);
+        if (settingsBookingLinkStatus) settingsBookingLinkStatus.textContent = "Kopiert.";
+        setTimeout(() => {
+          if (settingsBookingLinkStatus) settingsBookingLinkStatus.textContent = "";
+        }, 1200);
+      } catch (e) {
+        if (settingsBookingLinkStatus) settingsBookingLinkStatus.textContent = "Kopieren fehlgeschlagen.";
+      }
+    };
+  }
+
+  if (settingsBookingLinkOpenBtn) {
+    settingsBookingLinkOpenBtn.onclick = () => {
+      window.open(link, "_blank", "noopener,noreferrer");
+    };
   }
 }
 
@@ -2954,6 +2988,10 @@ async function loadBookingsForDashboardAndSchedule() {
       .eq("detailer_id", currentUser.id)
       .order("start_at", { ascending: true });
 
+      (scheduleBookings || []).forEach((b) => {
+  if (!b.job_status && b.status) b.job_status = b.status;
+});
+
   if (scheduleError) {
     console.error("DetailHQ: schedule bookings load failed:", scheduleError);
   }
@@ -2994,6 +3032,35 @@ function formatBookingTitle(booking) {
   }
   return base;
 }
+
+async function confirmBookingRequest(bookingId) {
+  const session = (await supabaseClient.auth.getSession())?.data?.session;
+  const token = session?.access_token || "";
+  const res = await fetch("https://api.detailhq.de/booking/confirm", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ booking_id: bookingId }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
+async function proposeBookingAlternative(bookingId, proposedStartAtIso) {
+  const session = (await supabaseClient.auth.getSession())?.data?.session;
+  const token = session?.access_token || "";
+  const res = await fetch("https://api.detailhq.de/booking/propose", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ booking_id: bookingId, proposed_start_at: proposedStartAtIso }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+}
+
 
 function renderTodayBookings(bookings) {
   if (!todayBookingsContainer) return;
@@ -3150,19 +3217,23 @@ function renderScheduleList(bookings) {
   scheduleListContainer.classList.remove("empty-state");
   scheduleListContainer.innerHTML = "";
 
-  const orderMap = {
-    planned: 0,
-    in_progress: 1,
-    done: 2,
-    canceled: 3,
-  };
+const orderMap = {
+  requested: 0,
+  proposed: 1,
+  planned: 2,
+  in_progress: 3,
+  done: 4,
+  canceled: 5,
+};
 
-  const statusLabelMap = {
-    planned: "Geplant",
-    in_progress: "In Arbeit",
-    done: "Abgeschlossen",
-    canceled: "Storniert",
-  };
+const statusLabelMap = {
+  requested: "Anfragen",
+  proposed: "Alternativ vorgeschlagen",
+  planned: "Geplant",
+  in_progress: "In Arbeit",
+  done: "Abgeschlossen",
+  canceled: "Storniert",
+};
 
   // Sortieren nach Status + Datum
   const sorted = [...bookings].sort((a, b) => {
@@ -3179,12 +3250,14 @@ function renderScheduleList(bookings) {
   });
 
   // Gruppieren
-  const grouped = {
-    planned: [],
-    in_progress: [],
-    done: [],
-    canceled: [],
-  };
+const grouped = {
+  requested: [],
+  proposed: [],
+  planned: [],
+  in_progress: [],
+  done: [],
+  canceled: [],
+};
 
   sorted.forEach((b) => {
     const key = b.job_status || "planned";
@@ -3286,6 +3359,37 @@ function renderScheduleList(bookings) {
       }
 
       row.appendChild(header);
+      if ((b.job_status || "planned") === "requested") {
+  const actions = document.createElement("div");
+  actions.style.display = "flex";
+  actions.style.gap = "10px";
+  actions.style.marginTop = "10px";
+
+  const btnConfirm = document.createElement("button");
+  btnConfirm.className = "btn-primary";
+  btnConfirm.textContent = "Bestätigen";
+  btnConfirm.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    await confirmBookingRequest(b.id);
+    await loadBookingsForDashboardAndSchedule();
+  });
+
+  const btnAlt = document.createElement("button");
+  btnAlt.className = "btn-secondary";
+  btnAlt.textContent = "Alternative";
+  btnAlt.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const iso = prompt("Alternativtermin als ISO (z.B. 2026-01-20T09:30:00.000Z)");
+    if (!iso) return;
+    await proposeBookingAlternative(b.id, iso);
+    await loadBookingsForDashboardAndSchedule();
+  });
+
+  actions.appendChild(btnConfirm);
+  actions.appendChild(btnAlt);
+  row.appendChild(actions);
+}
+
       row.appendChild(lineDate);
       row.appendChild(statusLine);
       row.appendChild(lineAmount);
