@@ -458,6 +458,16 @@ let servicePriceRulesLoadPromise = null;
 // INIT
 // ================================
 (async function init() {
+  // ================================
+// PASSWORD RECOVERY GUARD
+// ================================
+const hash = window.location.hash || "";
+if (hash.includes("type=recovery")) {
+  console.log("DetailHQ: Password recovery flow detected");
+  // Nichts redirecten, reset-password.html regelt alles
+  return;
+}
+
   console.log("DetailHQ init startet...");
   saveAffiliateRefFirstTouch();
 
@@ -773,8 +783,8 @@ try {
       }
 
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://detailhq.de",
-      });
+  redirectTo: "https://detailhq.de/reset-password.html",
+});
 
       if (error) {
         console.error("Passwort-Reset Fehler:", error);
