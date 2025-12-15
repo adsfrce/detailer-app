@@ -137,6 +137,21 @@ let vehicleClasses = [];
 let services = [];
 let selectedSingles = new Set();
 
+function getCurrentDurationMinutes() {
+  let dur = 0;
+
+  const packageId = bookingMainServiceSelect.value || null;
+  const packageSvc = packageId ? services.find(s => String(s.id) === String(packageId)) : null;
+  if (packageSvc) dur += Number(packageSvc.duration_minutes || 0) || 0;
+
+  for (const sid of selectedSingles) {
+    const svc = services.find(s => String(s.id) === String(sid));
+    if (svc) dur += Number(svc.duration_minutes || 0) || 0;
+  }
+
+  return Math.max(15, dur || 0);
+}
+
 function setIndicator(step) {
   [ind1, ind2, ind3, ind4].forEach((el, i) => el.classList.toggle("active", i === (step - 1)));
 }
@@ -278,13 +293,19 @@ function renderSelectedSinglesList() {
   bookingSinglesList.textContent = singles.map(s => s.name).join(", ");
 }
 
+const bookingSinglesDropdown = document.querySelector(".booking-singles-dropdown");
+
 function toggleSinglesDropdown() {
-  bookingSinglesMenu.classList.toggle("open");
+  if (!bookingSinglesDropdown) return;
+  bookingSinglesDropdown.classList.toggle("open");
 }
+
 document.addEventListener("click", (e) => {
+  if (!bookingSinglesDropdown) return;
   const within = e.target.closest(".booking-singles-dropdown");
-  if (!within) bookingSinglesMenu.classList.remove("open");
+  if (!within) bookingSinglesDropdown.classList.remove("open");
 });
+
 bookingSinglesToggle.addEventListener("click", (e) => {
   e.preventDefault();
   toggleSinglesDropdown();
@@ -334,6 +355,17 @@ async function init() {
   }
 }
 
+bookingDateInput.addEventListener("change", async () => {
+  if (!detailerId) return;
+  if (!bookingDateInput.value) return;
+
+  try {
+    await rebuildTimeOptionsForDay(detailerId, bookingDateInput.value, getCurrentDurationMinutes());
+  } catch (e) {
+    console.error(e);
+  }
+});
+
 next1.addEventListener("click", () => {
   if (!safeText(bookingCarInput.value)) return;
   if (!bookingVehicleClassSelect.value) return;
@@ -341,9 +373,18 @@ next1.addEventListener("click", () => {
 });
 
 back2.addEventListener("click", () => showStep(1));
-next2.addEventListener("click", () => {
+next2.addEventListener("click", async () => {
   if (!validateStep2()) return;
   showStep(3);
+
+  if (!detailerId) return;
+  if (!bookingDateInput.value) return;
+
+  try {
+    await rebuildTimeOptionsForDay(detailerId, bookingDateInput.value, getCurrentDurationMinutes());
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 back3.addEventListener("click", () => showStep(2));
@@ -490,5 +531,6 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
