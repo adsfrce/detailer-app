@@ -10,6 +10,40 @@ const bookingError = $("booking-error");
 const publicError = $("public-error");
 const publicSuccess = $("public-success");
 
+const thankYouSection = $("booking-thankyou");
+const thankYouContent = $("booking-thankyou-content");
+
+function showThankYouPage(summary) {
+  const durH = Math.round((summary.durationMinutes || 0) / 6) / 10;
+
+  // alle Steps ausblenden (inkl. Indikator bleibt oben, aber wir zeigen keinen Step-Inhalt)
+  step1.classList.add("hidden");
+  step2.classList.add("hidden");
+  step3.classList.add("hidden");
+  step4.classList.add("hidden");
+
+  if (thankYouContent) {
+    thankYouContent.innerHTML = `
+      <div class="success-title">Vielen Dank für deine Buchung.</div>
+      <div class="success-meta">Der Termin ist eingetragen. Du erhältst ggf. eine Bestätigung per E-Mail.</div>
+
+      <div class="success-line"><strong>Fahrzeug:</strong> ${summary.car}</div>
+      <div class="success-line"><strong>Fahrzeugklasse:</strong> ${summary.vehicleClassName || "—"}</div>
+      <div class="success-line"><strong>Termin:</strong> ${summary.dateStr} · ${summary.timeStr}</div>
+      <div class="success-line"><strong>Dauer:</strong> ${durH} Std.</div>
+      <div class="success-line"><strong>Preis:</strong> ${euro(summary.totalPriceCents)}</div>
+
+      <div class="success-line" style="margin-top:12px;">
+        <strong>Leistungen:</strong><br>
+        ${summary.packageName ? `Paket: ${summary.packageName}<br>` : ""}
+        ${summary.singlesNames && summary.singlesNames.length ? `Einzelleistungen: ${summary.singlesNames.join(", ")}` : ""}
+      </div>
+    `;
+  }
+
+  if (thankYouSection) thankYouSection.classList.remove("hidden");
+}
+
 function showSuccessScreen(summary) {
   // summary: { car, vehicleClassName, dateStr, timeStr, durationMinutes, totalPriceCents, packageName, singlesNames[] }
   const durH = Math.round((summary.durationMinutes || 0) / 6) / 10;
@@ -510,7 +544,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
       year: "numeric",
     });
 
-    showSuccessScreen({
+    showThankYouPage({
       car,
       vehicleClassName,
       dateStr,
@@ -531,6 +565,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
