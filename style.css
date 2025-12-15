@@ -897,11 +897,12 @@ body {
   grid-template-columns: 1fr 1fr;
 }
 
-/* BUCHUNGS-STEPS: Indikator oben im "Neuer Auftrag" Modal */
-.booking-step-indicator {
-  display: inline-flex;          /* <<< wichtig */
-  justify-content: center;
+/* BUCHUNGS-STEPS: Indikator oben */
+
+.booking-steps-indicator {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
 
   gap: 6px;
   padding: 4px;
@@ -909,9 +910,24 @@ body {
   background: var(--bg-elevated-soft);
   border: 1px solid var(--border-subtle);
 
-  width: fit-content;            /* <<< wichtig */
+  width: fit-content;
   margin-left: auto;
   margin-right: auto;
+}
+
+.booking-step-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .booking-step-indicator.active {
@@ -920,8 +936,8 @@ body {
   font-weight: 700;
 
   height: 20px;
-  line-height: 1;
   padding: 0 8px;
+  line-height: 1;
 }
 
 @media (max-width: 480px) {
