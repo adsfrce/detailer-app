@@ -461,6 +461,23 @@ let servicePriceRulesLoadPromise = null;
   console.log("DetailHQ init startet...");
   saveAffiliateRefFirstTouch();
 
+  // ================================
+  // PUBLIC BOOKING ROUTE GUARD
+  // Wenn URL = /<uuid>, niemals App/Dashboard laden
+  // ================================
+  const __path = (window.location.pathname || "/").replace(/^\/+/, "").trim();
+  const __uuidRe =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  // /book.html soll nie hier reinlaufen
+  if (__path.toLowerCase() === "book.html") {
+    // App kann normal weiter initten (falls du book.html jemals main.js geben würdest)
+  } else if (__uuidRe.test(__path)) {
+    // Wichtig: replace, damit Back-Button nicht wieder in die SPA fällt
+    window.location.replace(`/book.html?user=${encodeURIComponent(__path)}`);
+    return;
+  }
+
   if (!supabaseClient) {
     console.error("DetailHQ: Kein Supabase-Client – Auth funktioniert nicht.");
     // Kein supabaseClient => NICHTS davon aufrufen. Nur Login anzeigen.
