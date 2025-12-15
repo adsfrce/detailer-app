@@ -902,12 +902,10 @@ body {
 .booking-steps-indicator {
   display: flex;
   align-items: center;
-  justify-content: center;   /* Steps mittig */
+  justify-content: center;
 
-  gap: 6px;
   padding: 4px;
-
-  width: 100%;               /* <<< FULL WIDTH */
+  width: 100%;
   box-sizing: border-box;
 
   border-radius: 999px;
@@ -916,18 +914,22 @@ body {
 }
 
 .booking-step-indicator {
+  flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   height: 20px;
-  padding: 0 8px;
+  padding: 0 6px;
   border-radius: 999px;
 
   font-size: 9px;
   line-height: 1;
   font-weight: 500;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .booking-step-indicator.active {
@@ -936,7 +938,7 @@ body {
   font-weight: 700;
 
   height: 20px;
-  padding: 0 8px;
+  padding: 0 6px;
   line-height: 1;
 }
 
@@ -948,6 +950,7 @@ body {
     line-height: 1;
   }
 }
+
 
 /* SETTINGS: Custom-Dropdowns für Fahrzeugklassen & Services */
 
