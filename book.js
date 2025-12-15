@@ -11,37 +11,110 @@ const publicError = $("public-error");
 const thankYouSection = $("booking-thankyou");
 const thankYouContent = $("booking-thankyou-content");
 
-function showThankYouPage(summary) {
-  const durH = Math.round((summary.durationMinutes || 0) / 6) / 10;
+function minutesToHoursText(mins) {
+  const m = Number(mins || 0) || 0;
+  const h = m / 60;
+  // 0.5er Schritte
+  const rounded = Math.round(h * 2) / 2;
+  return `${rounded.toLocaleString("de-DE", { minimumFractionDigits: rounded % 1 ? 1 : 0, maximumFractionDigits: 1 })} Std.`;
+}
 
-  // alle Steps ausblenden (inkl. Indikator bleibt oben, aber wir zeigen keinen Step-Inhalt)
+function formatIcsDateUtc(d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return (
+    d.getUTCFullYear() +
+    pad(d.getUTCMonth() + 1) +
+    pad(d.getUTCDate()) +
+    "T" +
+    pad(d.getUTCHours()) +
+    pad(d.getUTCMinutes()) +
+    pad(d.getUTCSeconds()) +
+    "Z"
+  );
+}
+
+function downloadIcs(summary) {
+  const start = new Date(summary.startAtIso);
+  const end = new Date(start.getTime() + (Number(summary.durationMinutes || 0) || 0) * 60000);
+
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//DetailHQ//Public Booking//DE",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${crypto.randomUUID()}@detailhq.de`,
+    `DTSTAMP:${formatIcsDateUtc(new Date())}`,
+    `DTSTART:${formatIcsDateUtc(start)}`,
+    `DTEND:${formatIcsDateUtc(end)}`,
+    "SUMMARY:Termin Aufbereitung",
+    `DESCRIPTION:Fahrzeug: ${summary.car}\\nFahrzeugklasse: ${summary.vehicleClassName || "—"}\\nLeistungen: ${summary.packageName ? "Paket: " + summary.packageName + " " : ""}${summary.singlesNames && summary.singlesNames.length ? "Einzelleistungen: " + summary.singlesNames.join(", ") : ""}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+
+  const ics = lines.join("\r\n");
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "termin-aufbereitung.ics";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function showThankYouPage(summary) {
+  // Steps ausblenden
   step1.classList.add("hidden");
   step2.classList.add("hidden");
   step3.classList.add("hidden");
   step4.classList.add("hidden");
 
+  // Step-Indikator ausblenden (falls vorhanden)
   document.querySelector(".booking-steps-indicator")?.classList.add("hidden");
 
   if (thankYouContent) {
+    const servicesLine = [
+      summary.packageName ? `Paket: ${summary.packageName}` : "",
+      summary.singlesNames && summary.singlesNames.length ? `Einzelleistungen: ${summary.singlesNames.join(", ")}` : "",
+    ].filter(Boolean).join("<br>");
+
     thankYouContent.innerHTML = `
-      <div class="success-title">Vielen Dank für deine Buchung.</div>
-      <div class="success-meta">Der Termin ist eingetragen. Du erhältst ggf. eine Bestätigung per E-Mail.</div>
+      <p class="form-hint" style="margin:0 0 14px 0;">
+        Du erhältst eine Bestätigung per E-Mail, sobald der Termin final bestätigt ist.
+      </p>
 
       <div class="success-line"><strong>Fahrzeug:</strong> ${summary.car}</div>
       <div class="success-line"><strong>Fahrzeugklasse:</strong> ${summary.vehicleClassName || "—"}</div>
       <div class="success-line"><strong>Termin:</strong> ${summary.dateStr} · ${summary.timeStr}</div>
-      <div class="success-line"><strong>Dauer:</strong> ${durH} Std.</div>
+      <div class="success-line"><strong>Dauer:</strong> ${minutesToHoursText(summary.durationMinutes)}</div>
       <div class="success-line"><strong>Preis:</strong> ${euro(summary.totalPriceCents)}</div>
 
       <div class="success-line" style="margin-top:12px;">
         <strong>Leistungen:</strong><br>
-        ${summary.packageName ? `Paket: ${summary.packageName}<br>` : ""}
-        ${summary.singlesNames && summary.singlesNames.length ? `Einzelleistungen: ${summary.singlesNames.join(", ")}` : ""}
+        ${servicesLine || "—"}
+      </div>
+
+      <div style="margin-top:16px;">
+        <button type="button" id="add-to-calendar" class="btn btn-primary" style="width:100%;">Zum Kalender hinzufügen</button>
       </div>
     `;
+
+    const btn = document.getElementById("add-to-calendar");
+    if (btn) {
+      btn.addEventListener("click", () => downloadIcs(summary));
+    }
   }
 
   if (thankYouSection) thankYouSection.classList.remove("hidden");
+
+  // Ganz nach oben, damit die Section nicht “unten” wirkt
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 const bookingCarInput = $("booking-car");
@@ -523,16 +596,17 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
       year: "numeric",
     });
 
-    showThankYouPage({
-      car,
-      vehicleClassName,
-      dateStr,
-      timeStr: bookingTimeInput.value,
-      durationMinutes,
-      totalPriceCents,
-      packageName: packageSvc ? packageSvc.name : "",
-      singlesNames: singlesSvcs.map(s => s.name),
-    });
+showThankYouPage({
+  car,
+  vehicleClassName,
+  dateStr,
+  timeStr: bookingTimeInput.value,
+  startAtIso: payload.start_at,
+  durationMinutes,
+  totalPriceCents,
+  packageName: packageSvc ? packageSvc.name : "",
+  singlesNames: singlesSvcs.map(s => s.name),
+});
 
     const submitBtn = bookingForm.querySelector("#public-submit");
     if (submitBtn) submitBtn.disabled = true;
@@ -544,6 +618,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
