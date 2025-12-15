@@ -291,12 +291,18 @@ async function init() {
     return;
   }
 
+  publicError.style.display = "none";
+  publicError.textContent = "";
+
   try {
     // Provider Info optional (Name etc.) – wenn du das später willst, Route ist schon vorbereitet.
     // const provider = await apiGet(`/public/provider?user=${encodeURIComponent(detailerId)}`);
 
-    vehicleClasses = await apiGet(`/public/vehicle-classes?detailer=${encodeURIComponent(detailerId)}`);
-    services = await apiGet(`/public/services?detailer=${encodeURIComponent(detailerId)}`);
+    const vcRes = await apiGet(`/public/vehicle-classes?detailer=${encodeURIComponent(detailerId)}`);
+    vehicleClasses = Array.isArray(vcRes) ? vcRes : (vcRes.vehicle_classes || []);
+
+    const sRes = await apiGet(`/public/services?detailer=${encodeURIComponent(detailerId)}`);
+    services = Array.isArray(sRes) ? sRes : (sRes.services || []);
 
     renderVehicleClasses();
     renderPackages();
