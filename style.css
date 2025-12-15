@@ -910,19 +910,38 @@ body {
 }
 
 .booking-step-indicator {
-  flex: 1;
-  text-align: center;
-  font-size: 10px;
-  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 20px;              /* <<< niedrigere Pill */
+  padding: 0 8px;            /* <<< keine vertikale Padding */
   border-radius: 999px;
-  color: var(--text-soft);
+
+  font-size: 9px;
+  line-height: 1;            /* <<< DAS ist entscheidend */
   font-weight: 500;
+
+  white-space: nowrap;
 }
 
 .booking-step-indicator.active {
   background: var(--accent-soft);
   color: var(--accent-strong);
-  font-weight: 700; /* -> wird sichtbar fetter */
+  font-weight: 700;
+
+  height: 20px;
+  line-height: 1;
+  padding: 0 8px;
+}
+
+@media (max-width: 480px) {
+  .booking-step-indicator {
+    height: 18px;
+    font-size: 9px;
+    padding: 0 6px;
+    line-height: 1;
+  }
 }
 
 /* SETTINGS: Custom-Dropdowns für Fahrzeugklassen & Services */
