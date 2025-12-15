@@ -8,7 +8,8 @@ function $(id) { return document.getElementById(id); }
 const bookingForm = $("booking-form");
 const bookingError = $("booking-error");
 const publicError = $("public-error");
-const publicSuccess = $("public-success");
+const thankYouSection = $("booking-thankyou");
+const thankYouContent = $("booking-thankyou-content");
 
 const thankYouSection = $("booking-thankyou");
 const thankYouContent = $("booking-thankyou-content");
@@ -573,6 +574,7 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 });
 
 init();
+
 
 
 
