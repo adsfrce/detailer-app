@@ -141,6 +141,41 @@ body {
   box-shadow: 0 0 0 1px var(--accent-soft);
 }
 
+/* PASSWORD TOGGLE */
+
+.password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrap .field-input {
+  padding-right: 92px; /* Platz für Button */
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  color: var(--text-soft);
+
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.password-toggle:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
 /* Datum + Uhrzeit in einer gemeinsamen Pill */
 
 .booking-datetime-row {
