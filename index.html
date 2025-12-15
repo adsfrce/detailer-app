@@ -280,6 +280,32 @@
             </button>
           </div>
 
+          <!-- BUCHUNGSLINK -->
+<div class="settings-group glass">
+  <h3>Buchungslink</h3>
+  <p class="settings-help">
+    Diesen Link sehen deine Kunden. Darüber können sie direkt einen Termin buchen.
+  </p>
+
+  <label class="field-label" for="settings-booking-link">Dein Buchungslink</label>
+  <input
+    id="settings-booking-link"
+    type="text"
+    class="field-input"
+    readonly
+  />
+
+  <button id="settings-booking-link-copy" class="btn btn-secondary btn-block" style="margin-top:8px;">
+    Link kopieren
+  </button>
+
+  <button id="settings-booking-link-open" class="btn btn-ghost btn-block" style="margin-top:8px;">
+    Link öffnen
+  </button>
+
+  <p id="settings-booking-link-status" class="form-hint"></p>
+</div>
+
           <!-- Service-Form Modal -->
           <div id="service-modal" class="profile-modal hidden">
             <div class="profile-modal-backdrop"></div>
