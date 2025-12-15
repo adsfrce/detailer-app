@@ -907,6 +907,8 @@ body {
   border-radius: 999px;
   background: var(--bg-elevated-soft);
   border: 1px solid var(--border-subtle);
+
+  justify-content: center; /* <<< DAS fehlt */
 }
 
 .booking-step-indicator {
