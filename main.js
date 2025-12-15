@@ -472,6 +472,15 @@ if (hash.includes("type=recovery")) {
   return;
 }
 
+// ================================
+// After password reset: force auth view
+// ================================
+const qs = new URLSearchParams(window.location.search);
+if (qs.get("reset") === "1") {
+  showAuthView();
+  return;
+}
+
   console.log("DetailHQ init startet...");
   saveAffiliateRefFirstTouch();
 
