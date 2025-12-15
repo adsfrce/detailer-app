@@ -90,7 +90,10 @@
             <input id="booking-date" type="date" class="field-input" required />
 
             <label class="field-label" for="booking-time">Wunschtermin (Uhrzeit)</label>
-            <input id="booking-time" type="time" class="field-input" required />
+<select id="booking-time" class="field-input" required>
+  <option value="">Bitte wählen</option>
+</select>
+<p id="booking-time-hint" class="form-hint" style="margin-top:6px;"></p>
 
             <div style="display:flex; gap:10px; margin-top:12px;">
               <button type="button" class="btn btn-secondary" id="booking-back-3">Zurück</button>
