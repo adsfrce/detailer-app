@@ -615,14 +615,3 @@ showThankYouPage({
 });
 
 init();
-
-
-
-
-
-
-
-
-
-
-
