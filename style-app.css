@@ -1492,3 +1492,28 @@ mask-image: linear-gradient(
   margin-top: 4px;
   padding-left: 0;
 }
+
+/* Dropdown-Items: Checkbox links, Text rechts (eine Zeile) */
+.settings-dropdown-menu .settings-dropdown-item{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.settings-dropdown-menu .settings-dropdown-item:hover{
+  background: var(--bg-elevated);
+}
+
+/* Checkbox/Radio Box darf nicht "wandern" */
+.settings-dropdown-menu .booking-singles-item-checkbox{
+  flex: 0 0 16px;
+  margin-top: 2px; /* optisch bündig zur Textzeile */
+}
+
+/* Der Textblock nimmt den Rest */
+.settings-dropdown-menu .service-col{
+  flex: 1;
+  min-width: 0;
+}
