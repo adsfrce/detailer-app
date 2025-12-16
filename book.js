@@ -490,15 +490,20 @@ const singles = services.filter((s) =>
     row.style.gap = "10px";
     row.style.alignItems = "flex-start";
 
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.checked = selectedSingles.has(svc.id);
+const cb = document.createElement("div");
+cb.className = "booking-singles-item-checkbox";
 
-    cb.addEventListener("change", () => {
-      if (cb.checked) selectedSingles.add(svc.id);
-      else selectedSingles.delete(svc.id);
-      renderSelectedSinglesList();
-    });
+const isSelected = selectedSingles.has(svc.id);
+row.classList.toggle("selected", isSelected);
+
+function toggleSingle() {
+  const now = !selectedSingles.has(svc.id);
+  if (now) selectedSingles.add(svc.id);
+  else selectedSingles.delete(svc.id);
+
+  row.classList.toggle("selected", now);
+  renderSelectedSinglesList();
+}
 
 const headerRow = document.createElement("div");
 headerRow.className = "service-header-row";
@@ -545,6 +550,12 @@ headerRow.appendChild(txt);
         panel.hidden = isOpen ? true : false;
       });
     }
+
+    row.addEventListener("click", (e) => {
+  // Wenn auf "Details" geklickt wurde, NICHT selektieren
+  if (e.target.closest(".service-desc-toggle")) return;
+  toggleSingle();
+});
 
     row.appendChild(cb);
 
@@ -838,5 +849,6 @@ showThankYouPage({
 });
 
 init();
+
 
 
