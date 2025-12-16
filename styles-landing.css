@@ -51,8 +51,8 @@ strong{font-weight:600}
   margin:0 auto;
 }
 
-.section{padding:72px 0}
-.section--tight{padding:58px 0}
+.section{padding:108px 0}
+.section--tight{padding:87px 0}
 .section--soft{
   background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
   border-top:1px solid rgba(17,24,39,.06);
@@ -187,8 +187,8 @@ strong{font-weight:600}
 }
 .site-header.is-scrolled{
   background: rgba(246,248,251,.62);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
   border-bottom:1px solid rgba(17,24,39,.06);
 }
 
@@ -428,14 +428,14 @@ html.nav-open{overflow:hidden}
 }
 
 .split{
-  margin-top:18px;
+  margin-top:26px;
   display:grid;
-  gap:14px;
+  gap:18px;
 }
 @media (min-width: 1024px){
   .split{
     grid-template-columns: 1fr 1fr;
-    gap:28px;
+    gap:36px;
     align-items:center;
   }
   .split--reverse .split-visual{order:2}
@@ -698,8 +698,8 @@ html.nav-open{overflow:hidden}
 .sub{margin:0; line-height:1.65}
 .h3{margin:0 0 12px}
 p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
-.split-copy p{margin-top:10px}
-.list-check{margin:16px 0 0}
+.split-copy p{margin-top:14px}
+.list-check{margin:22px 0 0}
 .list-check li{line-height:1.6}
 .callout__text strong{display:block; margin-bottom:6px}
 .callout{margin-top:26px}
@@ -708,7 +708,7 @@ p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
 .partner{margin-top:22px}
 
 /* Inline CTA spacing: push link down ~8px */
-.inline-cta{margin-top:18px}
+.inline-cta{margin-top:24px}
 
 /* Second split copy: push entire block down ~40px on desktop, softer on mobile */
 .split-copy--offset{margin-top:22px}
@@ -717,9 +717,9 @@ p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
 }
 
 /* Prevent overlaps: add breathing space before micro cards */
-.micro-grid{margin-top:28px}
+.micro-grid{margin-top:38px}
 @media (min-width:1024px){
-  .micro-grid{margin-top:34px}
+  .micro-grid{margin-top:46px}
 }
 
 /* ===== Apple-ish high-end motion (no cheesy fade-only) ===== */
@@ -760,10 +760,10 @@ p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
   filter: blur(0);
 }
 .reveal-stagger.is-in > *:nth-child(1){transition-delay: 0ms}
-.reveal-stagger.is-in > *:nth-child(2){transition-delay: 70ms}
-.reveal-stagger.is-in > *:nth-child(3){transition-delay: 140ms}
-.reveal-stagger.is-in > *:nth-child(4){transition-delay: 210ms}
-.reveal-stagger.is-in > *:nth-child(5){transition-delay: 280ms}
+.reveal-stagger.is-in > *:nth-child(2){transition-delay: 110ms}
+.reveal-stagger.is-in > *:nth-child(3){transition-delay: 220ms}
+.reveal-stagger.is-in > *:nth-child(4){transition-delay: 330ms}
+.reveal-stagger.is-in > *:nth-child(5){transition-delay: 440ms}
 
 /* Premium hover lift */
 .card, .btn, .partner-badge{
@@ -781,7 +781,7 @@ p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
   transform: translateZ(0);
 }
 .device.is-tilt{
-  transition: transform .2s ease;
+  transition: transform .35s ease;
 }
 
 /* Subtle shine sweep on primary button */
@@ -795,9 +795,67 @@ p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
   inset:-40% -60%;
   background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
   transform: translateX(-60%) rotate(8deg);
-  transition: transform 0.9s cubic-bezier(.16, 1, .3, 1);
+  transition: transform 1.4s cubic-bezier(.16, 1, .3, 1);
   pointer-events:none;
 }
 .btn-primary:hover::after{
   transform: translateX(30%) rotate(8deg);
+}
+
+/* ===== Extra premium motion (hero + ambient). Footer stays static. ===== */
+@media (prefers-reduced-motion: no-preference){
+  .bg-orb{
+    animation: orb-drift 18s ease-in-out infinite alternate;
+  }
+  .bg-orb--2{animation-duration: 22s}
+  @keyframes orb-drift{
+    0%{transform: translate3d(0,0,0) scale(1)}
+    100%{transform: translate3d(18px,-10px,0) scale(1.05)}
+  }
+
+  /* Hero: staggered crisp-in (on load) */
+  body.is-loaded .hero-copy .pill-row{animation: hero-in 1.25s cubic-bezier(.16,1,.3,1) both; animation-delay: 60ms}
+  body.is-loaded .hero-copy .h1{animation: hero-in 1.35s cubic-bezier(.16,1,.3,1) both; animation-delay: 140ms}
+  body.is-loaded .hero-copy .lead{animation: hero-in 1.35s cubic-bezier(.16,1,.3,1) both; animation-delay: 220ms}
+  body.is-loaded .hero-actions{animation: hero-in 1.35s cubic-bezier(.16,1,.3,1) both; animation-delay: 320ms}
+  body.is-loaded .trust-strip{animation: hero-in 1.35s cubic-bezier(.16,1,.3,1) both; animation-delay: 420ms}
+  body.is-loaded .partner{animation: hero-in 1.35s cubic-bezier(.16,1,.3,1) both; animation-delay: 520ms}
+  body.is-loaded .hero-visual{animation: hero-in 1.55s cubic-bezier(.16,1,.3,1) both; animation-delay: 220ms}
+
+  @keyframes hero-in{
+    0%{opacity:.001; transform: translateY(16px) scale(.992); filter: blur(12px)}
+    100%{opacity:1; transform: translateY(0) scale(1); filter: blur(0)}
+  }
+
+  /* Device: slow premium "breathing" */
+  .device{
+    animation: device-breathe 8.5s ease-in-out infinite;
+    will-change: transform;
+  }
+  .device.is-tilt{animation: none}
+  @keyframes device-breathe{
+    0%{transform: translateY(0) scale(1)}
+    50%{transform: translateY(-2px) scale(1.006)}
+    100%{transform: translateY(0) scale(1)}
+  }
+
+  /* Subtle shimmer on accent headline (very light) */
+  .h1-accent{
+    background-size: 160% 100%;
+    animation: accent-shift 6.8s ease-in-out infinite;
+  }
+  @keyframes accent-shift{
+    0%{background-position: 0% 50%}
+    50%{background-position: 100% 50%}
+    100%{background-position: 0% 50%}
+  }
+}
+
+/* Footer must never be affected by reveal opacity/blur */
+.footer .reveal,
+.footer .reveal-stagger,
+.footer .reveal-stagger > *{
+  opacity:1 !important;
+  transform:none !important;
+  filter:none !important;
 }
