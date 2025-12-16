@@ -486,8 +486,8 @@ document.addEventListener("click", (e) => {
   if (!within) bookingSinglesDropdown.classList.remove("open");
 });
 
-bookingSinglesToggle.addEventListener("click", (e) => {
-  if (bookingPackageDescToggle) {
+// Paket-Description: Listener NUR EINMAL registrieren (nicht im Singles-Click!)
+if (bookingPackageDescToggle) {
   bookingPackageDescToggle.addEventListener("click", () => {
     const isOpen = bookingPackageDescToggle.getAttribute("aria-expanded") === "true";
 
@@ -506,6 +506,8 @@ if (bookingMainServiceSelect) {
     updatePackageDescriptionUI();
   });
 }
+
+bookingSinglesToggle.addEventListener("click", (e) => {
   e.preventDefault();
   toggleSinglesDropdown();
 });
@@ -731,5 +733,6 @@ showThankYouPage({
 });
 
 init();
+
 
 
