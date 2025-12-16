@@ -117,10 +117,6 @@ function showThankYouPage(summary) {
 const bookingCarInput = $("booking-car");
 const bookingVehicleClassSelect = $("booking-vehicle-class");
 const bookingMainServiceSelect = $("booking-main-service");
-const bookingPackageDescWrap = $("booking-package-desc-wrap");
-const bookingPackageDescToggle = $("booking-package-desc-toggle");
-const bookingPackageDescPanel = $("booking-package-desc-panel");
-const bookingPackageDescText = $("booking-package-desc-text");
 
 const bookingSinglesToggle = $("booking-singles-toggle");
 const bookingSinglesMenu = $("booking-singles-menu");
@@ -377,47 +373,19 @@ function renderPackages() {
     txt.className = "booking-singles-item-label";
     txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
 
-    row.appendChild(radio);
-    row.appendChild(txt);
+row.appendChild(radio);
 
-    // details (optional)
-    const desc = (svc.description || "").trim();
-    if (desc) {
-      const descWrap = document.createElement("div");
-      descWrap.className = "service-desc-wrap";
+const col = document.createElement("div");
+col.className = "service-col";      // CSS gleich unten
+col.style.flex = "1";
+col.style.display = "flex";
+col.style.flexDirection = "column";
+col.style.gap = "6px";
 
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "service-desc-toggle"; // deine neue Text-Style Variante
-      btn.setAttribute("aria-expanded", "false");
-      btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
+col.appendChild(txt);
+if (descWrap) col.appendChild(descWrap);
 
-      const panel = document.createElement("div");
-      panel.className = "service-desc-panel";
-      panel.hidden = true;
-
-      const body = document.createElement("div");
-      body.className = "service-desc-text";
-      body.innerHTML = escapeHtml(desc);
-
-      panel.appendChild(body);
-      descWrap.appendChild(btn);
-      descWrap.appendChild(panel);
-
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const isOpen = btn.getAttribute("aria-expanded") === "true";
-
-        // schließt alles andere (Pakete+Singles)
-        closeAllServiceDescriptions();
-
-        btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
-        panel.hidden = isOpen ? true : false;
-      });
-
-      row.appendChild(descWrap);
+row.appendChild(col);
     }
 
     // click row selects package
@@ -450,11 +418,6 @@ function renderPackages() {
 }
 
 function closeAllServiceDescriptions() {
-  // Paket panel schließen
-  if (bookingPackageDescToggle && bookingPackageDescPanel) {
-    bookingPackageDescToggle.setAttribute("aria-expanded", "false");
-    bookingPackageDescPanel.hidden = true;
-  }
 
   // Singles panels schließen
   document.querySelectorAll(".service-desc-toggle[aria-expanded='true']").forEach((btn) => {
@@ -521,52 +484,21 @@ function renderSinglesMenu() {
     });
 
     const txt = document.createElement("div");
-    txt.style.flex = "1";
-    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
-    const desc = (svc.description || "").trim();
+txt.style.flex = "unset";
 
-let descWrap = null;
-if (desc) {
-  descWrap = document.createElement("div");
-  descWrap.className = "service-desc-wrap";
+row.appendChild(cb);
 
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "service-desc-toggle";
-  btn.setAttribute("aria-expanded", "false");
-  btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
+const col = document.createElement("div");
+col.className = "service-col";
+col.style.flex = "1";
+col.style.display = "flex";
+col.style.flexDirection = "column";
+col.style.gap = "6px";
 
-  const panel = document.createElement("div");
-  panel.className = "service-desc-panel";
-  panel.hidden = true;
+col.appendChild(txt);
+if (descWrap) col.appendChild(descWrap);
 
-  const body = document.createElement("div");
-  body.className = "service-desc-text";
-  body.innerHTML = escapeHtml(desc);
-
-  panel.appendChild(body);
-  descWrap.appendChild(btn);
-  descWrap.appendChild(panel);
-
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation(); // wichtig: dropdown checkbox click bleibt sauber
-
-    const isOpen = btn.getAttribute("aria-expanded") === "true";
-
-    // wenn ein anderes offen ist -> schließen
-    closeAllServiceDescriptions();
-
-    // eigenes togglen (wenn vorher offen war, bleibt es jetzt zu)
-    btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
-    panel.hidden = isOpen ? true : false;
-  });
-}
-
-
-    row.appendChild(cb);
-    row.appendChild(txt);
-    if (descWrap) row.appendChild(descWrap);
+row.appendChild(col);
     bookingSinglesMenu.appendChild(row);
   });
 
@@ -594,27 +526,6 @@ document.addEventListener("click", (e) => {
   const within = e.target.closest(".booking-singles-dropdown");
   if (!within) bookingSinglesDropdown.classList.remove("open");
 });
-
-// Paket-Description: Listener NUR EINMAL registrieren (nicht im Singles-Click!)
-if (bookingPackageDescToggle) {
-  bookingPackageDescToggle.addEventListener("click", () => {
-    const isOpen = bookingPackageDescToggle.getAttribute("aria-expanded") === "true";
-
-    // wenn jetzt geöffnet wird: alles andere schließen (Singles)
-    if (!isOpen) closeAllServiceDescriptions();
-
-    bookingPackageDescToggle.setAttribute("aria-expanded", isOpen ? "false" : "true");
-    bookingPackageDescPanel.hidden = isOpen ? true : false;
-  });
-}
-
-if (bookingMainServiceSelect) {
-  bookingMainServiceSelect.addEventListener("change", () => {
-    // bei Paketwechsel: alle Panels zu, dann neu füllen
-    closeAllServiceDescriptions();
-    updatePackageDescriptionUI();
-  });
-}
 
 bookingSinglesToggle.addEventListener("click", (e) => {
   e.preventDefault();
@@ -655,7 +566,6 @@ async function init() {
 
     renderVehicleClasses();
     renderPackages();
-    updatePackageDescriptionUI();
     renderSinglesMenu();
 
     showStep(1);
@@ -842,6 +752,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
