@@ -1493,3 +1493,18 @@ mask-image: linear-gradient(
   padding-left: 0;
 }
 
+/* Paket-Dropdown: Label + Chevron in einer Zeile halten */
+#booking-package-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Label darf nicht umbrechen */
+#booking-package-label {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
