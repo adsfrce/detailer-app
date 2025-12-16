@@ -53,7 +53,12 @@
 <label class="field-label">Paket (optional)</label>
 
 <div class="settings-dropdown booking-package-dropdown">
-  <button type="button" class="settings-dropdown-toggle" id="booking-package-toggle" aria-expanded="false">
+  <button
+    type="button"
+    class="settings-dropdown-toggle"
+    id="booking-package-toggle"
+    aria-expanded="false"
+  >
     <span id="booking-package-label">Paket wählen</span>
     <span class="settings-dropdown-chevron">▾</span>
   </button>
@@ -63,7 +68,7 @@
   </div>
 </div>
 
-<!-- hidden select bleibt für Validation + Submit -->
+<!-- Hidden select bleibt für Validation/Submit/Existing Logic -->
 <select id="booking-main-service" class="field-input hidden">
   <option value="">Kein Paket</option>
 </select>
@@ -153,4 +158,5 @@
   <script src="book.js?v1.0.3"></script>
 </body>
 </html>
+
 
