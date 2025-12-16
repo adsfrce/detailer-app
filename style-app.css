@@ -1454,11 +1454,10 @@ mask-image: linear-gradient(
 }
 
 .service-desc-panel {
-  margin-top: 8px;
-  padding: 10px 11px;
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-elevated-soft);
+  margin-top: 0;
+  padding: 0;
+  border: none;
+  background: none;
 }
 
 .service-desc-text {
@@ -1467,4 +1466,3 @@ mask-image: linear-gradient(
   line-height: 1.35;
   white-space: pre-wrap;
 }
-
