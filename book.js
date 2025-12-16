@@ -125,6 +125,9 @@ const bookingPackageDescText = $("booking-package-desc-text");
 const bookingSinglesToggle = $("booking-singles-toggle");
 const bookingSinglesMenu = $("booking-singles-menu");
 const bookingSinglesList = $("booking-singles-list");
+const bookingPackageToggle = $("booking-package-toggle");
+const bookingPackageMenu = $("booking-package-menu");
+const bookingPackageLabel = $("booking-package-label");
 
 const bookingDateInput = $("booking-date");
 const bookingTimeInput = $("booking-time");
@@ -330,14 +333,120 @@ function renderVehicleClasses() {
 }
 
 function renderPackages() {
-  bookingMainServiceSelect.innerHTML = `<option value="">Kein Paket</option>`;
-  services.filter(s => s.kind === "package" && (s.is_active !== false))
-    .forEach((svc) => {
-      const opt = document.createElement("option");
-      opt.value = svc.id;
-      opt.textContent = `${svc.name} · ${euro(svc.base_price_cents)} · ${Math.round((svc.duration_minutes||0)/6)/10} Std.`;
-      bookingMainServiceSelect.appendChild(opt);
+  // hidden select leeren
+  bookingMainServiceSelect.innerHTML = "";
+
+  // Dropdown menu leeren
+  bookingPackageMenu.innerHTML = "";
+
+  // Filter: nur Pakete (nicht single services)
+  const packages = services.filter((s) => (s?.is_single_service === false));
+
+  // Placeholder option im hidden select
+  const ph = document.createElement("option");
+  ph.value = "";
+  ph.textContent = "Paket wählen";
+  bookingMainServiceSelect.appendChild(ph);
+
+  // If none
+  if (!packages.length) {
+    bookingPackageMenu.innerHTML = `<p class="form-hint">Keine Pakete verfügbar.</p>`;
+    bookingPackageLabel.textContent = "Paket wählen";
+    return;
+  }
+
+  // Build options (hidden select + visible dropdown items)
+  packages.forEach((svc) => {
+    // hidden select option
+    const o = document.createElement("option");
+    o.value = String(svc.id);
+    o.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+    bookingMainServiceSelect.appendChild(o);
+
+    // visible row
+    const row = document.createElement("div");
+    row.className = "settings-dropdown-item";
+    row.dataset.value = String(svc.id);
+
+    // left: "radio"
+    const radio = document.createElement("div");
+    radio.className = "booking-singles-item-checkbox"; // reuse your checkbox style
+
+    // main text
+    const txt = document.createElement("div");
+    txt.className = "booking-singles-item-label";
+    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+
+    row.appendChild(radio);
+    row.appendChild(txt);
+
+    // details (optional)
+    const desc = (svc.description || "").trim();
+    if (desc) {
+      const descWrap = document.createElement("div");
+      descWrap.className = "service-desc-wrap";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "service-desc-toggle"; // deine neue Text-Style Variante
+      btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
+
+      const panel = document.createElement("div");
+      panel.className = "service-desc-panel";
+      panel.hidden = true;
+
+      const body = document.createElement("div");
+      body.className = "service-desc-text";
+      body.innerHTML = escapeHtml(desc);
+
+      panel.appendChild(body);
+      descWrap.appendChild(btn);
+      descWrap.appendChild(panel);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+
+        // schließt alles andere (Pakete+Singles)
+        closeAllServiceDescriptions();
+
+        btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        panel.hidden = isOpen ? true : false;
+      });
+
+      row.appendChild(descWrap);
+    }
+
+    // click row selects package
+    row.addEventListener("click", (e) => {
+      // wenn auf Details geklickt wurde, nicht selektieren (stopPropagation handled)
+      const val = row.dataset.value;
+      bookingMainServiceSelect.value = val;
+
+      // UI: nur dieses selected markieren
+      bookingPackageMenu.querySelectorAll(".settings-dropdown-item").forEach((it) => {
+        it.classList.toggle("selected", it === row);
+      });
+
+      bookingPackageLabel.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+
+      // dropdown schließen
+      const dd = bookingPackageToggle.closest(".settings-dropdown");
+      dd?.classList.remove("open");
+      bookingPackageToggle.setAttribute("aria-expanded", "false");
+
+      // wenn du irgendwo onChange-Logic hast:
+      bookingMainServiceSelect.dispatchEvent(new Event("change"));
     });
+
+    bookingPackageMenu.appendChild(row);
+  });
+
+  // initial label
+  bookingPackageLabel.textContent = "Paket wählen";
 }
 
 function closeAllServiceDescriptions() {
@@ -733,6 +842,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
