@@ -50,20 +50,23 @@
 
           <!-- STEP 2: Leistungen -->
           <div class="booking-step hidden" id="booking-step-2" data-step="2">
-            <label class="field-label" for="booking-main-service">Paket (optional)</label>
-            <select id="booking-main-service" class="field-input">
-              <option value="">Kein Paket</option>
-            </select>
-<div id="booking-package-desc-wrap" class="service-desc-wrap hidden">
-  <button type="button" id="booking-package-desc-toggle" class="service-desc-toggle" aria-expanded="false">
-    Details
-    <span class="service-desc-chevron">▾</span>
+<label class="field-label">Paket (optional)</label>
+
+<div class="settings-dropdown booking-package-dropdown">
+  <button type="button" class="settings-dropdown-toggle" id="booking-package-toggle" aria-expanded="false">
+    <span id="booking-package-label">Paket wählen</span>
+    <span class="settings-dropdown-chevron">▾</span>
   </button>
 
-  <div id="booking-package-desc-panel" class="service-desc-panel" hidden>
-    <div id="booking-package-desc-text" class="service-desc-text"></div>
+  <div id="booking-package-menu" class="settings-dropdown-menu">
+    <p class="form-hint">Lädt...</p>
   </div>
 </div>
+
+<!-- hidden select bleibt für Validation + Submit -->
+<select id="booking-main-service" class="field-input hidden">
+  <option value="">Kein Paket</option>
+</select>
 
             <div class="form-hint" style="margin-top:6px;">
               Mindestens Paket oder Einzelleistung wählen.
@@ -150,3 +153,4 @@
   <script src="book.js?v1.0.3"></script>
 </body>
 </html>
+
