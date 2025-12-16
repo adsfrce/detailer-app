@@ -1335,7 +1335,7 @@ function closeProfileModal() {
 // BILLING (Stripe)
 // ================================
 function setupBillingHandlers() {
-  const apiBase = "https://api.detailhq.de";
+  const apiBase = "https://api.detailhq.de"; // aktuell ungenutzt, aber ok
 
   // Open Checkout Page (deine Checkout Sales Page)
   if (billingOpenCheckoutButton) {
@@ -1344,14 +1344,10 @@ function setupBillingHandlers() {
     });
   }
 
-  // Billing-Portal (Stripe)
+  // Zahlung & Abo verwalten -> Checkout
   if (billingManageButton) {
     billingManageButton.addEventListener("click", () => {
-      if (!currentUser) return;
-      const url = `${apiBase}/billing/portal?user=${encodeURIComponent(
-        currentUser.id
-      )}`;
-      window.location.href = url;
+      window.location.href = "/checkout";
     });
   }
 }
@@ -1361,6 +1357,7 @@ function updateBillingUI() {
   // Manage-Button bleibt immer sichtbar.
   return;
 }
+
 
 function updateBookingLinkUI() {
   if (!currentUser) return;
