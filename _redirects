@@ -1,5 +1,10 @@
 /app            /app.html        200
+/app/           /app.html        200
 /app/*          /app.html        200
 
 /checkout       /checkout.html   200
+/checkout/      /checkout.html   200
 /checkout/*     /checkout.html   200
+
+/checkout.html  /checkout.html   200
+/app.html       /app.html        200
