@@ -1413,3 +1413,61 @@ mask-image: linear-gradient(
   background: rgba(255,255,255,0.85);
   backdrop-filter: blur(16px);
 }
+
+/* ================================
+   BOOKING: Service Description Accordion
+   ================================ */
+
+.service-desc-wrap {
+  margin-top: 8px;
+}
+
+.service-desc-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.service-desc-toggle:hover {
+  background: var(--bg-elevated);
+}
+
+.service-desc-toggle:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.service-desc-chevron {
+  font-size: 11px;
+  opacity: 0.75;
+  transition: transform 0.16s ease;
+}
+
+.service-desc-toggle[aria-expanded="true"] .service-desc-chevron {
+  transform: rotate(180deg);
+}
+
+.service-desc-panel {
+  margin-top: 8px;
+  padding: 10px 11px;
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+}
+
+.service-desc-text {
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
