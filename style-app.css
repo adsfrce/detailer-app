@@ -1134,7 +1134,7 @@ body {
   flex-shrink: 0;
 }
 
-.booking-singles-item.selected .booking-singles-item-checkbox {
+.settings-dropdown-item.selected .booking-singles-item-checkbox {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
 }
