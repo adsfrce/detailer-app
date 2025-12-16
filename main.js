@@ -1018,23 +1018,27 @@ async function ensureProfile() {
     return;
   }
 
-if (!data) {
-  const themeSetting = localStorage.getItem(THEME_KEY) || "system";
+  if (!data) {
+    const themeSetting = localStorage.getItem(THEME_KEY) || "system";
 
-  const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
 
-  const { error: insertError } = await supabaseClient.from("profiles").insert({
-    id: currentUser.id,
-    appearance: themeSetting,
-    plan_status: "trial",
-    trial_ends_at: trialEndsAt.toISOString(),
-    early_bird_monthly: false,
-    is_lifetime: false,
-  });
-}
-  if (insertError) {
-    console.error("DetailHQ: Fehler beim Anlegen des Profils:", insertError);
+    const { error: insertError } = await supabaseClient
+      .from("profiles")
+      .insert({
+        id: currentUser.id,
+        appearance: themeSetting,
+        plan_status: "trial",
+        trial_ends_at: trialEndsAt.toISOString(),
+        early_bird_monthly: false,
+        is_lifetime: false,
+      });
+
+    if (insertError) {
+      console.error("DetailHQ: Fehler beim Anlegen des Profils:", insertError);
+      return;
+    }
   }
 }
 
