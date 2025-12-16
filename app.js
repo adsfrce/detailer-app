@@ -478,6 +478,7 @@ if (hash.includes("type=recovery")) {
 const qs = new URLSearchParams(window.location.search);
 if (qs.get("reset") === "1") {
   showAuthView();
++ applyAuthModeFromUrl();
   return;
 }
 
@@ -629,10 +630,11 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
     await loadBookingsForDashboardAndSchedule();
 
     showAppView();
-  } else {
-    console.log("DetailHQ: Kein aktiver User -> Login anzeigen");
-    showAuthView();
-  }
+} else {
+  console.log("DetailHQ: Kein aktiver User -> Login anzeigen");
+  showAuthView();
++ applyAuthModeFromUrl();
+}
 })();
 
 // ================================
@@ -654,6 +656,19 @@ function showAuthView() {
   console.log("DetailHQ: showAuthView");
   if (authView) authView.classList.add("active");
   if (appView) appView.classList.remove("active");
+}
+
+function applyAuthModeFromUrl() {
+  const qs = new URLSearchParams(window.location.search);
+  const mode = (qs.get("mode") || qs.get("auth") || "").toLowerCase();
+  const forceRegister = mode === "register" || qs.get("register") === "1";
+
+  if (!forceRegister) return;
+
+  // Register-Form anzeigen
+  if (loginForm) loginForm.classList.add("hidden");
+  if (registerForm) registerForm.classList.remove("hidden");
+  if (authError) authError.textContent = "";
 }
 
 function showAppView() {
