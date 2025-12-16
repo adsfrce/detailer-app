@@ -498,7 +498,7 @@ function renderSinglesMenu() {
     row.className = "settings-dropdown-item";
     row.style.display = "flex";
     row.style.gap = "10px";
-    row.style.alignItems = "center";
+    row.style.alignItems = "flex-start";
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
@@ -511,21 +511,59 @@ function renderSinglesMenu() {
     });
 
     const txt = document.createElement("div");
-txt.style.flex = "unset";
+    txt.className = "booking-singles-item-label";
+    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
 
-row.appendChild(cb);
+    // optional details (accordion)
+    const desc = (svc.description || "").trim();
+    let descWrap = null;
 
-const col = document.createElement("div");
-col.className = "service-col";
-col.style.flex = "1";
-col.style.display = "flex";
-col.style.flexDirection = "column";
-col.style.gap = "6px";
+    if (desc) {
+      descWrap = document.createElement("div");
+      descWrap.className = "service-desc-wrap";
 
-col.appendChild(txt);
-if (descWrap) col.appendChild(descWrap);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "service-desc-toggle";
+      btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
 
-row.appendChild(col);
+      const panel = document.createElement("div");
+      panel.className = "service-desc-panel";
+      panel.hidden = true;
+
+      const body = document.createElement("div");
+      body.className = "service-desc-text";
+      body.innerHTML = escapeHtml(desc);
+
+      panel.appendChild(body);
+      descWrap.appendChild(btn);
+      descWrap.appendChild(panel);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        closeAllServiceDescriptions();
+        btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        panel.hidden = isOpen ? true : false;
+      });
+    }
+
+    row.appendChild(cb);
+
+    const col = document.createElement("div");
+    col.className = "service-col";
+    col.style.flex = "1";
+    col.style.display = "flex";
+    col.style.flexDirection = "column";
+    col.style.gap = "6px";
+
+    col.appendChild(txt);
+    if (descWrap) col.appendChild(descWrap);
+
+    row.appendChild(col);
     bookingSinglesMenu.appendChild(row);
   });
 
@@ -781,6 +819,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
