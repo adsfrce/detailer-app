@@ -484,6 +484,7 @@ if (qs.get("reset") === "1") {
 
   console.log("DetailHQ init startet...");
   saveAffiliateRefFirstTouch();
+  showLoadingView();
 
   // ================================
   // PUBLIC BOOKING ROUTE GUARD
@@ -738,6 +739,7 @@ function setupAuthHandlers() {
       await loadVehicleClasses();
       await loadServices();
       await loadBookingsForDashboardAndSchedule();
+      hideLoadingView();
       showAppView();
     });
   }
