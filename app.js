@@ -761,6 +761,12 @@ function showAppView() {
   console.log("DetailHQ: showAppView");
   if (authView) authView.classList.remove("active");
   if (appView) appView.classList.add("active");
+
+  // Pull-to-refresh einmalig initialisieren (nur Daten reloaden, kein Auth)
+  if (!window.__detailhqPtrSetup) {
+    window.__detailhqPtrSetup = true;
+    setupPullToRefresh();
+  }
 }
 
 // ================================
@@ -4340,6 +4346,192 @@ function setupBookingDetailHandlers() {
       await loadBookingsForDashboardAndSchedule();
     });
   }
+}
+
+// ================================
+// PULL TO REFRESH (Mobile)
+// ================================
+async function refreshAppData({ silent } = {}) {
+  if (window.__detailhqRefreshing) return;
+  if (!currentUser) return;
+
+  window.__detailhqRefreshing = true;
+
+  const bar = document.getElementById("ptr-bar");
+
+  const showBar = () => {
+    if (!bar) return;
+    bar.style.display = "flex";
+    bar.style.opacity = "1";
+    bar.style.transform = "translate(-50%, 0px)";
+  };
+
+  const hideBar = () => {
+    if (!bar) return;
+    bar.style.opacity = "0";
+    bar.style.transform = "translate(-50%, -10px)";
+    setTimeout(() => {
+      if (bar) bar.style.display = "none";
+    }, 220);
+  };
+
+  try {
+    if (!silent) showBar();
+
+    // Reihenfolge ist wichtig: erst Stammdaten, dann Kalender/Bookings
+    await ensureProfile();
+    await persistAffiliateRefToProfileIfMissing?.();
+    await loadProfileIntoForm?.();
+    setupCalendarUrlForUser?.();
+
+    await loadVehicleClasses();
+    await loadServices();
+    await loadBookingsForDashboardAndSchedule();
+
+  } catch (e) {
+    console.error("DetailHQ: pull-to-refresh reload failed:", e);
+  } finally {
+    hideBar();
+    window.__detailhqRefreshing = false;
+  }
+}
+
+function ensurePtrBar() {
+  let bar = document.getElementById("ptr-bar");
+  if (bar) return bar;
+
+  bar = document.createElement("div");
+  bar.id = "ptr-bar";
+  bar.setAttribute("aria-hidden", "true");
+  bar.style.position = "fixed";
+  bar.style.left = "50%";
+  bar.style.top = "10px";
+  bar.style.transform = "translate(-50%, -10px)";
+  bar.style.display = "none";
+  bar.style.alignItems = "center";
+  bar.style.gap = "10px";
+  bar.style.padding = "8px 12px";
+  bar.style.borderRadius = "999px";
+  bar.style.background = "rgba(255,255,255,0.7)";
+  bar.style.border = "1px solid rgba(0,0,0,0.08)";
+  bar.style.backdropFilter = "blur(10px)";
+  bar.style.webkitBackdropFilter = "blur(10px)";
+  bar.style.boxShadow = "0 8px 30px rgba(0,0,0,0.12)";
+  bar.style.zIndex = "9999";
+  bar.style.transition = "opacity 220ms ease, transform 220ms ease";
+
+  const spinner = document.createElement("div");
+  spinner.style.width = "14px";
+  spinner.style.height = "14px";
+  spinner.style.borderRadius = "999px";
+  spinner.style.border = "2px solid rgba(0,0,0,0.22)";
+  spinner.style.borderTopColor = "rgba(0,0,0,0.55)";
+  spinner.style.animation = "ptrSpin 900ms linear infinite";
+
+  const txt = document.createElement("div");
+  txt.id = "ptr-text";
+  txt.textContent = "Aktualisiere…";
+  txt.style.fontSize = "12px";
+  txt.style.fontWeight = "500";
+  txt.style.color = "rgba(15, 23, 42, 0.8)";
+
+  if (!document.getElementById("ptr-style")) {
+    const st = document.createElement("style");
+    st.id = "ptr-style";
+    st.textContent = "@keyframes ptrSpin{to{transform:rotate(360deg)}}";
+    document.head.appendChild(st);
+  }
+
+  bar.appendChild(spinner);
+  bar.appendChild(txt);
+  document.body.appendChild(bar);
+  return bar;
+}
+
+function setupPullToRefresh() {
+  const main = document.querySelector(".app-main");
+  if (!main) return;
+
+  ensurePtrBar();
+
+  let startY = 0;
+  let pulling = false;
+
+  const threshold = 70; // px
+  let lastDy = 0;
+
+  main.style.overscrollBehaviorY = "contain";
+
+  main.addEventListener(
+    "touchstart",
+    (e) => {
+      if (window.__detailhqRefreshing) return;
+      if (main.scrollTop > 0) return;
+
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+
+      pulling = true;
+      startY = t.clientY;
+      lastDy = 0;
+    },
+    { passive: true }
+  );
+
+  main.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!pulling) return;
+      if (window.__detailhqRefreshing) return;
+      if (main.scrollTop > 0) return;
+
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+
+      const dy = t.clientY - startY;
+      if (dy <= 0) return;
+
+      lastDy = dy;
+
+      if (dy > 6) e.preventDefault();
+
+      const bar = document.getElementById("ptr-bar");
+      if (bar) {
+        bar.style.display = "flex";
+        const y = Math.min(40, dy * 0.25);
+        bar.style.opacity = String(Math.min(1, dy / 60));
+        bar.style.transform = `translate(-50%, ${y}px)`;
+        bar.dataset.ready = dy >= threshold ? "1" : "0";
+      }
+    },
+    { passive: false }
+  );
+
+  main.addEventListener(
+    "touchend",
+    async () => {
+      if (!pulling) return;
+      pulling = false;
+
+      const bar = document.getElementById("ptr-bar");
+      const ready = bar && bar.dataset.ready === "1";
+
+      if (bar) bar.dataset.ready = "0";
+
+      if (ready && lastDy >= threshold) {
+        await refreshAppData();
+      } else {
+        if (bar) {
+          bar.style.opacity = "0";
+          bar.style.transform = "translate(-50%, -10px)";
+          setTimeout(() => {
+            if (bar) bar.style.display = "none";
+          }, 220);
+        }
+      }
+    },
+    { passive: true }
+  );
 }
 
 // ================================
