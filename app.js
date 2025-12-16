@@ -289,6 +289,10 @@ const settingsBookingLinkCopyBtn = document.getElementById("settings-booking-lin
 const settingsBookingLinkOpenBtn = document.getElementById("settings-booking-link-open");
 const settingsBookingLinkStatus = document.getElementById("settings-booking-link-status");
 
+// Öffnungszeiten
+const openingHoursSaveButton = document.getElementById("opening-hours-save-button");
+const openingHoursSaveStatus = document.getElementById("opening-hours-save-status");
+
 // Services / Vehicle Classes
 const vehicleClassesList = document.getElementById("vehicle-classes-list");
 const vehicleClassAddButton = document.getElementById(
@@ -526,6 +530,7 @@ if (qs.get("reset") === "1") {
   setupCalendarHandlers();
   setupTrialBannerHandlers();
   setupReviewSettingsHandlers();
+  setupOpeningHoursHandlers();
   setupServiceManagementHandlers();
   await loadServicePriceRules();
   setupBookingHandlers();
@@ -1230,6 +1235,7 @@ async function loadProfileIntoForm() {
   updateAccessUI();
   applyDevAccountHides();
   updateBookingLinkUI();
+  applyOpeningHoursToForm(currentProfile?.opening_hours);
 }
 
 // Avatar: Default pfp.png, sonst URL
@@ -1496,6 +1502,97 @@ function updateBookingLinkUI() {
       window.open(link, "_blank", "noopener,noreferrer");
     };
   }
+}
+
+// ================================
+// ÖFFNUNGSZEITEN (Settings)
+// ================================
+const OPENING_HOURS_KEYS = [
+  { key: "mon", label: "Montag", startId: "oh-mon-start", endId: "oh-mon-end" },
+  { key: "tue", label: "Dienstag", startId: "oh-tue-start", endId: "oh-tue-end" },
+  { key: "wed", label: "Mittwoch", startId: "oh-wed-start", endId: "oh-wed-end" },
+  { key: "thu", label: "Donnerstag", startId: "oh-thu-start", endId: "oh-thu-end" },
+  { key: "fri", label: "Freitag", startId: "oh-fri-start", endId: "oh-fri-end" },
+  { key: "sat", label: "Samstag", startId: "oh-sat-start", endId: "oh-sat-end" },
+  { key: "sun", label: "Sonntag", startId: "oh-sun-start", endId: "oh-sun-end" },
+];
+
+function getDefaultOpeningHours() {
+  return {
+    mon: { start: "09:00", end: "18:00" },
+    tue: { start: "09:00", end: "18:00" },
+    wed: { start: "09:00", end: "18:00" },
+    thu: { start: "09:00", end: "18:00" },
+    fri: { start: "09:00", end: "18:00" },
+    sat: { start: "10:00", end: "14:00" },
+    sun: { start: "00:00", end: "00:00" },
+  };
+}
+
+function applyOpeningHoursToForm(openingHours) {
+  const oh = openingHours && typeof openingHours === "object" ? openingHours : getDefaultOpeningHours();
+
+  OPENING_HOURS_KEYS.forEach((d) => {
+    const startEl = document.getElementById(d.startId);
+    const endEl = document.getElementById(d.endId);
+
+    if (!startEl || !endEl) return;
+
+    const v = oh[d.key] || {};
+    startEl.value = v.start || "";
+    endEl.value = v.end || "";
+  });
+}
+
+function setupOpeningHoursHandlers() {
+  if (!openingHoursSaveButton) return;
+
+  openingHoursSaveButton.addEventListener("click", async () => {
+    if (!currentUser) {
+      if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Bitte zuerst anmelden.";
+      return;
+    }
+
+    const opening_hours = {};
+
+    OPENING_HOURS_KEYS.forEach((d) => {
+      const startEl = document.getElementById(d.startId);
+      const endEl = document.getElementById(d.endId);
+      if (!startEl || !endEl) return;
+
+      const start = (startEl.value || "").trim();
+      const end = (endEl.value || "").trim();
+
+      opening_hours[d.key] = { start: start || null, end: end || null };
+    });
+
+    if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Speichern...";
+
+    // Spalte kann fehlen -> nicht crashen
+    try {
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({ opening_hours })
+        .eq("id", currentUser.id);
+
+      if (error) {
+        console.error("DetailHQ: opening_hours speichern fehlgeschlagen:", error);
+        if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Fehler beim Speichern.";
+        return;
+      }
+
+      if (currentProfile) currentProfile.opening_hours = opening_hours;
+
+      if (openingHoursSaveStatus) {
+        openingHoursSaveStatus.textContent = "Gespeichert.";
+        setTimeout(() => (openingHoursSaveStatus.textContent = ""), 2000);
+      }
+    } catch (e) {
+      console.warn("DetailHQ: opening_hours konnte nicht gespeichert werden (Spalte fehlt evtl.)");
+      if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Gespeichert.";
+      setTimeout(() => (openingHoursSaveStatus.textContent = ""), 2000);
+    }
+  });
 }
 
 function updateTrialBanner() {
