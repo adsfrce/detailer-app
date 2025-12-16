@@ -189,14 +189,22 @@ function renderStatus(profile) {
     if (planDetail) planDetail.textContent = "Du kannst jederzeit im Stripe-Portal kündigen oder wechseln.";
     setStatusPill("paid", "Aktiv");
 
-    if (monthlyBtn) monthlyBtn.disabled = true;
+    if (monthlyBtn) {
+  monthlyBtn.disabled = true;
+  monthlyBtn.classList.add("is-striked");
+}
+if (yearlyBtn) yearlyBtn.classList.remove("is-striked");
   } else if (status === "active_yearly") {
     if (statusText) statusText.textContent = "Aktiv (Jährlich)";
     if (planTitle) planTitle.textContent = "Jährlich aktiv";
     if (planDetail) planDetail.textContent = "Du kannst jederzeit im Stripe-Portal kündigen oder wechseln.";
     setStatusPill("paid", "Aktiv");
 
-    if (yearlyBtn) yearlyBtn.disabled = true;
+    if (yearlyBtn) {
+  yearlyBtn.disabled = true;
+  yearlyBtn.classList.add("is-striked");
+}
+if (monthlyBtn) monthlyBtn.classList.remove("is-striked");
   } else if (status === "trial") {
     const endText = formatDateTime(trialEndsAt);
     if (statusText) statusText.textContent = endText ? `Testphase bis ${endText}` : "Testphase aktiv";
@@ -229,11 +237,11 @@ async function bootstrap() {
     return;
   }
 
-  const avatarImg = $("profile-avatar-image");
-  if (avatarImg) {
-    avatarImg.src =
-      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='48' fill='rgba(255,255,255,0.10)'/%3E%3Cpath d='M48 50c10 0 18-8 18-18S58 14 48 14 30 22 30 32s8 18 18 18zm0 8c-14 0-26 8-30 20h60c-4-12-16-20-30-20z' fill='rgba(255,255,255,0.55)'/%3E%3C/svg%3E";
-  }
+const avatarImg = $("profile-avatar-image");
+if (avatarImg && (!avatarImg.getAttribute("src") || avatarImg.getAttribute("src").trim() === "")) {
+  avatarImg.src =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='48' fill='rgba(255,255,255,0.10)'/%3E%3Cpath d='M48 50c10 0 18-8 18-18S58 14 48 14 30 22 30 32s8 18 18 18zm0 8c-14 0-26 8-30 20h60c-4-12-16-20-30-20z' fill='rgba(255,255,255,0.55)'/%3E%3C/svg%3E";
+}
 
   const profile = await loadProfile();
   renderStatus(profile);
