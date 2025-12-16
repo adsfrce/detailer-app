@@ -1,5 +1,14 @@
 // landing.js
 
+// Mark page as loaded (for hero premium in)
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+  window.addEventListener('load', () => {
+    document.body.classList.add('is-loaded');
+  }, { once: true });
+})();
+
 // Header blur on scroll
 (() => {
   const header = document.querySelector("[data-header]");
@@ -94,12 +103,12 @@
 
   // Add reveal classes automatically (no HTML edits needed)
   const revealEls = [
-    ...document.querySelectorAll(".section-head, .hero-copy, .hero-visual, .split-copy, .split-visual, .steps, .pricing-wrap, .faq, .final-cta, .footer-grid")
+    ...document.querySelectorAll(".section-head, .hero-copy, .hero-visual, .split-copy, .split-visual, .steps, .pricing-wrap, .faq, .final-cta")
   ];
   revealEls.forEach(el => el.classList.add("reveal"));
 
   const staggerEls = [
-    ...document.querySelectorAll(".grid-3, .trust-strip, .pricing-grid, .footer-links")
+    ...document.querySelectorAll(".grid-3, .trust-strip, .pricing-grid")
   ];
   staggerEls.forEach(el => el.classList.add("reveal-stagger"));
 
@@ -110,7 +119,7 @@
         io.unobserve(e.target);
       }
     });
-  }, { threshold: 0.18, rootMargin: "0px 0px -10% 0px" });
+  }, { threshold: 0.14, rootMargin: "0px 0px -6% 0px" });
 
   [...revealEls, ...staggerEls].forEach(el => io.observe(el));
 
@@ -119,16 +128,26 @@
   if (!device) return;
 
   const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const state = { tx: 0, ty: 0, rx: 0, ry: 0, raf: 0 };
+  const render = () => {
+    state.raf = 0;
+    // dampening
+    state.rx += (state.tx - state.rx) * 0.12;
+    state.ry += (state.ty - state.ry) * 0.12;
+
+    device.style.transform = `perspective(980px) rotateX(${state.rx}deg) rotateY(${state.ry}deg) translateY(-1px)`;
+    device.classList.add("is-tilt");
+  };
+
   const onMove = (ev) => {
     const r = device.getBoundingClientRect();
     const x = (ev.clientX - (r.left + r.width / 2)) / (r.width / 2);
     const y = (ev.clientY - (r.top + r.height / 2)) / (r.height / 2);
 
-    const rx = clamp(-y * 3.2, -4, 4);
-    const ry = clamp(x * 3.2, -4, 4);
+    state.tx = clamp(-y * 3.0, -4, 4);
+    state.ty = clamp(x * 3.0, -4, 4);
 
-    device.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-1px)`;
-    device.classList.add("is-tilt");
+    if (!state.raf) state.raf = requestAnimationFrame(render);
   };
 
   const onLeave = () => {
