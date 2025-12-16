@@ -344,14 +344,12 @@ function renderPackages() {
   ph.textContent = "Paket wählen";
   bookingMainServiceSelect.appendChild(ph);
 
-  // If none
   if (!packages.length) {
     bookingPackageMenu.innerHTML = `<p class="form-hint">Keine Pakete verfügbar.</p>`;
     bookingPackageLabel.textContent = "Paket wählen";
     return;
   }
 
-  // Build options (hidden select + visible dropdown items)
   packages.forEach((svc) => {
     // hidden select option
     const o = document.createElement("option");
@@ -364,37 +362,68 @@ function renderPackages() {
     row.className = "settings-dropdown-item";
     row.dataset.value = String(svc.id);
 
-    // left: "radio"
     const radio = document.createElement("div");
-    radio.className = "booking-singles-item-checkbox"; // reuse your checkbox style
+    radio.className = "booking-singles-item-checkbox";
 
-    // main text
     const txt = document.createElement("div");
     txt.className = "booking-singles-item-label";
     txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
 
-row.appendChild(radio);
+    // optional details (accordion)
+    const desc = (svc.description || "").trim();
+    let descWrap = null;
 
-const col = document.createElement("div");
-col.className = "service-col";      // CSS gleich unten
-col.style.flex = "1";
-col.style.display = "flex";
-col.style.flexDirection = "column";
-col.style.gap = "6px";
+    if (desc) {
+      descWrap = document.createElement("div");
+      descWrap.className = "service-desc-wrap";
 
-col.appendChild(txt);
-if (descWrap) col.appendChild(descWrap);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "service-desc-toggle";
+      btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
 
-row.appendChild(col);
+      const panel = document.createElement("div");
+      panel.className = "service-desc-panel";
+      panel.hidden = true;
+
+      const body = document.createElement("div");
+      body.className = "service-desc-text";
+      body.innerHTML = escapeHtml(desc);
+
+      panel.appendChild(body);
+      descWrap.appendChild(btn);
+      descWrap.appendChild(panel);
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isOpen = btn.getAttribute("aria-expanded") === "true";
+        closeAllServiceDescriptions();
+        btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        panel.hidden = isOpen ? true : false;
+      });
     }
 
-    // click row selects package
-    row.addEventListener("click", (e) => {
-      // wenn auf Details geklickt wurde, nicht selektieren (stopPropagation handled)
+    row.appendChild(radio);
+
+    const col = document.createElement("div");
+    col.className = "service-col";
+    col.style.flex = "1";
+    col.style.display = "flex";
+    col.style.flexDirection = "column";
+    col.style.gap = "6px";
+
+    col.appendChild(txt);
+    if (descWrap) col.appendChild(descWrap);
+
+    row.appendChild(col);
+
+    row.addEventListener("click", () => {
       const val = row.dataset.value;
       bookingMainServiceSelect.value = val;
 
-      // UI: nur dieses selected markieren
       bookingPackageMenu.querySelectorAll(".settings-dropdown-item").forEach((it) => {
         it.classList.toggle("selected", it === row);
       });
@@ -406,14 +435,12 @@ row.appendChild(col);
       dd?.classList.remove("open");
       bookingPackageToggle.setAttribute("aria-expanded", "false");
 
-      // wenn du irgendwo onChange-Logic hast:
       bookingMainServiceSelect.dispatchEvent(new Event("change"));
     });
 
     bookingPackageMenu.appendChild(row);
   });
 
-  // initial label
   bookingPackageLabel.textContent = "Paket wählen";
 }
 
@@ -754,6 +781,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
