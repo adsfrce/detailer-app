@@ -259,9 +259,6 @@ const calendarOpenButton = document.getElementById("calendar-open-button");
 const billingManageButton = document.getElementById(
   "billing-manage-plan-button"
 );
-const billingLifetimeButton = document.getElementById(
-  "billing-switch-lifetime-button"
-);
 const billingYearlyButton = document.getElementById(
   "billing-subscription-yearly-button"
 );
@@ -1021,18 +1018,23 @@ async function ensureProfile() {
     return;
   }
 
-  if (!data) {
-    const themeSetting = localStorage.getItem(THEME_KEY) || "system";
-    const { error: insertError } = await supabaseClient.from("profiles").insert({
-      id: currentUser.id,
-      appearance: themeSetting,
-    });
-    if (insertError) {
-      console.error(
-        "DetailHQ: Fehler beim Anlegen des Profils:",
-        insertError
-      );
-    }
+if (!data) {
+  const themeSetting = localStorage.getItem(THEME_KEY) || "system";
+
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+  const { error: insertError } = await supabaseClient.from("profiles").insert({
+    id: currentUser.id,
+    appearance: themeSetting,
+    plan_status: "trial",
+    trial_ends_at: trialEndsAt.toISOString(),
+    early_bird_monthly: false,
+    is_lifetime: false,
+  });
+
+  if (insertError) {
+    console.error("DetailHQ: Fehler beim Anlegen des Profils:", insertError);
   }
 }
 
@@ -1313,17 +1315,6 @@ function setupBillingHandlers() {
     });
   }
 
-  // Lifetime kaufen
-  if (billingLifetimeButton) {
-    billingLifetimeButton.addEventListener("click", () => {
-      if (!currentUser) return;
-      const url = `${apiBase}/billing/lifetime?user=${encodeURIComponent(
-        currentUser.id
-      )}`;
-      window.location.href = url;
-    });
-  }
-
   // Jahresabo kaufen
   if (billingYearlyButton) {
     billingYearlyButton.addEventListener("click", () => {
@@ -1352,12 +1343,6 @@ function updateBillingUI() {
 
   const isLifetime = !!currentProfile.is_lifetime;
   const status = currentProfile.plan_status || null;
-
-  // Lifetime kaufen
-  if (billingLifetimeButton) {
-    // Wenn Lifetime aktiv, Lifetime-Kauf nicht mehr anzeigen
-    billingLifetimeButton.style.display = isLifetime ? "none" : "inline-flex";
-  }
 
   // Monatsabo-Button:
   // - weg bei: Lifetime, aktivem Monatsabo, aktivem Jahresabo
