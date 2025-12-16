@@ -336,7 +336,9 @@ function renderPackages() {
   bookingPackageMenu.innerHTML = "";
 
   // Filter: nur Pakete (nicht single services)
-  const packages = services.filter((s) => (s?.is_single_service === false));
+const packages = services.filter((s) =>
+  s && (s.kind === "package" || s.is_single_service === false || s.is_single_service === 0 || s.is_single_service === "false")
+);
 
   // Placeholder option im hidden select
   const ph = document.createElement("option");
@@ -454,36 +456,11 @@ function closeAllServiceDescriptions() {
   });
 }
 
-function updatePackageDescriptionUI() {
-  if (!bookingPackageDescWrap || !bookingPackageDescText || !bookingPackageDescPanel || !bookingPackageDescToggle) return;
-
-  const packageId = bookingMainServiceSelect.value || "";
-  if (!packageId) {
-    bookingPackageDescWrap.classList.add("hidden");
-    bookingPackageDescToggle.setAttribute("aria-expanded", "false");
-    bookingPackageDescPanel.hidden = true;
-    bookingPackageDescText.textContent = "";
-    return;
-  }
-
-  const svc = services.find(s => String(s.id) === String(packageId));
-  const desc = (svc?.description || "").trim();
-
-  if (!desc) {
-    bookingPackageDescWrap.classList.add("hidden");
-    bookingPackageDescToggle.setAttribute("aria-expanded", "false");
-    bookingPackageDescPanel.hidden = true;
-    bookingPackageDescText.textContent = "";
-    return;
-  }
-
-  bookingPackageDescWrap.classList.remove("hidden");
-  bookingPackageDescText.innerHTML = escapeHtml(desc);
-}
-
 function renderSinglesMenu() {
   bookingSinglesMenu.innerHTML = "";
-  const singles = services.filter(s => s.kind === "single" && (s.is_active !== false));
+const singles = services.filter((s) =>
+  s && (s.kind === "single" || s.is_single_service === true || s.is_single_service === 1 || s.is_single_service === "true") && (s.is_active !== false)
+);
 
   if (singles.length === 0) {
     const p = document.createElement("p");
@@ -580,6 +557,22 @@ function renderSelectedSinglesList() {
 }
 
 const bookingSinglesDropdown = document.querySelector(".booking-singles-dropdown");
+
+function toggleSinglesDropdown() {
+  if (!bookingSinglesDropdown) return;
+  bookingSinglesDropdown.classList.toggle("open");
+}
+
+document.addEventListener("click", (e) => {
+  if (!bookingSinglesDropdown) return;
+  const within = e.target.closest(".booking-singles-dropdown");
+  if (!within) bookingSinglesDropdown.classList.remove("open");
+});
+
+bookingSinglesToggle.addEventListener("click", (e) => {
+  e.preventDefault();
+  toggleSinglesDropdown();
+});
 
 const bookingPackageDropdown = document.querySelector(".booking-package-dropdown");
 
@@ -819,3 +812,4 @@ showThankYouPage({
 });
 
 init();
+
