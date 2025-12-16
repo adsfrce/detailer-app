@@ -2,7 +2,7 @@
 
 const SUPABASE_URL = "https://qcilpodwbtbsxoabjfzc.supabase.co";
 const SUPABASE_ANON_KEY =
-  "REPLACE_WITH_DEIN_ANON_KEY_AUS_MAINJS_EXAKT_1ZU1";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWxwb2R3YnRic3hvYWJqZnpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzAzNTQsImV4cCI6MjA4MDg0NjM1NH0.RZ4M0bMSVhNpYZnktEyKCuJDFEpSJoyCmLFQhQLXs_w";
 
 let supabaseClient = null;
 let currentUser = null;
@@ -63,7 +63,7 @@ async function loadProfile() {
 
   const { data, error } = await supabaseClient
     .from("profiles")
-    .select("plan_status, trial_ends_at, is_lifetime, early_bird_monthly, company_name")
+    .select("plan_status, trial_ends_at, company_name")
     .eq("id", currentUser.id)
     .maybeSingle();
 
@@ -201,7 +201,7 @@ function renderStatus(profile) {
     const endText = formatDateTime(trialEndsAt);
     if (statusText) statusText.textContent = endText ? `Testphase bis ${endText}` : "Testphase aktiv";
     if (planTitle) planTitle.textContent = "Testphase aktiv";
-    if (planDetail) planDetail.textContent = endText ? `Endet am ${endText}` : "7 Tage kostenlos testen.";
+    if (planDetail) planDetail.textContent = endText ? `Endet am ${endText}` : "Testphase aktiv.";
     setStatusPill("partial", "Trial");
   } else {
     if (statusText) statusText.textContent = "Kein aktives Abo";
