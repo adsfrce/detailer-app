@@ -107,17 +107,13 @@
                     </div>
 
                     <div class="card-content">
-                      <div class="checkout-pill-row">
-                        <span class="checkout-savings-pill">46% günstiger</span>
-                      </div>
-
                       <div class="checkout-price-line">
-                        <span class="checkout-price" id="checkout-price-yearly">€149</span>
-                        <span class="muted">/ Jahr</span>
-                      </div>
+  <span class="checkout-price" id="checkout-price-yearly">€149</span>
+  <span class="muted">/ Jahr</span>
+  <span class="checkout-savings-pill" style="margin-left:auto;">46% günstiger</span>
+</div>
 
                       <ul class="checkout-ul">
-                        <li>Alles aus Monatlich</li>
                         <li>Planbar, keine Monats-Entscheidung</li>
                         <li>Priorisierte Weiterentwicklung</li>
                         <li>Bestes Preis-Leistungs-Verhältnis</li>
@@ -246,6 +242,19 @@
         opacity: 0.8;
         font-size: 13px;
       }
+
+      .btn.is-striked {
+  opacity: 0.45;
+  text-decoration: line-through;
+  pointer-events: none;
+}
+
+.checkout-plan-card,
+.checkout-plan-card--featured {
+  border-radius: 18px;
+  overflow: hidden;
+}
+
     </style>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
