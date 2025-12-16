@@ -1508,3 +1508,28 @@ mask-image: linear-gradient(
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Paket-Toggle: exakt wie Singles (eine Zeile, Label links, Chevron rechts) */
+.booking-package-dropdown .settings-dropdown-toggle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Label MUSS als flex-child laufen, sonst “rutscht” es optisch */
+.booking-package-dropdown #booking-package-label {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  display: block !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Chevron rechts fix */
+.booking-package-dropdown .settings-dropdown-chevron {
+  flex: 0 0 auto !important;
+  margin-left: 10px !important;
+}
+
