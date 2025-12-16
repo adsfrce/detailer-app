@@ -117,6 +117,10 @@ function showThankYouPage(summary) {
 const bookingCarInput = $("booking-car");
 const bookingVehicleClassSelect = $("booking-vehicle-class");
 const bookingMainServiceSelect = $("booking-main-service");
+const bookingPackageDescWrap = $("booking-package-desc-wrap");
+const bookingPackageDescToggle = $("booking-package-desc-toggle");
+const bookingPackageDescPanel = $("booking-package-desc-panel");
+const bookingPackageDescText = $("booking-package-desc-text");
 
 const bookingSinglesToggle = $("booking-singles-toggle");
 const bookingSinglesMenu = $("booking-singles-menu");
@@ -287,6 +291,15 @@ function safeText(s) {
   return (s || "").toString().trim();
 }
 
+function escapeHtml(str) {
+  return String(str || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function apiGet(path) {
   const res = await fetch(`${API_BASE}${path}`, { method: "GET" });
   if (!res.ok) throw new Error(`API GET ${path} failed: ${res.status}`);
@@ -327,6 +340,48 @@ function renderPackages() {
     });
 }
 
+function closeAllServiceDescriptions() {
+  // Paket panel schließen
+  if (bookingPackageDescToggle && bookingPackageDescPanel) {
+    bookingPackageDescToggle.setAttribute("aria-expanded", "false");
+    bookingPackageDescPanel.hidden = true;
+  }
+
+  // Singles panels schließen
+  document.querySelectorAll(".service-desc-toggle[aria-expanded='true']").forEach((btn) => {
+    btn.setAttribute("aria-expanded", "false");
+    const p = btn.closest(".settings-dropdown-item")?.querySelector(".service-desc-panel");
+    if (p) p.hidden = true;
+  });
+}
+
+function updatePackageDescriptionUI() {
+  if (!bookingPackageDescWrap || !bookingPackageDescText || !bookingPackageDescPanel || !bookingPackageDescToggle) return;
+
+  const packageId = bookingMainServiceSelect.value || "";
+  if (!packageId) {
+    bookingPackageDescWrap.classList.add("hidden");
+    bookingPackageDescToggle.setAttribute("aria-expanded", "false");
+    bookingPackageDescPanel.hidden = true;
+    bookingPackageDescText.textContent = "";
+    return;
+  }
+
+  const svc = services.find(s => String(s.id) === String(packageId));
+  const desc = (svc?.description || "").trim();
+
+  if (!desc) {
+    bookingPackageDescWrap.classList.add("hidden");
+    bookingPackageDescToggle.setAttribute("aria-expanded", "false");
+    bookingPackageDescPanel.hidden = true;
+    bookingPackageDescText.textContent = "";
+    return;
+  }
+
+  bookingPackageDescWrap.classList.remove("hidden");
+  bookingPackageDescText.innerHTML = escapeHtml(desc);
+}
+
 function renderSinglesMenu() {
   bookingSinglesMenu.innerHTML = "";
   const singles = services.filter(s => s.kind === "single" && (s.is_active !== false));
@@ -359,9 +414,50 @@ function renderSinglesMenu() {
     const txt = document.createElement("div");
     txt.style.flex = "1";
     txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+    const desc = (svc.description || "").trim();
+
+let descWrap = null;
+if (desc) {
+  descWrap = document.createElement("div");
+  descWrap.className = "service-desc-wrap";
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "service-desc-toggle";
+  btn.setAttribute("aria-expanded", "false");
+  btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
+
+  const panel = document.createElement("div");
+  panel.className = "service-desc-panel";
+  panel.hidden = true;
+
+  const body = document.createElement("div");
+  body.className = "service-desc-text";
+  body.innerHTML = escapeHtml(desc);
+
+  panel.appendChild(body);
+  descWrap.appendChild(btn);
+  descWrap.appendChild(panel);
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // wichtig: dropdown checkbox click bleibt sauber
+
+    const isOpen = btn.getAttribute("aria-expanded") === "true";
+
+    // wenn ein anderes offen ist -> schließen
+    closeAllServiceDescriptions();
+
+    // eigenes togglen (wenn vorher offen war, bleibt es jetzt zu)
+    btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+    panel.hidden = isOpen ? true : false;
+  });
+}
+
 
     row.appendChild(cb);
     row.appendChild(txt);
+    if (descWrap) row.appendChild(descWrap);
     bookingSinglesMenu.appendChild(row);
   });
 
@@ -391,6 +487,25 @@ document.addEventListener("click", (e) => {
 });
 
 bookingSinglesToggle.addEventListener("click", (e) => {
+  if (bookingPackageDescToggle) {
+  bookingPackageDescToggle.addEventListener("click", () => {
+    const isOpen = bookingPackageDescToggle.getAttribute("aria-expanded") === "true";
+
+    // wenn jetzt geöffnet wird: alles andere schließen (Singles)
+    if (!isOpen) closeAllServiceDescriptions();
+
+    bookingPackageDescToggle.setAttribute("aria-expanded", isOpen ? "false" : "true");
+    bookingPackageDescPanel.hidden = isOpen ? true : false;
+  });
+}
+
+if (bookingMainServiceSelect) {
+  bookingMainServiceSelect.addEventListener("change", () => {
+    // bei Paketwechsel: alle Panels zu, dann neu füllen
+    closeAllServiceDescriptions();
+    updatePackageDescriptionUI();
+  });
+}
   e.preventDefault();
   toggleSinglesDropdown();
 });
@@ -429,6 +544,7 @@ async function init() {
 
     renderVehicleClasses();
     renderPackages();
+    updatePackageDescriptionUI();
     renderSinglesMenu();
 
     showStep(1);
@@ -615,4 +731,5 @@ showThankYouPage({
 });
 
 init();
+
 
