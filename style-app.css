@@ -1425,21 +1425,18 @@ mask-image: linear-gradient(
 .service-desc-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-elevated-soft);
-  color: var(--text);
-  font-weight: 600;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-soft);
+  font-weight: 400;        /* nicht fett */
   font-size: 12px;
   cursor: pointer;
-  user-select: none;
-  transition: transform 0.08s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 
 .service-desc-toggle:hover {
-  background: var(--bg-elevated);
+  color: var(--text);
 }
 
 .service-desc-toggle:active {
