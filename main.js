@@ -265,6 +265,9 @@ const billingYearlyButton = document.getElementById(
 const billingMonthlyButton = document.getElementById(
   "billing-subscription-monthly-button"
 );
+const billingOpenCheckoutButton = document.getElementById(
+  "billing-open-checkout-button"
+);
 
 // Bewertungen
 const settingsReviewLinkInput = document.getElementById(
@@ -1318,6 +1321,11 @@ function closeProfileModal() {
 // ================================
 function setupBillingHandlers() {
   const apiBase = "https://api.detailhq.de";
+if (billingOpenCheckoutButton) {
+  billingOpenCheckoutButton.addEventListener("click", () => {
+    window.location.href = "/checkout";
+  });
+}
 
   // Billing-Portal (Abo & Zahlung verwalten)
   if (billingManageButton) {
