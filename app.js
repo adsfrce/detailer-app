@@ -1362,7 +1362,7 @@ function updateBillingUI() {
 function updateBookingLinkUI() {
   if (!currentUser) return;
 
-  const link = `https://detailhq.de/${currentUser.id}`;
+  const link = `https://detailhq.de/book.html?user=${encodeURIComponent(currentUser.id)}`;
 
   if (settingsBookingLinkInput) settingsBookingLinkInput.value = link;
 
