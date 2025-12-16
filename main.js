@@ -1338,63 +1338,10 @@ if (billingOpenCheckoutButton) {
     });
   }
 
-  // Jahresabo kaufen
-  if (billingYearlyButton) {
-    billingYearlyButton.addEventListener("click", () => {
-      if (!currentUser) return;
-      const url = `${apiBase}/billing/subscription-yearly?user=${encodeURIComponent(
-        currentUser.id
-      )}`;
-      window.location.href = url;
-    });
-  }
-
-  // Monatsabo kaufen
-  if (billingMonthlyButton) {
-    billingMonthlyButton.addEventListener("click", () => {
-      if (!currentUser) return;
-      const url = `${apiBase}/billing/subscription?user=${encodeURIComponent(
-        currentUser.id
-      )}`;
-      window.location.href = url;
-    });
-  }
-}
-
 function updateBillingUI() {
-  if (!currentProfile) return;
-
-  const isLifetime = !!currentProfile.is_lifetime;
-  const status = currentProfile.plan_status || null;
-
-  // Monatsabo-Button:
-  // - weg bei: Lifetime, aktivem Monatsabo, aktivem Jahresabo
-  if (billingMonthlyButton) {
-    if (
-      isLifetime ||
-      status === "active" ||        // Monatsabo aktiv
-      status === "active_yearly" || // Jahresabo aktiv
-      status === "lifetime"         // Fallback
-    ) {
-      billingMonthlyButton.style.display = "none";
-    } else {
-      billingMonthlyButton.style.display = "inline-flex";
-    }
-  }
-
-  // Jahresabo-Button:
-  // - weg bei: Lifetime, aktivem Jahresabo
-  if (billingYearlyButton) {
-    if (
-      isLifetime ||
-      status === "active_yearly" ||
-      status === "lifetime"
-    ) {
-      billingYearlyButton.style.display = "none";
-    } else {
-      billingYearlyButton.style.display = "inline-flex";
-    }
-  }
+  // App zeigt keine Monats/Jahres/Lifetime Buttons mehr.
+  // Manage-Button bleibt immer sichtbar.
+  return;
 }
 
 function updateBookingLinkUI() {
