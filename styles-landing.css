@@ -658,3 +658,146 @@ html.nav-open{overflow:hidden}
   .footer-grid{grid-template-columns: 1.2fr 1fr 1fr; align-items:center}
   .footer-cta{justify-content:flex-end}
 }
+/* ===== Tweaks requested (breathing space + logos + overlaps) ===== */
+.brand-logo{
+  width:30px;
+  height:30px;
+  border-radius:12px;
+  display:block;
+  object-fit:cover;
+  box-shadow: 0 12px 26px rgba(37,99,235,.12);
+  border:1px solid rgba(17,24,39,.10);
+  background: rgba(255,255,255,.55);
+}
+.brand-logo--footer{
+  width:28px;
+  height:28px;
+  border-radius:12px;
+}
+
+/* Replace the old mark spacing */
+.brand{gap:12px}
+
+/* Partner logo in pill */
+.partner-logo{
+  width:18px;
+  height:18px;
+  border-radius:6px;
+  display:block;
+  object-fit:contain;
+  background: rgba(255,255,255,.70);
+  border:1px solid rgba(17,24,39,.08);
+  box-shadow: 0 8px 22px rgba(16,24,40,.10);
+}
+
+/* Massive breathing space between texts */
+.h1{margin:18px 0 18px}
+.lead{margin-top:0; margin-bottom:0; line-height:1.65}
+.section-head{margin-bottom:30px}
+.h2{margin:0 0 14px}
+.sub{margin:0; line-height:1.65}
+.h3{margin:0 0 12px}
+p{margin:0; color: rgba(11,18,32,.70); line-height:1.72}
+.split-copy p{margin-top:10px}
+.list-check{margin:16px 0 0}
+.list-check li{line-height:1.6}
+.callout__text strong{display:block; margin-bottom:6px}
+.callout{margin-top:26px}
+.hero-actions{margin:22px 0 20px}
+.trust-strip{margin-top:18px}
+.partner{margin-top:22px}
+
+/* Inline CTA spacing: push link down ~8px */
+.inline-cta{margin-top:18px}
+
+/* Second split copy: push entire block down ~40px on desktop, softer on mobile */
+.split-copy--offset{margin-top:22px}
+@media (min-width:1024px){
+  .split-copy--offset{margin-top:40px}
+}
+
+/* Prevent overlaps: add breathing space before micro cards */
+.micro-grid{margin-top:28px}
+@media (min-width:1024px){
+  .micro-grid{margin-top:34px}
+}
+
+/* ===== Apple-ish high-end motion (no cheesy fade-only) ===== */
+@media (prefers-reduced-motion: reduce){
+  *{scroll-behavior:auto !important}
+}
+
+.reveal{
+  opacity:0.001;
+  transform: translateY(18px) scale(0.992);
+  filter: blur(10px);
+  transition:
+    transform 0.9s cubic-bezier(.16, 1, .3, 1),
+    opacity 0.9s cubic-bezier(.16, 1, .3, 1),
+    filter 0.9s cubic-bezier(.16, 1, .3, 1);
+  will-change: transform, opacity, filter;
+}
+.reveal.is-in{
+  opacity:1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+/* Slight stagger for children */
+.reveal-stagger > *{
+  opacity:0.001;
+  transform: translateY(14px) scale(0.995);
+  filter: blur(8px);
+  transition:
+    transform 0.85s cubic-bezier(.16, 1, .3, 1),
+    opacity 0.85s cubic-bezier(.16, 1, .3, 1),
+    filter 0.85s cubic-bezier(.16, 1, .3, 1);
+  will-change: transform, opacity, filter;
+}
+.reveal-stagger.is-in > *{
+  opacity:1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+.reveal-stagger.is-in > *:nth-child(1){transition-delay: 0ms}
+.reveal-stagger.is-in > *:nth-child(2){transition-delay: 70ms}
+.reveal-stagger.is-in > *:nth-child(3){transition-delay: 140ms}
+.reveal-stagger.is-in > *:nth-child(4){transition-delay: 210ms}
+.reveal-stagger.is-in > *:nth-child(5){transition-delay: 280ms}
+
+/* Premium hover lift */
+.card, .btn, .partner-badge{
+  transform: translateZ(0);
+}
+.card:hover{
+  transform: translateY(-2px);
+  transition: transform .18s ease, box-shadow .22s ease;
+  box-shadow: 0 22px 70px rgba(16,24,40,.14);
+}
+.btn:hover{
+  transform: translateY(-1px);
+}
+.device{
+  transform: translateZ(0);
+}
+.device.is-tilt{
+  transition: transform .2s ease;
+}
+
+/* Subtle shine sweep on primary button */
+.btn-primary{
+  position:relative;
+  overflow:hidden;
+}
+.btn-primary::after{
+  content:"";
+  position:absolute;
+  inset:-40% -60%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
+  transform: translateX(-60%) rotate(8deg);
+  transition: transform 0.9s cubic-bezier(.16, 1, .3, 1);
+  pointer-events:none;
+}
+.btn-primary:hover::after{
+  transform: translateX(30%) rotate(8deg);
+}
