@@ -54,6 +54,16 @@
             <select id="booking-main-service" class="field-input">
               <option value="">Kein Paket</option>
             </select>
+<div id="booking-package-desc-wrap" class="service-desc-wrap hidden">
+  <button type="button" id="booking-package-desc-toggle" class="service-desc-toggle" aria-expanded="false">
+    Details
+    <span class="service-desc-chevron">▾</span>
+  </button>
+
+  <div id="booking-package-desc-panel" class="service-desc-panel" hidden>
+    <div id="booking-package-desc-text" class="service-desc-text"></div>
+  </div>
+</div>
 
             <div class="form-hint" style="margin-top:6px;">
               Mindestens Paket oder Einzelleistung wählen.
@@ -140,6 +150,7 @@
   <script src="book.js?v1.0.3"></script>
 </body>
 </html>
+
 
 
 
