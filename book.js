@@ -516,20 +516,22 @@ function renderSelectedSinglesList() {
 
 const bookingSinglesDropdown = document.querySelector(".booking-singles-dropdown");
 
-function toggleSinglesDropdown() {
-  if (!bookingSinglesDropdown) return;
-  bookingSinglesDropdown.classList.toggle("open");
+const bookingPackageDropdown = document.querySelector(".booking-package-dropdown");
+
+function togglePackageDropdown() {
+  if (!bookingPackageDropdown) return;
+  bookingPackageDropdown.classList.toggle("open");
 }
 
 document.addEventListener("click", (e) => {
-  if (!bookingSinglesDropdown) return;
-  const within = e.target.closest(".booking-singles-dropdown");
-  if (!within) bookingSinglesDropdown.classList.remove("open");
+  if (!bookingPackageDropdown) return;
+  const within = e.target.closest(".booking-package-dropdown");
+  if (!within) bookingPackageDropdown.classList.remove("open");
 });
 
-bookingSinglesToggle.addEventListener("click", (e) => {
+bookingPackageToggle.addEventListener("click", (e) => {
   e.preventDefault();
-  toggleSinglesDropdown();
+  togglePackageDropdown();
 });
 
 function validateStep2() {
@@ -752,6 +754,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
