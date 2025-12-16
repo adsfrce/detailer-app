@@ -1032,7 +1032,7 @@ if (!data) {
     early_bird_monthly: false,
     is_lifetime: false,
   });
-
+}
   if (insertError) {
     console.error("DetailHQ: Fehler beim Anlegen des Profils:", insertError);
   }
