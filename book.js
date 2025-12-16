@@ -366,10 +366,15 @@ const packages = services.filter((s) =>
 
     const radio = document.createElement("div");
     radio.className = "booking-singles-item-checkbox";
+    
+const headerRow = document.createElement("div");
+headerRow.className = "service-header-row";
 
-    const txt = document.createElement("div");
-    txt.className = "booking-singles-item-label";
-    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+const txt = document.createElement("div");
+txt.className = "booking-singles-item-label";
+txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+
+headerRow.appendChild(txt);
 
     // optional details (accordion)
     const desc = (svc.description || "").trim();
@@ -417,8 +422,16 @@ const packages = services.filter((s) =>
     col.style.flexDirection = "column";
     col.style.gap = "6px";
 
-    col.appendChild(txt);
-    if (descWrap) col.appendChild(descWrap);
+if (descWrap) {
+  headerRow.appendChild(descWrap.querySelector(".service-desc-toggle"));
+}
+
+col.appendChild(headerRow);
+
+// Panel (Text) kommt darunter
+if (descWrap) {
+  col.appendChild(descWrap.querySelector(".service-desc-panel"));
+}
 
     row.appendChild(col);
 
@@ -487,9 +500,14 @@ const singles = services.filter((s) =>
       renderSelectedSinglesList();
     });
 
-    const txt = document.createElement("div");
-    txt.className = "booking-singles-item-label";
-    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+const headerRow = document.createElement("div");
+headerRow.className = "service-header-row";
+
+const txt = document.createElement("div");
+txt.className = "booking-singles-item-label";
+txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+
+headerRow.appendChild(txt);
 
     // optional details (accordion)
     const desc = (svc.description || "").trim();
@@ -537,8 +555,16 @@ const singles = services.filter((s) =>
     col.style.flexDirection = "column";
     col.style.gap = "6px";
 
-    col.appendChild(txt);
-    if (descWrap) col.appendChild(descWrap);
+if (descWrap) {
+  headerRow.appendChild(descWrap.querySelector(".service-desc-toggle"));
+}
+
+col.appendChild(headerRow);
+
+// Panel (Text) kommt darunter
+if (descWrap) {
+  col.appendChild(descWrap.querySelector(".service-desc-panel"));
+}
 
     row.appendChild(col);
     bookingSinglesMenu.appendChild(row);
@@ -812,4 +838,5 @@ showThankYouPage({
 });
 
 init();
+
 
