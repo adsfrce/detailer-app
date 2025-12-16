@@ -1466,3 +1466,30 @@ mask-image: linear-gradient(
   line-height: 1.35;
   white-space: pre-wrap;
 }
+
+/* Service header: Name links, Details rechts */
+.service-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Service name */
+.booking-singles-item-label {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* Details Button rechts */
+.service-desc-toggle {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Beschreibung unter dem Namen, linksbündig */
+.service-desc-panel {
+  margin-top: 4px;
+  padding-left: 0;
+}
+
