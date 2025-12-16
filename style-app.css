@@ -1517,3 +1517,60 @@ mask-image: linear-gradient(
   flex: 1;
   min-width: 0;
 }
+
+/* ================================
+   ÖFFNUNGSZEITEN (Settings)
+================================ */
+.opening-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.opening-hours-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.opening-hours-day {
+  font-size: 13px;
+  opacity: 0.85;
+  min-width: 92px;
+}
+
+.opening-hours-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.opening-hours-sep {
+  opacity: 0.7;
+  font-size: 13px;
+  user-select: none;
+}
+
+.opening-hours-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  padding: 0;
+  width: 92px;
+}
+
+/* iOS/Chrome picker icon optisch runterdrehen */
+.opening-hours-input::-webkit-calendar-picker-indicator {
+  opacity: 0.65;
+}
+
