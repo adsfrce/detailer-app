@@ -170,7 +170,6 @@ function renderStatus(profile) {
   const yearlyBtn = $("checkout-start-yearly");
 
   if (!profile) {
-    if (statusText) statusText.textContent = "Nicht eingeloggt";
     if (planTitle) planTitle.textContent = "—";
     if (planDetail) planDetail.textContent = "Bitte in der App einloggen.";
     setStatusPill("open", "Login");
@@ -205,7 +204,6 @@ if (yearlyBtn) yearlyBtn.classList.remove("is-striked");
 if (monthlyBtn) monthlyBtn.classList.remove("is-striked");
   } else if (status === "trial") {
     const endText = formatDateTime(trialEndsAt);
-    if (statusText) statusText.textContent = endText ? `Testphase bis ${endText}` : "Testphase aktiv";
     if (planTitle) planTitle.textContent = "Testphase aktiv";
     if (planDetail) planDetail.textContent = endText ? `Endet am ${endText}` : "Testphase aktiv.";
     setStatusPill("partial", "Trial");
@@ -250,7 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
   bootstrap().catch((e) => {
     console.error("Checkout Bootstrap Fehler:", e);
     setLoading(false);
-    const statusText = $("checkout-status-text");
     if (statusText) statusText.textContent = "Fehler beim Laden";
     setStatusPill("open", "Fehler");
   });
