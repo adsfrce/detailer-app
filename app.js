@@ -145,6 +145,10 @@ const authError = document.getElementById("auth-error");
 const registerSwitch = document.getElementById("register-switch");
 const loginSwitch = document.getElementById("login-switch");
 const passwordResetButton = document.getElementById("password-reset-button");
+const registerBusinessTypesList = document.getElementById("register-business-types");
+const registerBusinessMenu = document.getElementById("register-business-menu");
+const registerBusinessToggle = document.getElementById("register-business-toggle");
+const registerBusinessLabel = document.getElementById("register-business-label");
 
 // Navigation / Tabs
 const navItems = document.querySelectorAll(".nav-item");
@@ -513,6 +517,7 @@ if (qs.get("reset") === "1") {
 
   initThemeFromStorage();
   setupAuthHandlers();
+  setupRegisterBusinessTypeDropdown();
   setupPasswordToggleButtons();
   setupNavHandlers();
   setupThemeHandlers();
@@ -561,6 +566,83 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
     const isOpen = container.classList.toggle("open");
     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
   });
+}
+
+function setupRegisterBusinessTypeDropdown() {
+  if (!registerBusinessToggle || !registerBusinessMenu || !registerBusinessTypesList) return;
+
+  // Seed hidden multi-select
+  const OPTIONS = [
+    { value: "fahrzeugaufbereiter", label: "Fahrzeugaufbereiter" },
+    { value: "folierer", label: "Folierer (Wrap/PPF)" },
+  ];
+
+  registerBusinessTypesList.innerHTML = "";
+  registerBusinessMenu.innerHTML = "";
+
+  OPTIONS.forEach((opt) => {
+    // hidden select option
+    const o = document.createElement("option");
+    o.value = opt.value;
+    o.textContent = opt.label;
+    registerBusinessTypesList.appendChild(o);
+
+    // visible item (same styling as your multi select items)
+    const item = document.createElement("div");
+    item.className = "booking-singles-item";
+    item.dataset.value = opt.value;
+
+    const labelEl = document.createElement("div");
+    labelEl.className = "booking-singles-item-label";
+    labelEl.textContent = opt.label;
+
+    const checkbox = document.createElement("div");
+    checkbox.className = "booking-singles-item-checkbox";
+
+    item.appendChild(labelEl);
+    item.appendChild(checkbox);
+
+    item.addEventListener("click", () => {
+      const nowSelected = item.classList.toggle("selected");
+      const optEl = registerBusinessTypesList.querySelector(`option[value="${opt.value}"]`);
+      if (optEl) optEl.selected = nowSelected;
+      updateRegisterBusinessToggleText();
+    });
+
+    registerBusinessMenu.appendChild(item);
+  });
+
+  function updateRegisterBusinessToggleText() {
+    const selectedLabels = Array.from(registerBusinessTypesList.selectedOptions || []).map((x) => x.textContent);
+    const text = selectedLabels.length ? selectedLabels.join(", ") : "Branche wählen";
+    if (registerBusinessLabel) registerBusinessLabel.textContent = text;
+  }
+
+  // Toggle open/close (same behavior style as your other dropdowns)
+  registerBusinessToggle.addEventListener("click", () => {
+    const wrapper = registerBusinessToggle.closest(".settings-dropdown");
+    if (!wrapper) return;
+
+    const isOpen = wrapper.classList.contains("open");
+
+    // close other dropdowns
+    document.querySelectorAll(".settings-dropdown.open").forEach((el) => el.classList.remove("open"));
+
+    wrapper.classList.toggle("open", !isOpen);
+    registerBusinessToggle.setAttribute("aria-expanded", !isOpen ? "true" : "false");
+  });
+
+  // Close on outside click
+  document.addEventListener("click", (e) => {
+    const wrapper = registerBusinessToggle.closest(".settings-dropdown");
+    if (!wrapper) return;
+    if (!wrapper.contains(e.target)) {
+      wrapper.classList.remove("open");
+      registerBusinessToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  updateRegisterBusinessToggleText();
 }
 
   function setupReviewSettingsHandlers() {
@@ -761,12 +843,15 @@ const email = emailEl ? emailEl.value.trim() : "";
 const password = pwEl ? pwEl.value.trim() : "";
 const companyName = companyEl ? companyEl.value.trim() : "";
     
-if (!email || !password || !companyName) {
+const businessTypes = registerBusinessTypesList
+  ? Array.from(registerBusinessTypesList.selectedOptions || []).map((o) => o.value)
+  : [];
+
+if (!email || !password || !companyName || businessTypes.length === 0) {
   if (authError)
-    authError.textContent = "Bitte E-Mail, Passwort und Firmenname eingeben.";
+    authError.textContent = "Bitte E-Mail, Passwort, Firmenname und Branche auswählen.";
   return;
 }
-
 
     // 1) REGISTRIEREN
     const { data, error } = await supabaseClient.auth.signUp({
@@ -807,11 +892,25 @@ if (!email || !password || !companyName) {
 
     currentUser = signInData.user;
     await ensureProfile();
+    
+try {
+  await supabaseClient
+    .from("profiles")
+    .update({ company_name: companyName })
+    .eq("id", currentUser.id);
+} catch (e) {
+  console.warn("DetailHQ: company_name konnte nicht gespeichert werden.");
+}
 
-await supabaseClient
-  .from("profiles")
-  .update({ company_name: companyName })
-  .eq("id", currentUser.id);
+// Branche(n) speichern (falls Spalte nicht existiert: nicht crashen)
+try {
+  await supabaseClient
+    .from("profiles")
+    .update({ business_types: businessTypes })
+    .eq("id", currentUser.id);
+} catch (e) {
+  console.warn("DetailHQ: business_types konnte nicht gespeichert werden (Spalte fehlt evtl.)");
+}
 
     // Signup Event einmalig loggen (für Monatsreport)
 try {
@@ -824,6 +923,7 @@ try {
     await loadVehicleClasses();
     await loadServices();
     await loadBookingsForDashboardAndSchedule();
+    hideLoadingView();
     showAppView();
   });
 }
