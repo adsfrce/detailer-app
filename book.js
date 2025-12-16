@@ -819,11 +819,3 @@ showThankYouPage({
 });
 
 init();
-
-
-
-
-
-
-
-
