@@ -478,7 +478,7 @@ if (hash.includes("type=recovery")) {
 const qs = new URLSearchParams(window.location.search);
 if (qs.get("reset") === "1") {
   showAuthView();
-+ applyAuthModeFromUrl();
+  applyAuthModeFromUrl();
   return;
 }
 
@@ -634,7 +634,7 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
 } else {
   console.log("DetailHQ: Kein aktiver User -> Login anzeigen");
   showAuthView();
-+ applyAuthModeFromUrl();
+  applyAuthModeFromUrl();
 }
 })();
 
