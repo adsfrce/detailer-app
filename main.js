@@ -1321,13 +1321,15 @@ function closeProfileModal() {
 // ================================
 function setupBillingHandlers() {
   const apiBase = "https://api.detailhq.de";
-if (billingOpenCheckoutButton) {
-  billingOpenCheckoutButton.addEventListener("click", () => {
-    window.location.href = "/checkout";
-  });
-}
 
-  // Billing-Portal (Abo & Zahlung verwalten)
+  // Open Checkout Page (deine Checkout Sales Page)
+  if (billingOpenCheckoutButton) {
+    billingOpenCheckoutButton.addEventListener("click", () => {
+      window.location.href = "/checkout";
+    });
+  }
+
+  // Billing-Portal (Stripe)
   if (billingManageButton) {
     billingManageButton.addEventListener("click", () => {
       if (!currentUser) return;
@@ -1337,6 +1339,7 @@ if (billingOpenCheckoutButton) {
       window.location.href = url;
     });
   }
+}
 
 function updateBillingUI() {
   // App zeigt keine Monats/Jahres/Lifetime Buttons mehr.
