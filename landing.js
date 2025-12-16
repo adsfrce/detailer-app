@@ -86,3 +86,56 @@
   const y = document.getElementById("y");
   if (y) y.textContent = String(new Date().getFullYear());
 })();
+
+// High-end motion: reveal on scroll + subtle device tilt
+(() => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) return;
+
+  // Add reveal classes automatically (no HTML edits needed)
+  const revealEls = [
+    ...document.querySelectorAll(".section-head, .hero-copy, .hero-visual, .split-copy, .split-visual, .steps, .pricing-wrap, .faq, .final-cta, .footer-grid")
+  ];
+  revealEls.forEach(el => el.classList.add("reveal"));
+
+  const staggerEls = [
+    ...document.querySelectorAll(".grid-3, .trust-strip, .pricing-grid, .footer-links")
+  ];
+  staggerEls.forEach(el => el.classList.add("reveal-stagger"));
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add("is-in");
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.18, rootMargin: "0px 0px -10% 0px" });
+
+  [...revealEls, ...staggerEls].forEach(el => io.observe(el));
+
+  // Device tilt (subtle)
+  const device = document.querySelector(".device");
+  if (!device) return;
+
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const onMove = (ev) => {
+    const r = device.getBoundingClientRect();
+    const x = (ev.clientX - (r.left + r.width / 2)) / (r.width / 2);
+    const y = (ev.clientY - (r.top + r.height / 2)) / (r.height / 2);
+
+    const rx = clamp(-y * 3.2, -4, 4);
+    const ry = clamp(x * 3.2, -4, 4);
+
+    device.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-1px)`;
+    device.classList.add("is-tilt");
+  };
+
+  const onLeave = () => {
+    device.style.transform = "";
+    device.classList.remove("is-tilt");
+  };
+
+  device.addEventListener("mousemove", onMove);
+  device.addEventListener("mouseleave", onLeave);
+})();
