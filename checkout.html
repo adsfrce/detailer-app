@@ -10,33 +10,44 @@
     <link rel="stylesheet" href="style.css" />
   </head>
 
-  <body>
-    <div class="app-shell">
-      <header class="app-header glass">
-        <div class="header-left">
-          <div class="header-title-wrap">
-            <div class="header-title" id="header-title">DetailHQ</div>
-            <div class="header-subtitle" id="header-subtitle">Checkout</div>
-          </div>
-        </div>
+  <body class="theme-light">
+    <div id="app-root">
+      <div class="view active" id="checkout-view" style="padding-bottom: 16px;">
+<header class="app-header glass">
+  <div class="header-left">
+    <img src="logo_icon.PNG" alt="DetailHQ Logo" class="header-logo" />
+    <div>
+      <h2 id="header-title">Checkout</h2>
+      <p id="header-subtitle" class="header-subtitle">
+        Wähle deinen Plan oder verwalte dein Abo.
+      </p>
+    </div>
+  </div>
 
-        <div class="header-right">
-          <a class="btn btn-ghost" id="checkout-back-to-app" href="/app">Zur App</a>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <a class="btn btn-ghost btn-small" id="checkout-back-to-app" href="/app">Zur App</a>
 
-          <button class="profile-button" id="profile-button" aria-label="Profil">
-            <img id="profile-avatar-image" class="profile-avatar-image" alt="" />
-          </button>
+    <div class="profile-wrapper">
+      <button id="profile-button" class="icon-button profile-avatar" title="Profil">
+        <img
+          id="profile-avatar-image"
+          src="pfp.png"
+          alt="Profilbild"
+          class="profile-avatar-image"
+        />
+      </button>
 
-          <div class="profile-menu hidden" id="profile-menu">
-            <button id="profile-manage-button" class="profile-menu-item">
-              Profil
-            </button>
-            <button id="profile-logout-button" class="profile-menu-item danger">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <div id="profile-menu" class="profile-menu hidden">
+        <button id="profile-manage-button" class="profile-menu-item">
+          Profil verwalten
+        </button>
+        <button id="profile-logout-button" class="profile-menu-item danger">
+          Abmelden
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
 
       <main class="app-main">
         <div class="app-content">
@@ -86,10 +97,6 @@
                       <button class="btn btn-secondary btn-block" id="checkout-start-monthly">
                         Monatlich starten
                       </button>
-
-                      <div class="muted checkout-note">
-                        7 Tage Testphase. Danach automatisch monatlich, bis gekündigt.
-                      </div>
                     </div>
                   </div>
 
@@ -119,10 +126,6 @@
                       <button class="btn btn-primary btn-block" id="checkout-start-yearly">
                         Jährlich starten
                       </button>
-
-                      <div class="muted checkout-note">
-                        7 Tage Testphase. Danach jährlich, bis gekündigt.
-                      </div>
                     </div>
                   </div>
                 </div>
