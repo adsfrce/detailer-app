@@ -729,17 +729,21 @@ if (registerForm) {
     e.preventDefault();
     if (authError) authError.textContent = "";
     console.log("DetailHQ: Register submit");
+    
+const emailEl = document.getElementById("register-email");
+const pwEl = document.getElementById("register-password");
+const companyEl = document.getElementById("register-company");
 
-    const emailEl = document.getElementById("register-email");
-    const pwEl = document.getElementById("register-password");
-    const email = emailEl ? emailEl.value.trim() : "";
-    const password = pwEl ? pwEl.value.trim() : "";
+const email = emailEl ? emailEl.value.trim() : "";
+const password = pwEl ? pwEl.value.trim() : "";
+const companyName = companyEl ? companyEl.value.trim() : "";
+    
+if (!email || !password || !companyName) {
+  if (authError)
+    authError.textContent = "Bitte E-Mail, Passwort und Firmenname eingeben.";
+  return;
+}
 
-    if (!email || !password) {
-      if (authError)
-        authError.textContent = "Bitte E-Mail und Passwort eingeben.";
-      return;
-    }
 
     // 1) REGISTRIEREN
     const { data, error } = await supabaseClient.auth.signUp({
@@ -779,6 +783,13 @@ if (registerForm) {
     }
 
     currentUser = signInData.user;
+    await ensureProfile();
+
+await supabaseClient
+  .from("profiles")
+  .update({ company_name: companyName })
+  .eq("id", currentUser.id);
+
     // Signup Event einmalig loggen (für Monatsreport)
 try {
   await supabaseClient.from("signup_events").insert({ user_id: currentUser.id });
