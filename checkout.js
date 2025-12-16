@@ -184,7 +184,6 @@ function renderStatus(profile) {
   if (yearlyBtn) yearlyBtn.disabled = false;
 
   if (status === "active") {
-    if (statusText) statusText.textContent = "Aktiv (Monatlich)";
     if (planTitle) planTitle.textContent = "Monatlich aktiv";
     if (planDetail) planDetail.textContent = "Du kannst jederzeit im Stripe-Portal kündigen oder wechseln.";
     setStatusPill("paid", "Aktiv");
@@ -195,7 +194,6 @@ function renderStatus(profile) {
 }
 if (yearlyBtn) yearlyBtn.classList.remove("is-striked");
   } else if (status === "active_yearly") {
-    if (statusText) statusText.textContent = "Aktiv (Jährlich)";
     if (planTitle) planTitle.textContent = "Jährlich aktiv";
     if (planDetail) planDetail.textContent = "Du kannst jederzeit im Stripe-Portal kündigen oder wechseln.";
     setStatusPill("paid", "Aktiv");
@@ -212,7 +210,6 @@ if (monthlyBtn) monthlyBtn.classList.remove("is-striked");
     if (planDetail) planDetail.textContent = endText ? `Endet am ${endText}` : "Testphase aktiv.";
     setStatusPill("partial", "Trial");
   } else {
-    if (statusText) statusText.textContent = "Kein aktives Abo";
     if (planTitle) planTitle.textContent = "Kein Abo aktiv";
     if (planDetail) planDetail.textContent = "Wähle einen Plan und starte direkt.";
     setStatusPill("open", "Inaktiv");
