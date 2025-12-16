@@ -74,6 +74,30 @@
   required
 />
 
+          <label class="field-label" for="register-business-types">Branche</label>
+
+<div class="settings-dropdown" style="margin-bottom: 14px;">
+  <button
+    type="button"
+    class="settings-dropdown-toggle"
+    id="register-business-toggle"
+    aria-expanded="false"
+  >
+    <span id="register-business-label">Branche wählen</span>
+    <span class="settings-dropdown-chevron">▾</span>
+  </button>
+
+  <div id="register-business-menu" class="settings-dropdown-menu">
+    <p class="form-hint">Bitte wählen…</p>
+  </div>
+</div>
+
+<select id="register-business-types" multiple class="hidden"></select>
+
+<p class="form-hint" style="margin-top:-6px;">
+  Mehrfachauswahl möglich (z.B. Detailing + Folierung).
+</p>
+
           <label class="field-label" for="register-email">E-Mail</label>
           <input id="register-email" type="email" class="field-input" autocomplete="email" required />
           
