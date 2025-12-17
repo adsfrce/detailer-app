@@ -4657,8 +4657,10 @@ function setupPullToRefresh() {
   const docScroller = document.scrollingElement || document.documentElement;
 
   const isMainScrollable = () => {
-    return (main.scrollHeight - main.clientHeight) > 2 &&
-           getComputedStyle(main).overflowY !== "visible";
+    return (
+      main.scrollHeight - main.clientHeight > 2 &&
+      getComputedStyle(main).overflowY !== "visible"
+    );
   };
 
   const getScrollTop = () => {
@@ -4674,8 +4676,8 @@ function setupPullToRefresh() {
   let locked = false;
   let lastDy = 0;
 
-  const threshold = 70;
-  const slop = 12;
+  const threshold = 70; // px
+  const slop = 12; // px
 
   const resetBar = () => {
     const bar = document.getElementById("ptr-bar");
@@ -4688,69 +4690,25 @@ function setupPullToRefresh() {
     }, 200);
   };
 
-  main.addEventListener("touchstart", (e) => {
-    if (window.__detailhqRefreshing) return;
-    if (getScrollTop() > 0) return;
+  main.addEventListener(
+    "touchstart",
+    (e) => {
+      if (window.__detailhqRefreshing) return;
 
-    const t = e.touches && e.touches[0];
-    if (!t) return;
+      // PTR nur wenn ganz oben (egal ob main oder body scrollt)
+      if (getScrollTop() > 0) return;
 
-    pulling = true;
-    locked = false;
-    startY = t.clientY;
-    startX = t.clientX;
-    lastDy = 0;
-  }, { passive: true });
+      const t = e.touches && e.touches[0];
+      if (!t) return;
 
-  main.addEventListener("touchmove", (e) => {
-    if (!pulling || window.__detailhqRefreshing) return;
-    if (getScrollTop() > 0) {
-      pulling = false;
+      pulling = true;
       locked = false;
-      resetBar();
-      return;
-    }
-
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-
-    const dy = t.clientY - startY;
-    const dx = t.clientX - startX;
-
-    if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) return;
-
-    lastDy = dy;
-
-    if (!locked && dy >= slop) locked = true;
-
-    if (locked) {
-      e.preventDefault();
-      const bar = document.getElementById("ptr-bar");
-      if (bar) {
-        bar.style.display = "flex";
-        bar.style.opacity = Math.min(1, dy / 60);
-        bar.style.transform = `translate(-50%, ${Math.min(40, dy * 0.25)}px)`;
-        bar.dataset.ready = dy >= threshold ? "1" : "0";
-      }
-    }
-  }, { passive: false });
-
-  main.addEventListener("touchend", async () => {
-    if (!pulling) return;
-    pulling = false;
-
-    const bar = document.getElementById("ptr-bar");
-    const ready = bar && bar.dataset.ready === "1";
-
-    if (ready && locked && lastDy >= threshold) {
-      locked = false;
-      await refreshAppData();
-    } else {
-      locked = false;
-      resetBar();
-    }
-  }, { passive: true });
-}
+      startY = t.clientY;
+      startX = t.clientX;
+      lastDy = 0;
+    },
+    { passive: true }
+  );
 
   main.addEventListener(
     "touchmove",
@@ -4758,7 +4716,7 @@ function setupPullToRefresh() {
       if (!pulling) return;
       if (window.__detailhqRefreshing) return;
 
-      // Wenn wir nicht mehr ganz oben sind -> PTR sofort abbrechen
+      // sobald nicht mehr oben -> abbrechen und normal scrollen lassen
       if (getScrollTop() > 0) {
         pulling = false;
         locked = false;
@@ -4772,31 +4730,28 @@ function setupPullToRefresh() {
       const dy = t.clientY - startY;
       const dx = t.clientX - startX;
 
-      // Nur "ziehen nach unten"
+      // nur "ziehen nach unten"
       if (dy <= 0) return;
 
-      // Wenn horizontaler Swipe dominiert -> nicht eingreifen
+      // horizontale swipes ignorieren
       if (Math.abs(dx) > Math.abs(dy)) return;
 
       lastDy = dy;
 
-      // Erst ab "slop" fangen wir an zu locken & preventDefault (damit normales Scrollen nicht nervt)
-      if (!locked && dy >= slop) {
-        locked = true;
-      }
+      // erst ab slop übernehmen wir die gesture
+      if (!locked && dy >= slop) locked = true;
 
-      if (locked) {
-        // ab hier darf PTR die Geste übernehmen
-        e.preventDefault();
+      if (!locked) return;
 
-        const bar = document.getElementById("ptr-bar");
-        if (bar) {
-          bar.style.display = "flex";
-          const y = Math.min(40, dy * 0.25);
-          bar.style.opacity = String(Math.min(1, dy / 60));
-          bar.style.transform = `translate(-50%, ${y}px)`;
-          bar.dataset.ready = dy >= threshold ? "1" : "0";
-        }
+      e.preventDefault();
+
+      const bar = document.getElementById("ptr-bar");
+      if (bar) {
+        bar.style.display = "flex";
+        const y = Math.min(40, dy * 0.25);
+        bar.style.opacity = String(Math.min(1, dy / 60));
+        bar.style.transform = `translate(-50%, ${y}px)`;
+        bar.dataset.ready = dy >= threshold ? "1" : "0";
       }
     },
     { passive: false }
@@ -4820,33 +4775,6 @@ function setupPullToRefresh() {
       } else {
         locked = false;
         resetBar();
-      }
-    },
-    { passive: true }
-  );
-}
-
-  main.addEventListener(
-    "touchend",
-    async () => {
-      if (!pulling) return;
-      pulling = false;
-
-      const bar = document.getElementById("ptr-bar");
-      const ready = bar && bar.dataset.ready === "1";
-
-      if (bar) bar.dataset.ready = "0";
-
-      if (ready && lastDy >= threshold) {
-        await refreshAppData();
-      } else {
-        if (bar) {
-          bar.style.opacity = "0";
-          bar.style.transform = "translate(-50%, -10px)";
-          setTimeout(() => {
-            if (bar) bar.style.display = "none";
-          }, 220);
-        }
       }
     },
     { passive: true }
