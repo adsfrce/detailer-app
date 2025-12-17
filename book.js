@@ -159,23 +159,28 @@ async function rebuildTimeOptionsForDay(detailerId, day, durationMinutes) {
   timeSelect.innerHTML = `<option value="">Bitte wählen</option>`;
   if (hint) hint.textContent = "Lädt verfügbare Zeiten...";
 
-  // Sonntag blockieren (0 = Sonntag)
-  const dow = new Date(`${day}T12:00:00`).getDay();
-  if (dow === 0) {
-    if (hint) hint.textContent = "Sonntags geschlossen.";
-    return;
-  }
+const dayKey = dayKeyFromISODate(day);
 
-  const data = await fetchAvailability(detailerId, day);
-  const blocked = (data.blocked || []).map(x => ({
-    start: new Date(x.start_at),
-    end: new Date(x.end_at),
-  }));
+// Öffnungszeiten aus Provider laden (Fallback 07:00–19:00)
+const opening = providerSettings?.opening_hours?.[dayKey] || null;
 
-  // Öffnungszeiten fest
-  const DAY_START = 7 * 60;   // 07:00
-  const DAY_END = 19 * 60;    // 19:00
-  const STEP = 15;
+// Wenn geschlossen (Checkbox nicht gesetzt) => keine Zeiten
+const isOpen = opening ? (opening.open === true || (!!opening.start && !!opening.end)) : true;
+
+if (!isOpen) {
+  if (hint) hint.textContent = "An diesem Tag geschlossen.";
+  return;
+}
+
+let DAY_START = 7 * 60;
+let DAY_END = 19 * 60;
+
+if (opening?.start && opening?.end) {
+  DAY_START = minutesFromHHMM(opening.start);
+  DAY_END = minutesFromHHMM(opening.end);
+}
+
+const STEP = 15;
 
   // Dauer wird NICHT zur Einschränkung der Startzeiten genutzt
   const dur = 15;
@@ -225,6 +230,7 @@ let detailerId = null;
 let vehicleClasses = [];
 let services = [];
 let selectedSingles = new Set();
+let providerSettings = null; // { opening_hours: {...} }
 
 function getCurrentDurationMinutes() {
   let dur = 0;
@@ -695,6 +701,25 @@ function clearInvalid(el) {
   el.classList.remove("is-invalid");
 }
 
+function dayKeyFromISODate(dayIso) {
+  // dayIso: "YYYY-MM-DD"
+  const dow = new Date(`${dayIso}T12:00:00`).getDay(); // 0=Sun ... 6=Sat
+  const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  return map[dow];
+}
+
+async function fetchProviderSettings(detailerId) {
+  // Wenn du den Endpoint schon hast (du hattest ihn kommentiert):
+  // /public/provider?user=<id>
+  try {
+    const res = await apiGet(`/public/provider?user=${encodeURIComponent(detailerId)}`);
+    return res || null;
+  } catch (e) {
+    console.warn("DetailHQ: provider settings konnten nicht geladen werden (fallback 07-19).");
+    return null;
+  }
+}
+
 async function init() {
   detailerId = getPathDetailerId();
   if (!detailerId) {
@@ -709,7 +734,7 @@ async function init() {
 
   try {
     // Provider Info optional (Name etc.) – wenn du das später willst, Route ist schon vorbereitet.
-    // const provider = await apiGet(`/public/provider?user=${encodeURIComponent(detailerId)}`);
+    providerSettings = await fetchProviderSettings(detailerId);
 
     const vcRes = await apiGet(`/public/vehicle-classes?detailer=${encodeURIComponent(detailerId)}`);
     vehicleClasses = Array.isArray(vcRes) ? vcRes : (vcRes.vehicle_classes || []);
@@ -950,6 +975,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
