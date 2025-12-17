@@ -535,6 +535,20 @@
               Speichern
             </button>
             <p id="opening-hours-save-status" class="form-hint"></p>
+            <div style="margin-top: 18px;">
+  <label class="field-label" for="settings-public-daily-limit">
+    Max. Termine pro Tag (nur Kunden-Buchungen)
+  </label>
+  <select id="settings-public-daily-limit" class="field-input">
+    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+    <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+    <option value="10">10</option>
+  </select>
+  <p class="form-hint" style="margin-top: 6px;">
+    Gilt nur für Buchungen über deinen Buchungslink. Interne Aufträge bleiben unbegrenzt.
+  </p>
+</div>
           </div>
 
           <!-- KALENDER -->
@@ -558,20 +572,6 @@
             <button id="calendar-open-button" class="btn btn-secondary btn-block" style="margin-top: 10px;">
               Im Kalender öffnen
             </button>
-                        <div style="margin-top: 18px;">
-              <label class="field-label" for="settings-public-daily-limit">
-                Max. Termine pro Tag (nur Kunden-Buchungen)
-              </label>
-              <select id="settings-public-daily-limit" class="field-input">
-                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option>
-              </select>
-              <p class="form-hint" style="margin-top: 6px;">
-                Gilt nur für Buchungen über deinen Buchungslink. Interne Aufträge bleiben unbegrenzt.
-              </p>
-            </div>
           </div>
 
           <!-- BILLING / STRIPE -->
