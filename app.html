@@ -438,83 +438,104 @@
             </div>
           </div>
 
-          <!-- ÖFFNUNGSZEITEN -->
-<div class="settings-group glass" id="settings-opening-hours">
-  <h3>Öffnungszeiten</h3>
-  <p class="settings-help">
-    Diese Zeiten werden später für Buchungen & Verfügbarkeit genutzt.
-  </p>
+<!-- ÖFFNUNGSZEITEN -->
+          <div class="settings-group glass" id="settings-opening-hours">
+            <h3>Öffnungszeiten</h3>
+            <p class="settings-help">
+              Diese Zeiten gelten nur für Kunden-Buchungen über deinen Buchungslink.
+            </p>
 
-  <div class="opening-hours-list">
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Montag</div>
-      <div class="opening-hours-pill">
-        <input id="oh-mon-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-mon-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
+            <div class="opening-hours-list">
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-mon-open" type="checkbox" class="opening-hours-check" />
+                  <span>Montag</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-mon-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-mon-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
 
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Dienstag</div>
-      <div class="opening-hours-pill">
-        <input id="oh-tue-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-tue-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-tue-open" type="checkbox" class="opening-hours-check" />
+                  <span>Dienstag</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-tue-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-tue-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
 
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Mittwoch</div>
-      <div class="opening-hours-pill">
-        <input id="oh-wed-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-wed-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-wed-open" type="checkbox" class="opening-hours-check" />
+                  <span>Mittwoch</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-wed-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-wed-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
 
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Donnerstag</div>
-      <div class="opening-hours-pill">
-        <input id="oh-thu-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-thu-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-thu-open" type="checkbox" class="opening-hours-check" />
+                  <span>Donnerstag</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-thu-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-thu-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
 
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Freitag</div>
-      <div class="opening-hours-pill">
-        <input id="oh-fri-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-fri-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-fri-open" type="checkbox" class="opening-hours-check" />
+                  <span>Freitag</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-fri-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-fri-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
 
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Samstag</div>
-      <div class="opening-hours-pill">
-        <input id="oh-sat-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-sat-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-sat-open" type="checkbox" class="opening-hours-check" />
+                  <span>Samstag</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-sat-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-sat-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
 
-    <div class="opening-hours-row">
-      <div class="opening-hours-day">Sonntag</div>
-      <div class="opening-hours-pill">
-        <input id="oh-sun-start" type="time" class="opening-hours-input" />
-        <span class="opening-hours-sep">–</span>
-        <input id="oh-sun-end" type="time" class="opening-hours-input" />
-      </div>
-    </div>
-  </div>
+              <div class="opening-hours-row">
+                <label class="opening-hours-day">
+                  <input id="oh-sun-open" type="checkbox" class="opening-hours-check" />
+                  <span>Sonntag</span>
+                </label>
+                <div class="opening-hours-pill">
+                  <input id="oh-sun-start" type="time" class="opening-hours-input" />
+                  <span class="opening-hours-sep">–</span>
+                  <input id="oh-sun-end" type="time" class="opening-hours-input" />
+                </div>
+              </div>
+            </div>
 
-  <button id="opening-hours-save-button" class="btn btn-secondary" style="margin-top: 10px;">
-    Speichern
-  </button>
-  <p id="opening-hours-save-status" class="form-hint"></p>
-</div>
+            <button id="opening-hours-save-button" class="btn btn-secondary" style="margin-top: 10px;">
+              Speichern
+            </button>
+            <p id="opening-hours-save-status" class="form-hint"></p>
+          </div>
 
           <!-- KALENDER -->
           <div class="settings-group glass">
@@ -537,6 +558,20 @@
             <button id="calendar-open-button" class="btn btn-secondary btn-block" style="margin-top: 10px;">
               Im Kalender öffnen
             </button>
+                        <div style="margin-top: 18px;">
+              <label class="field-label" for="settings-public-daily-limit">
+                Max. Termine pro Tag (nur Kunden-Buchungen)
+              </label>
+              <select id="settings-public-daily-limit" class="field-input">
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+              <p class="form-hint" style="margin-top: 6px;">
+                Gilt nur für Buchungen über deinen Buchungslink. Interne Aufträge bleiben unbegrenzt.
+              </p>
+            </div>
           </div>
 
           <!-- BILLING / STRIPE -->
