@@ -717,7 +717,6 @@ if (qs.get("reset") === "1") {
   setupRegisterBusinessTypeDropdown();
   setupPasswordToggleButtons();
   setupNavHandlers();
-  setupSettingsSubViews();
   setupThemeHandlers();
   setupProfileMenuHandlers();
   setupBillingHandlers();
@@ -1298,90 +1297,7 @@ function switchTab(tabName) {
     headerTitle.textContent = "Einstellungen";
     headerSubtitle.textContent =
       "Darstellung, Dienste, Zahlung & Support.";
-    setSettingsView("hub");
   }
-}
-
-// ================================
-// SETTINGS SUB-VIEWS (Service / Business)
-// ================================
-let currentSettingsView = "hub"; // "hub" | "service" | "business"
-
-function setupSettingsSubViews() {
-  // Erwartete IDs in deiner HTML:
-  // - settings-hub
-  // - settings-view-service
-  // - settings-view-business
-  // - open-service-settings (Button/Kachel)
-  // - open-business-settings (Button/Kachel)
-  // - back-from-service (Zurück Button)
-  // - back-from-business (Zurück Button)
-
-  const hub = document.getElementById("settings-hub");
-  const serviceView = document.getElementById("settings-view-service");
-  const businessView = document.getElementById("settings-view-business");
-
-  const openServiceBtn = document.getElementById("open-service-settings");
-  const openBusinessBtn = document.getElementById("open-business-settings");
-
-  const backFromService = document.getElementById("back-from-service");
-  const backFromBusiness = document.getElementById("back-from-business");
-
-  // Hard-fail wenn HTML noch nicht so ist wie erwartet (damit du es sofort merkst)
-  if (!hub || !serviceView || !businessView) {
-    console.warn(
-      "DetailHQ: Settings SubViews: Fehlende Container. Erwartet: #settings-hub, #settings-view-service, #settings-view-business"
-    );
-    return;
-  }
-
-  // Initial state
-  setSettingsView("hub");
-
-  if (openServiceBtn) {
-    openServiceBtn.addEventListener("click", () => setSettingsView("service"));
-  }
-  if (openBusinessBtn) {
-    openBusinessBtn.addEventListener("click", () => setSettingsView("business"));
-  }
-
-  if (backFromService) {
-    backFromService.addEventListener("click", () => setSettingsView("hub"));
-  }
-  if (backFromBusiness) {
-    backFromBusiness.addEventListener("click", () => setSettingsView("hub"));
-  }
-}
-
-function setSettingsView(view) {
-  currentSettingsView = view;
-
-  const hub = document.getElementById("settings-hub");
-  const serviceView = document.getElementById("settings-view-service");
-  const businessView = document.getElementById("settings-view-business");
-
-  if (!hub || !serviceView || !businessView) return;
-
-  // show/hide
-  hub.classList.toggle("hidden", view !== "hub");
-  serviceView.classList.toggle("hidden", view !== "service");
-  businessView.classList.toggle("hidden", view !== "business");
-
-  // Optional: Header-Subtitle passend machen (wenn du willst)
-  try {
-    const headerTitle = document.querySelector(".app-header h1");
-    const headerSubtitle = document.querySelector(".app-header p");
-
-    if (headerTitle && headerTitle.textContent !== "Einstellungen") {
-      // nur wenn du deinen Header anders baust, ignorieren wir das
-    }
-
-    if (headerSubtitle) {
-      if (view === "hub") headerSubtitle.textContent = "Service, Business, Support & Rechtliches.";
-      if (view === "service") headerSubtitle.textContent = "Buchung, Dienste, Öffnungszeiten, Buchungslink.";
-      if (view === "business") headerSubtitle.textContent = "Kalender, Zahlung & Abo, Bewertungen, Erscheinungsbild.";
-    }
-  } catch (_) {}
 }
 
 // ================================
