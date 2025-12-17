@@ -4654,31 +4654,28 @@ function setupPullToRefresh() {
 
   ensurePtrBar();
 
-  // WICHTIG: echter Scroll-Container ermitteln
-  // Wenn .app-main nicht wirklich scrollt, scrollt meist body/document.
   const docScroller = document.scrollingElement || document.documentElement;
+
   const isMainScrollable = () => {
-    // kleine Toleranz, weil iOS manchmal +/- 1px liefert
-    return (main.scrollHeight - main.clientHeight) > 2 && getComputedStyle(main).overflowY !== "visible";
+    return (main.scrollHeight - main.clientHeight) > 2 &&
+           getComputedStyle(main).overflowY !== "visible";
   };
 
-  // Wenn main nicht scrollt -> scrollTop vom Document nehmen
   const getScrollTop = () => {
     if (isMainScrollable()) return main.scrollTop || 0;
-    return (docScroller && docScroller.scrollTop) || window.scrollY || 0;
+    return docScroller.scrollTop || window.scrollY || 0;
   };
 
-  // verhindert iOS overscroll/bounce nur im Container-Kontext
   main.style.overscrollBehaviorY = "contain";
 
   let startY = 0;
   let startX = 0;
   let pulling = false;
-  let locked = false; // erst "locken", wenn wirklich PTR-Geste erkannt wurde
-
-  const threshold = 70; // px
-  const slop = 12;      // px (erst ab hier greifen wir ein)
+  let locked = false;
   let lastDy = 0;
+
+  const threshold = 70;
+  const slop = 12;
 
   const resetBar = () => {
     const bar = document.getElementById("ptr-bar");
@@ -4688,28 +4685,72 @@ function setupPullToRefresh() {
     bar.style.transform = "translate(-50%, -10px)";
     setTimeout(() => {
       if (bar) bar.style.display = "none";
-    }, 220);
+    }, 200);
   };
 
-  main.addEventListener(
-    "touchstart",
-    (e) => {
-      if (window.__detailhqRefreshing) return;
+  main.addEventListener("touchstart", (e) => {
+    if (window.__detailhqRefreshing) return;
+    if (getScrollTop() > 0) return;
 
-      // NUR wenn wirklich ganz oben (egal ob main oder body scrollt)
-      if (getScrollTop() > 0) return;
+    const t = e.touches && e.touches[0];
+    if (!t) return;
 
-      const t = e.touches && e.touches[0];
-      if (!t) return;
+    pulling = true;
+    locked = false;
+    startY = t.clientY;
+    startX = t.clientX;
+    lastDy = 0;
+  }, { passive: true });
 
-      pulling = true;
+  main.addEventListener("touchmove", (e) => {
+    if (!pulling || window.__detailhqRefreshing) return;
+    if (getScrollTop() > 0) {
+      pulling = false;
       locked = false;
-      startY = t.clientY;
-      startX = t.clientX;
-      lastDy = 0;
-    },
-    { passive: true }
-  );
+      resetBar();
+      return;
+    }
+
+    const t = e.touches && e.touches[0];
+    if (!t) return;
+
+    const dy = t.clientY - startY;
+    const dx = t.clientX - startX;
+
+    if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) return;
+
+    lastDy = dy;
+
+    if (!locked && dy >= slop) locked = true;
+
+    if (locked) {
+      e.preventDefault();
+      const bar = document.getElementById("ptr-bar");
+      if (bar) {
+        bar.style.display = "flex";
+        bar.style.opacity = Math.min(1, dy / 60);
+        bar.style.transform = `translate(-50%, ${Math.min(40, dy * 0.25)}px)`;
+        bar.dataset.ready = dy >= threshold ? "1" : "0";
+      }
+    }
+  }, { passive: false });
+
+  main.addEventListener("touchend", async () => {
+    if (!pulling) return;
+    pulling = false;
+
+    const bar = document.getElementById("ptr-bar");
+    const ready = bar && bar.dataset.ready === "1";
+
+    if (ready && locked && lastDy >= threshold) {
+      locked = false;
+      await refreshAppData();
+    } else {
+      locked = false;
+      resetBar();
+    }
+  }, { passive: true });
+}
 
   main.addEventListener(
     "touchmove",
