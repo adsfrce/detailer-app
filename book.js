@@ -632,11 +632,58 @@ bookingPackageToggle.addEventListener("click", (e) => {
 function validateStep2() {
   const packageId = bookingMainServiceSelect.value || "";
   const singlesCount = selectedSingles.size;
-  if (!packageId && singlesCount === 0) {
+
+  const bad = (!packageId && singlesCount === 0);
+
+  // Nur bei Fehler rot markieren
+  bookingPackageToggle.classList.toggle("is-invalid", bad);
+  bookingSinglesToggle.classList.toggle("is-invalid", bad);
+
+  if (bad) {
     bookingError.textContent = "Bitte mindestens ein Paket oder eine Einzelleistung auswählen.";
     return false;
   }
+
+  bookingError.textContent = "";
   return true;
+}
+
+function wireRequiredRedBorders(root = document) {
+  const fields = Array.from(root.querySelectorAll("input[required], select[required], textarea[required]"));
+
+  const apply = (el) => {
+    const isEmpty = (el.value ?? "").toString().trim() === "";
+    el.classList.toggle("is-invalid", isEmpty);
+  };
+
+  // WICHTIG: kein initial apply() -> erst wenn wir es triggern (Weiter/Buchen)
+  fields.forEach((el) => {
+    el.addEventListener("input", () => {
+      if (el.classList.contains("is-invalid")) apply(el); // nur wenn bereits rot war
+    });
+    el.addEventListener("change", () => {
+      if (el.classList.contains("is-invalid")) apply(el);
+    });
+    el.addEventListener("blur", () => {
+      if (el.classList.contains("is-invalid")) apply(el);
+    });
+  });
+
+  return { apply };
+}
+
+const requiredUI = wireRequiredRedBorders(document);
+
+function markInvalidIfEmpty(el) {
+  if (!el) return false;
+  const empty = (el.value ?? "").toString().trim() === "";
+  el.classList.toggle("is-invalid", empty);
+  return empty;
+}
+
+function clearInvalid(el) {
+  if (!el) return;
+  el.classList.remove("is-invalid");
 }
 
 async function init() {
@@ -685,8 +732,16 @@ bookingDateInput.addEventListener("change", async () => {
 });
 
 next1.addEventListener("click", () => {
-  if (!safeText(bookingCarInput.value)) return;
-  if (!bookingVehicleClassSelect.value) return;
+  bookingError.textContent = "";
+
+  const carBad = !safeText(bookingCarInput.value);
+  const vcBad = !bookingVehicleClassSelect.value;
+
+  bookingCarInput.classList.toggle("is-invalid", carBad);
+  bookingVehicleClassSelect.classList.toggle("is-invalid", vcBad);
+
+  if (carBad || vcBad) return;
+
   showStep(2);
 });
 
@@ -705,9 +760,17 @@ next2.addEventListener("click", async () => {
   }
 });
 
-back3.addEventListener("click", () => showStep(2));
 next3.addEventListener("click", () => {
-  if (!bookingDateInput.value || !bookingTimeInput.value) return;
+  bookingError.textContent = "";
+
+  const dBad = !bookingDateInput.value;
+  const tBad = !bookingTimeInput.value;
+
+  bookingDateInput.classList.toggle("is-invalid", dBad);
+  bookingTimeInput.classList.toggle("is-invalid", tBad);
+
+  if (dBad || tBad) return;
+
   showStep(4);
 });
 
@@ -748,11 +811,17 @@ bookingForm.addEventListener("submit", async (e) => {
   const customerPhone = safeText(bookingCustomerPhoneInput.value);
   const customerAddress = safeText(bookingCustomerAddressInput.value);
   const notes = safeText(bookingNotesInput.value);
+  
+if (!customerName || !customerEmail || !customerPhone) {
+  bookingError.textContent = "Bitte Name, Telefon und E-Mail ausfüllen.";
 
-  if (!customerName || !customerEmail || !customerPhone) {
-    bookingError.textContent = "Bitte Name, Telefon und E-Mail ausfüllen.";
-    return;
-  }
+  bookingCustomerNameInput.classList.toggle("is-invalid", !customerName);
+  bookingCustomerEmailInput.classList.toggle("is-invalid", !customerEmail);
+  bookingCustomerPhoneInput.classList.toggle("is-invalid", !customerPhone);
+
+  return;
+}
+
 
   const startAt = new Date(`${bookingDateInput.value}T${bookingTimeInput.value}:00`);
   if (isNaN(startAt.getTime())) {
@@ -849,6 +918,3 @@ showThankYouPage({
 });
 
 init();
-
-
-
