@@ -2157,32 +2157,33 @@ function renderServicesList() {
   });
 }
 
-function openServiceModal(svc) {
+function openServiceModal(service) {
   if (!serviceModal) return;
-  if (serviceModalError) serviceModalError.textContent = "";
+  if (!serviceKindInput) return;
 
-  if (svc) {
-    serviceModalTitle.textContent = "Service bearbeiten";
-    serviceModal.dataset.id = svc.id;
-    serviceKindInput.value = svc.kind || "package";
-    serviceCategoryInput.value = svc.category || "";
-    serviceNameInput.value = svc.name || "";
-    servicePriceInput.value = ((svc.base_price_cents || 0) / 100).toString();
-    // Speicherung ist in Minuten, Anzeige in Stunden
-    serviceDurationInput.value = svc.duration_minutes
-      ? (svc.duration_minutes / 60).toString()
-      : "";
-    serviceDescriptionInput.value = svc.description || "";
+  serviceModal.classList.remove("hidden");
+
+  serviceModalTitle.textContent = service
+    ? "Service bearbeiten"
+    : "Service erstellen";
+
+  serviceForm.reset();
+  serviceModalError.textContent = "";
+
+  if (service) {
+    serviceKindInput.value = service.kind || "single";
+    serviceCategoryInput.value = service.category || "";
+    serviceNameInput.value = service.name || "";
+    servicePriceInput.value = service.price || "";
+    serviceDurationInput.value = service.duration || "";
+    serviceDescriptionInput.value = service.description || "";
+
+    serviceForm.dataset.serviceId = service.id;
   } else {
-    serviceModalTitle.textContent = "Service hinzufügen";
-    delete serviceModal.dataset.id;
-    serviceKindInput.value = "package";
-    serviceCategoryInput.value = "";
-    serviceNameInput.value = "";
-    servicePriceInput.value = "";
-    serviceDurationInput.value = "";
-    serviceDescriptionInput.value = "";
+    serviceKindInput.value = "single";
+    serviceForm.dataset.serviceId = "";
   }
+}
 
 // Empfehlung direkt setzen, sobald Modal befüllt ist
   updateServicePriceRecommendationUI();
