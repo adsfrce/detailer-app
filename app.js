@@ -3720,9 +3720,9 @@ const grouped = {
       const title = document.createElement("div");
       title.className = "list-item-title";
       title.textContent = formatBookingTitle(b);
-
+      
       const pill = document.createElement("span");
-      pill.classList.add("payment-pill");
+      pill.className = "payment-pill";
 
       let pillLabel = "Offen";
       let pillClass = "payment-pill--open";
@@ -3737,7 +3737,7 @@ const grouped = {
       }
 
       pill.textContent = pillLabel;
-      pill.classList.add(pillClass);
+      pill.className += " " + pillClass;
 
       header.appendChild(title);
       header.appendChild(pill);
