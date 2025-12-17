@@ -232,412 +232,360 @@
         </section>
 
         <!-- SETTINGS -->
-        <section id="tab-settings" class="tab-section">
-          <!-- THEME -->
-          <div class="settings-group glass">
-            <h3>Erscheinungsbild</h3>
-            <p class="settings-help">Wähle, wie DetailHQ aussehen soll.</p>
-            <div class="settings-options">
-              <label class="radio-option">
-                <input type="radio" name="theme" value="light" />
-                <span>Hell</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="theme" value="dark" />
-                <span>Dunkel</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="theme" value="system" />
-                <span>System</span>
-              </label>
-            </div>
-          </div>
+<section id="tab-settings" class="tab-section">
 
-          <!-- DIENSTE & PREISE -->
-          <div class="settings-group glass">
-            <h3>Dienste & Preise</h3>
-            <p class="settings-help">
-              Definiere Fahrzeugklassen und Services. Diese nutzt du später beim Anlegen von Aufträgen.
-            </p>
+  <!-- HUB: nur 2 Buttons (default sichtbar) -->
+  <div id="settings-hub">
+    <div class="settings-switch">
+      <button id="open-service-settings" class="settings-switch-btn" type="button">
+        <div class="settings-switch-title">Service Settings</div>
+        <div class="settings-switch-sub">Buchung, Dienste, Öffnungszeiten</div>
+      </button>
 
-            <!-- Fahrzeugklassen -->
-            <h4 class="settings-subtitle">Fahrzeugklassen</h4>
-
-            <!-- Custom Dropdown für Fahrzeugklassen (UI, kein natives select) -->
-            <div class="settings-dropdown">
-              <button
-                type="button"
-                class="settings-dropdown-toggle"
-                id="vehicle-classes-dropdown-toggle"
-              >
-                Fahrzeugklassen anpassen
-                <span class="settings-dropdown-chevron">▾</span>
-              </button>
-
-              <!-- Menü: wird später per main.js mit Optionen gefüllt.
-                   Jede Option kann rechts ein Stift-Icon bekommen. -->
-              <div
-                id="vehicle-classes-list"
-                class="settings-dropdown-menu"
-              >
-                <p class="form-hint">Noch keine Fahrzeugklassen angelegt.</p>
-              </div>
-            </div>
-
-            <!-- Button bleibt wie gewünscht unter dem Dropdown -->
-            <button class="btn btn-secondary btn-small" id="vehicle-class-add-button">
-              Fahrzeugklasse hinzufügen
-            </button>
-
-            <!-- Services -->
-            <h4 class="settings-subtitle" style="margin-top:16px;">Services</h4>
-
-            <!-- Custom Dropdown für Services -->
-            <div class="settings-dropdown">
-              <button
-                type="button"
-                class="settings-dropdown-toggle"
-                id="services-dropdown-toggle"
-              >
-                Services anpassen
-                <span class="settings-dropdown-chevron">▾</span>
-              </button>
-
-              <!-- Menü: wird später per main.js mit Optionen gefüllt.
-                   Jede Option kann rechts ein Stift-Icon bekommen. -->
-              <div
-                id="services-list"
-                class="settings-dropdown-menu"
-              >
-                <p class="form-hint">Noch keine Services angelegt.</p>
-              </div>
-            </div>
-
-            <!-- Button bleibt wie gewünscht unter dem Dropdown -->
-            <button class="btn btn-secondary btn-small" id="service-add-button">
-              Service hinzufügen
-            </button>
-          </div>
-
-          <!-- BUCHUNGSLINK -->
-<div class="settings-group glass">
-  <h3>Buchungslink</h3>
-  <p class="settings-help">
-    Diesen Link sehen deine Kunden. Darüber können sie direkt einen Termin buchen.
-  </p>
-
-  <label class="field-label" for="settings-booking-link">Dein Buchungslink</label>
-  <input
-    id="settings-booking-link"
-    type="text"
-    class="field-input"
-    readonly
-  />
-
-  <button id="settings-booking-link-copy" class="btn btn-secondary btn-block" style="margin-top:8px;">
-    Link kopieren
-  </button>
-
-  <button id="settings-booking-link-open" class="btn btn-ghost btn-block" style="margin-top:8px;">
-    Link öffnen
-  </button>
-
-  <p id="settings-booking-link-status" class="form-hint"></p>
-</div>
-
-          <!-- Service-Form Modal -->
-          <div id="service-modal" class="profile-modal hidden">
-            <div class="profile-modal-backdrop"></div>
-            <div class="profile-modal-card glass">
-              <div class="profile-modal-header">
-                <h3 id="service-modal-title">Service bearbeiten</h3>
-                <button id="service-modal-close" class="icon-button small" title="Schließen">✕</button>
-              </div>
-              <form id="service-form" class="form">
-                <label class="field-label" for="service-kind">Art</label>
-                <select id="service-kind" class="field-input" required>
-                  <option value="package">Paket</option>
-                  <option value="single">Einzelleistung</option>
-                </select>
-
-                <label class="field-label" for="service-category">Kategorie (optional)</label>
-                <input id="service-category" type="text" class="field-input" placeholder="z.B. Innen, Außen, Premium" />
-
-                <label class="field-label" for="service-name">Name</label>
-                <input id="service-name" type="text" class="field-input" required />
-
-                <label class="field-label" for="service-price">Basispreis (in €)</label>
-                <input id="service-price" type="number" min="0" step="0.01" class="field-input" required />
-
-                <!-- Empfohlener Preisrahmen (nur Einzelleistung + Keyword-Match) -->
-<div id="service-price-reco" class="service-price-reco hidden">
-  <div class="service-price-reco-head">
-    <span class="service-price-reco-title">Empfohlener Preisrahmen</span>
+      <button id="open-business-settings" class="settings-switch-btn" type="button">
+        <div class="settings-switch-title">Business Settings</div>
+        <div class="settings-switch-sub">Kalender, Abo, Bewertungen, Design</div>
+      </button>
+    </div>
   </div>
 
-  <div class="service-price-reco-pill" aria-label="Empfohlener Preisrahmen">
-    <div class="service-price-reco-pill-fill"></div>
+  <!-- SERVICE VIEW (default versteckt) -->
+  <div id="settings-view-service" class="hidden">
+    <button id="back-from-service" class="icon-button small" type="button" title="Zurück">←</button>
+
+    <div class="settings-group glass">
+      <h3>Dienste &amp; Preise</h3>
+      <p class="settings-help">
+        Definiere Fahrzeugklassen und Services. Diese nutzt du später beim Anlegen von Aufträgen.
+      </p>
+
+      <!-- Fahrzeugklassen -->
+      <h4 class="settings-subtitle">Fahrzeugklassen</h4>
+
+      <!-- Custom Dropdown für Fahrzeugklassen (UI, kein natives select) -->
+      <div class="settings-dropdown">
+        <button type="button" class="settings-dropdown-toggle" id="vehicle-classes-dropdown-toggle">
+          Fahrzeugklassen anpassen
+          <span class="settings-dropdown-chevron">▾</span>
+        </button>
+
+        <div id="vehicle-classes-list" class="settings-dropdown-menu">
+          <p class="form-hint">Noch keine Fahrzeugklassen angelegt.</p>
+        </div>
+      </div>
+
+      <!-- Button bleibt wie gewünscht unter dem Dropdown -->
+      <button class="btn btn-secondary btn-small" id="vehicle-class-add-button">
+        Fahrzeugklasse hinzufügen
+      </button>
+
+      <!-- Services -->
+      <h4 class="settings-subtitle" style="margin-top:16px;">Services</h4>
+
+      <!-- Custom Dropdown für Services -->
+      <div class="settings-dropdown">
+        <button type="button" class="settings-dropdown-toggle" id="services-dropdown-toggle">
+          Services anpassen
+          <span class="settings-dropdown-chevron">▾</span>
+        </button>
+
+        <div id="services-list" class="settings-dropdown-menu">
+          <p class="form-hint">Noch keine Services angelegt.</p>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-small" id="service-add-button">
+        Service hinzufügen
+      </button>
+    </div>
+
+    <div class="settings-group glass">
+      <h3>Buchungslink</h3>
+      <p class="settings-help">
+        Diesen Link sehen deine Kunden. Darüber können sie direkt einen Termin buchen.
+      </p>
+
+      <label class="field-label" for="settings-booking-link">Dein Buchungslink</label>
+      <input id="settings-booking-link" type="text" class="field-input" readonly />
+
+      <button id="settings-booking-link-copy" class="btn btn-secondary btn-block" style="margin-top:8px;">
+        Link kopieren
+      </button>
+
+      <button id="settings-booking-link-open" class="btn btn-ghost btn-block" style="margin-top:8px;">
+        Link öffnen
+      </button>
+
+      <p id="settings-booking-link-status" class="form-hint"></p>
+    </div>
+
+    <div class="settings-group glass" id="settings-opening-hours">
+      <h3>Öffnungszeiten</h3>
+      <p class="settings-help">
+        Diese Zeiten gelten nur für Kunden-Buchungen über deinen Buchungslink.
+      </p>
+
+      <div class="opening-hours-list">
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-mon-open" type="checkbox" class="opening-hours-check" />
+            <span>Montag</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-mon-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-mon-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-tue-open" type="checkbox" class="opening-hours-check" />
+            <span>Dienstag</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-tue-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-tue-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-wed-open" type="checkbox" class="opening-hours-check" />
+            <span>Mittwoch</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-wed-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-wed-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-thu-open" type="checkbox" class="opening-hours-check" />
+            <span>Donnerstag</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-thu-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-thu-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-fri-open" type="checkbox" class="opening-hours-check" />
+            <span>Freitag</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-fri-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-fri-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-sat-open" type="checkbox" class="opening-hours-check" />
+            <span>Samstag</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-sat-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-sat-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+
+        <div class="opening-hours-row">
+          <label class="opening-hours-day">
+            <input id="oh-sun-open" type="checkbox" class="opening-hours-check" />
+            <span>Sonntag</span>
+          </label>
+          <div class="opening-hours-pill">
+            <input id="oh-sun-start" type="time" class="opening-hours-input" />
+            <span class="opening-hours-sep">–</span>
+            <input id="oh-sun-end" type="time" class="opening-hours-input" />
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <label class="field-label" for="settings-public-daily-limit">
+          Max. Termine pro Tag (nur Kunden-Buchungen)
+        </label>
+        <select id="settings-public-daily-limit" class="field-input">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+        <p class="form-hint" style="margin-top: 6px;">
+          Gilt nur für Buchungen über deinen Buchungslink. Interne Aufträge bleiben unbegrenzt.
+        </p>
+      </div>
+
+      <button id="opening-hours-save-button" class="btn btn-secondary" style="margin-top: 10px;">
+        Speichern
+      </button>
+      <p id="opening-hours-save-status" class="form-hint"></p>
+    </div>
   </div>
 
-  <div class="service-price-reco-values">
-    <span id="service-price-reco-min" class="service-price-reco-value">€ 0</span>
-    <span id="service-price-reco-max" class="service-price-reco-value">€ 0</span>
+  <!-- BUSINESS VIEW (default versteckt) -->
+  <div id="settings-view-business" class="hidden">
+    <button id="back-from-business" class="icon-button small" type="button" title="Zurück">←</button>
+
+    <div class="settings-group glass">
+      <h3>Kalender</h3>
+      <p class="settings-help">
+        Verbinde deinen DetailHQ-Zeitplan mit Apple Kalender oder Google Kalender.
+      </p>
+
+      <div class="settings-options">
+        <label class="radio-option">
+          <input type="radio" name="calendar-preference" value="apple" />
+          <span>Apple</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="calendar-preference" value="google" />
+          <span>Google</span>
+        </label>
+      </div>
+
+      <button id="calendar-open-button" class="btn btn-secondary btn-block" style="margin-top: 10px;">
+        Im Kalender öffnen
+      </button>
+    </div>
+
+    <div class="settings-group glass" id="settings-billing">
+      <h3>Zahlung &amp; Abo</h3>
+      <p class="settings-help">
+        Zahlungsdaten, Rechnungen und Kündigung im Stripe-Portal.
+      </p>
+
+      <button class="btn btn-ghost btn-block" id="billing-manage-plan-button">
+        Zahlung &amp; Abo verwalten
+      </button>
+    </div>
+
+    <div class="settings-group glass">
+      <h3>Bewertungen</h3>
+      <p class="settings-help">
+        Hinterlege deinen Google-Profil- oder Bewertungslink für Erinnerungen nach Aufträgen.
+      </p>
+      <label class="field-label" for="settings-review-link">Google Profil-URL</label>
+      <input id="settings-review-link" type="url" class="field-input" placeholder="https://www.google.com/maps/place/..." />
+
+      <button id="settings-review-save-button" class="btn btn-secondary" style="margin-top: 8px;">
+        Speichern
+      </button>
+      <p id="settings-review-save-status" class="form-hint"></p>
+    </div>
+
+    <div class="settings-group glass">
+      <h3>Erscheinungsbild</h3>
+      <p class="settings-help">Wähle, wie DetailHQ aussehen soll.</p>
+      <div class="settings-options">
+        <label class="radio-option">
+          <input type="radio" name="theme" value="light" />
+          <span>Hell</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="theme" value="dark" />
+          <span>Dunkel</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="theme" value="system" />
+          <span>System</span>
+        </label>
+      </div>
+    </div>
   </div>
 
-  <p id="service-price-reco-hint" class="form-hint" style="margin-top:6px;"></p>
-</div>
+  <!-- SUPPORT & RECHTLICHES (immer sichtbar) -->
+  <div class="settings-group glass">
+    <h3>Support</h3>
+    <p class="settings-help">
+      Bei Fragen oder Problemen melde dich einfach.
+    </p>
+    <a href="mailto:support@detailhq.de" class="btn btn-secondary btn-block">
+      Support per E-Mail
+    </a>
+  </div>
 
-                <label class="field-label" for="service-duration">Zeitaufwand (Stunden, optional)</label>
-                <input id="service-duration" type="number" min="0" step="0.25" class="field-input" />
+  <div class="settings-group glass">
+    <h3>Rechtliches</h3>
+    <p class="settings-help">
+      Impressum, Datenschutz &amp; rechtliche Hinweise zu DetailHQ.
+    </p>
+    <a href="https://detailhq.de/rechtliches" class="btn btn-ghost btn-block" target="_blank" rel="noopener noreferrer">
+      Rechtliches öffnen
+    </a>
+  </div>
 
-                <label class="field-label" for="service-description">Beschreibung (optional)</label>
-                <textarea id="service-description" class="field-input" rows="3"></textarea>
+  <!-- MODALS: bleiben wie sie waren (nicht anfassen) -->
+  <div id="service-modal" class="profile-modal hidden">
+    <div class="profile-modal-card glass">
+      <div class="profile-modal-header">
+        <h3 id="service-modal-title">Service bearbeiten</h3>
+        <button id="service-modal-close" class="icon-button small" title="Schließen">✕</button>
+      </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-top:12px;">
-                  Speichern
-                </button>
-              </form>
-              <p id="service-modal-error" class="error-text"></p>
-            </div>
-          </div>
+      <div class="form-row">
+        <label class="field-label" for="service-name-input">Service Name</label>
+        <input id="service-name-input" class="field-input" type="text" placeholder="z.B. Innenraum Komplett" />
+      </div>
 
-          <!-- Vehicle-Class-Form Modal -->
-          <div id="vehicle-class-modal" class="profile-modal hidden">
-            <div class="profile-modal-backdrop"></div>
-            <div class="profile-modal-card glass">
-              <div class="profile-modal-header">
-                <h3 id="vehicle-class-modal-title">Fahrzeugklasse bearbeiten</h3>
-                <button id="vehicle-class-modal-close" class="icon-button small" title="Schließen">✕</button>
-              </div>
-              <form id="vehicle-class-form" class="form">
-                <label class="field-label" for="vehicle-class-name">Name</label>
-                <input
-                  id="vehicle-class-name"
-                  type="text"
-                  class="field-input"
-                  placeholder="z.B. Kleinwagen, SUV"
-                  required
-                />
+      <div class="form-row">
+        <label class="field-label" for="service-base-price-input">Basispreis (€)</label>
+        <input id="service-base-price-input" class="field-input" type="number" inputmode="decimal" placeholder="z.B. 149" />
+        <div id="service-price-reco" class="service-price-reco hidden"></div>
+      </div>
 
-                <label class="field-label" for="vehicle-class-price-delta">
-                  Preis-Anpassung (in €, optional – negativ möglich)
-                </label>
-                <input
-                  id="vehicle-class-price-delta"
-                  type="number"
-                  step="1"
-                  class="field-input"
-                  value="0"
-                />
+      <div class="form-row">
+        <label class="field-label" for="service-duration-input">Dauer (Min.)</label>
+        <input id="service-duration-input" class="field-input" type="number" inputmode="numeric" placeholder="z.B. 120" />
+      </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-top:12px;">
-                  Speichern
-                </button>
-              </form>
-              <p id="vehicle-class-modal-error" class="error-text"></p>
-            </div>
-          </div>
+      <div class="form-row">
+        <label class="field-label" for="service-notes-input">Notizen</label>
+        <textarea id="service-notes-input" class="field-input" rows="3" placeholder="Optional: Hinweise für dich"></textarea>
+      </div>
 
-<!-- ÖFFNUNGSZEITEN -->
-          <div class="settings-group glass" id="settings-opening-hours">
-            <h3>Öffnungszeiten</h3>
-            <p class="settings-help">
-              Diese Zeiten gelten nur für Kunden-Buchungen über deinen Buchungslink.
-            </p>
+      <div class="modal-actions">
+        <button id="service-delete-button" class="btn btn-ghost">Löschen</button>
+        <button id="service-save-button" class="btn btn-secondary">Speichern</button>
+      </div>
+    </div>
+  </div>
 
-            <div class="opening-hours-list">
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-mon-open" type="checkbox" class="opening-hours-check" />
-                  <span>Montag</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-mon-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-mon-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
+  <div id="vehicle-class-modal" class="profile-modal hidden">
+    <div class="profile-modal-card glass">
+      <div class="profile-modal-header">
+        <h3 id="vehicle-class-modal-title">Fahrzeugklasse bearbeiten</h3>
+        <button id="vehicle-class-modal-close" class="icon-button small" title="Schließen">✕</button>
+      </div>
 
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-tue-open" type="checkbox" class="opening-hours-check" />
-                  <span>Dienstag</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-tue-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-tue-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
+      <div class="form-row">
+        <label class="field-label" for="vehicle-class-name-input">Name</label>
+        <input id="vehicle-class-name-input" class="field-input" type="text" placeholder="z.B. Kompakt" />
+      </div>
 
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-wed-open" type="checkbox" class="opening-hours-check" />
-                  <span>Mittwoch</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-wed-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-wed-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
+      <div class="form-row">
+        <label class="field-label" for="vehicle-class-multiplier-input">Preisfaktor</label>
+        <input id="vehicle-class-multiplier-input" class="field-input" type="number" step="0.05" inputmode="decimal" placeholder="z.B. 1.00" />
+      </div>
 
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-thu-open" type="checkbox" class="opening-hours-check" />
-                  <span>Donnerstag</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-thu-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-thu-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
-
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-fri-open" type="checkbox" class="opening-hours-check" />
-                  <span>Freitag</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-fri-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-fri-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
-
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-sat-open" type="checkbox" class="opening-hours-check" />
-                  <span>Samstag</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-sat-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-sat-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
-
-              <div class="opening-hours-row">
-                <label class="opening-hours-day">
-                  <input id="oh-sun-open" type="checkbox" class="opening-hours-check" />
-                  <span>Sonntag</span>
-                </label>
-                <div class="opening-hours-pill">
-                  <input id="oh-sun-start" type="time" class="opening-hours-input" />
-                  <span class="opening-hours-sep">–</span>
-                  <input id="oh-sun-end" type="time" class="opening-hours-input" />
-                </div>
-              </div>
-            </div>
-            
-            <div style="margin-top: 18px;">
-  <label class="field-label" for="settings-public-daily-limit">
-    Max. Termine pro Tag (nur Kunden-Buchungen)
-  </label>
-  <select id="settings-public-daily-limit" class="field-input">
-    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-    <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-    <option value="10">10</option>
-  </select>
-  <p class="form-hint" style="margin-top: 6px;">
-    Gilt nur für Buchungen über deinen Buchungslink. Interne Aufträge bleiben unbegrenzt.
-  </p>
-</div>
-
-<button id="opening-hours-save-button" class="btn btn-secondary" style="margin-top: 10px;">
-  Speichern
-</button>
-<p id="opening-hours-save-status" class="form-hint"></p>
-</div>
-
-          <!-- KALENDER -->
-          <div class="settings-group glass">
-            <h3>Kalender</h3>
-            <p class="settings-help">
-              Verbinde deinen DetailHQ-Zeitplan mit Apple Kalender oder Google Kalender.
-            </p>
-
-            <div class="settings-options">
-              <label class="radio-option">
-                <input type="radio" name="calendar-preference" value="apple" />
-                <span>Apple</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="calendar-preference" value="google" />
-                <span>Google</span>
-              </label>
-            </div>
-
-            <button id="calendar-open-button" class="btn btn-secondary btn-block" style="margin-top: 10px;">
-              Im Kalender öffnen
-            </button>
-          </div>
-
-          <!-- BILLING / STRIPE -->
-<div class="settings-group glass" id="settings-billing">
-  <h3>Zahlung & Abo</h3>
-  <p class="settings-help">
-    Zahlungsdaten, Rechnungen und Kündigung im Stripe-Portal.
-  </p>
-
-  <button class="btn btn-ghost btn-block" id="billing-manage-plan-button">
-    Zahlung & Abo verwalten
-  </button>
-</div>
-
-          <!-- BEWERTUNGEN -->
-          <div class="settings-group glass">
-            <h3>Bewertungen</h3>
-            <p class="settings-help">
-              Hinterlege deinen Google-Profil- oder Bewertungslink für Erinnerungen nach Aufträgen.
-            </p>
-            <label class="field-label" for="settings-review-link">Google Profil-URL</label>
-            <input
-              id="settings-review-link"
-              type="url"
-              class="field-input"
-              placeholder="https://www.google.com/maps/place/..."
-            />
-
-            <button
-              id="settings-review-save-button"
-              class="btn btn-secondary"
-              style="margin-top: 8px;"
-            >
-              Speichern
-            </button>
-            <p id="settings-review-save-status" class="form-hint"></p>
-          </div>
-
-          <!-- SUPPORT -->
-          <div class="settings-group glass">
-            <h3>Support</h3>
-            <p class="settings-help">
-              Bei Fragen oder Problemen melde dich einfach.
-            </p>
-            <a href="mailto:support@detailhq.de" class="btn btn-secondary btn-block">
-              Support per E-Mail
-            </a>
-          </div>
-
-          <!-- RECHTLICHES -->
-          <div class="settings-group glass">
-            <h3>Rechtliches</h3>
-            <p class="settings-help">
-              Impressum, Datenschutz & rechtliche Hinweise zu DetailHQ.
-            </p>
-            <a
-              href="https://detailhq.de/rechtliches"
-              class="btn btn-ghost btn-block"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Rechtliches öffnen
-            </a>
-          </div>
-        </section>
+      <div class="modal-actions">
+        <button id="vehicle-class-delete-button" class="btn btn-ghost">Löschen</button>
+        <button id="vehicle-class-save-button" class="btn btn-secondary">Speichern</button>
+      </div>
+    </div>
+  </div>
+</section>
+        
       </main>
 
       <!-- PROFIL MODAL -->
