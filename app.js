@@ -641,6 +641,20 @@ let SERVICE_PRICE_RULES = [];
 let servicePriceRulesLoaded = false;
 let servicePriceRulesLoadPromise = null;
 
+function wireRequiredRedBorders(root = document) {
+  const fields = root.querySelectorAll("input[required], select[required], textarea[required]");
+  fields.forEach((el) => {
+    const apply = () => {
+      const v = (el.value ?? "").toString().trim();
+      el.classList.toggle("is-invalid", v.length === 0);
+    };
+    el.addEventListener("input", apply);
+    el.addEventListener("change", apply);
+    el.addEventListener("blur", apply);
+    apply();
+  });
+}
+
 // ================================
 // INIT
 // ================================
@@ -1115,6 +1129,7 @@ try {
     await loadBookingsForDashboardAndSchedule();
     hideLoadingView();
     showAppView();
+    wireRequiredRedBorders(document);
   });
 }
 
