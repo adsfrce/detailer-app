@@ -489,7 +489,6 @@ const vehicleClassNameInput =
   document.getElementById("vehicle-class-name-input");
 const vehicleClassPriceDeltaInput =
   document.getElementById("vehicle-class-multiplier-input");
-);
 const vehicleClassModalError = document.getElementById(
   "vehicle-class-modal-error"
 );
