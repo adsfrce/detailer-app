@@ -485,10 +485,10 @@ const vehicleClassModalClose = document.getElementById(
   "vehicle-class-modal-close"
 );
 const vehicleClassForm = document.getElementById("vehicle-class-form");
-const vehicleClassNameInput =
-  document.getElementById("vehicle-class-name-input");
-const vehicleClassPriceDeltaInput =
-  document.getElementById("vehicle-class-multiplier-input");
+const vehicleClassNameInput = document.getElementById("vehicle-class-name");
+const vehicleClassPriceDeltaInput = document.getElementById(
+  "vehicle-class-price-delta"
+);
 const vehicleClassModalError = document.getElementById(
   "vehicle-class-modal-error"
 );
@@ -505,18 +505,12 @@ const serviceModal = document.getElementById("service-modal");
 const serviceModalTitle = document.getElementById("service-modal-title");
 const serviceModalClose = document.getElementById("service-modal-close");
 const serviceForm = document.getElementById("service-form");
-const serviceKindInput =
-  document.getElementById("service-kind-input");
-const serviceCategoryInput =
-  document.getElementById("service-category-input");
-const serviceNameInput =
-  document.getElementById("service-name-input");
-const servicePriceInput =
-  document.getElementById("service-base-price-input");
-const serviceDurationInput =
-  document.getElementById("service-duration-input");
-const serviceDescriptionInput =
-  document.getElementById("service-notes-input");
+const serviceKindInput = document.getElementById("service-kind");
+const serviceCategoryInput = document.getElementById("service-category");
+const serviceNameInput = document.getElementById("service-name");
+const servicePriceInput = document.getElementById("service-base-price-input");
+const serviceDurationInput = document.getElementById("service-duration-input");
+const serviceDescriptionInput = document.getElementById("service-notes-input");
 const serviceModalError = document.getElementById("service-modal-error");
 // Service Preis-Empfehlung UI
 const servicePriceRecoWrap = document.getElementById("service-price-reco");
