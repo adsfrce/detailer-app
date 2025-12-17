@@ -4654,25 +4654,58 @@ function setupPullToRefresh() {
 
   ensurePtrBar();
 
+  // WICHTIG: echter Scroll-Container ermitteln
+  // Wenn .app-main nicht wirklich scrollt, scrollt meist body/document.
+  const docScroller = document.scrollingElement || document.documentElement;
+  const isMainScrollable = () => {
+    // kleine Toleranz, weil iOS manchmal +/- 1px liefert
+    return (main.scrollHeight - main.clientHeight) > 2 && getComputedStyle(main).overflowY !== "visible";
+  };
+
+  // Wenn main nicht scrollt -> scrollTop vom Document nehmen
+  const getScrollTop = () => {
+    if (isMainScrollable()) return main.scrollTop || 0;
+    return (docScroller && docScroller.scrollTop) || window.scrollY || 0;
+  };
+
+  // verhindert iOS overscroll/bounce nur im Container-Kontext
+  main.style.overscrollBehaviorY = "contain";
+
   let startY = 0;
+  let startX = 0;
   let pulling = false;
+  let locked = false; // erst "locken", wenn wirklich PTR-Geste erkannt wurde
 
   const threshold = 70; // px
+  const slop = 12;      // px (erst ab hier greifen wir ein)
   let lastDy = 0;
 
-  main.style.overscrollBehaviorY = "contain";
+  const resetBar = () => {
+    const bar = document.getElementById("ptr-bar");
+    if (!bar) return;
+    bar.dataset.ready = "0";
+    bar.style.opacity = "0";
+    bar.style.transform = "translate(-50%, -10px)";
+    setTimeout(() => {
+      if (bar) bar.style.display = "none";
+    }, 220);
+  };
 
   main.addEventListener(
     "touchstart",
     (e) => {
       if (window.__detailhqRefreshing) return;
-      if (main.scrollTop > 0) return;
+
+      // NUR wenn wirklich ganz oben (egal ob main oder body scrollt)
+      if (getScrollTop() > 0) return;
 
       const t = e.touches && e.touches[0];
       if (!t) return;
 
       pulling = true;
+      locked = false;
       startY = t.clientY;
+      startX = t.clientX;
       lastDy = 0;
     },
     { passive: true }
@@ -4683,29 +4716,74 @@ function setupPullToRefresh() {
     (e) => {
       if (!pulling) return;
       if (window.__detailhqRefreshing) return;
-      if (main.scrollTop > 0) return;
+
+      // Wenn wir nicht mehr ganz oben sind -> PTR sofort abbrechen
+      if (getScrollTop() > 0) {
+        pulling = false;
+        locked = false;
+        resetBar();
+        return;
+      }
 
       const t = e.touches && e.touches[0];
       if (!t) return;
 
       const dy = t.clientY - startY;
+      const dx = t.clientX - startX;
+
+      // Nur "ziehen nach unten"
       if (dy <= 0) return;
+
+      // Wenn horizontaler Swipe dominiert -> nicht eingreifen
+      if (Math.abs(dx) > Math.abs(dy)) return;
 
       lastDy = dy;
 
-      if (dy > 6) e.preventDefault();
+      // Erst ab "slop" fangen wir an zu locken & preventDefault (damit normales Scrollen nicht nervt)
+      if (!locked && dy >= slop) {
+        locked = true;
+      }
 
-      const bar = document.getElementById("ptr-bar");
-      if (bar) {
-        bar.style.display = "flex";
-        const y = Math.min(40, dy * 0.25);
-        bar.style.opacity = String(Math.min(1, dy / 60));
-        bar.style.transform = `translate(-50%, ${y}px)`;
-        bar.dataset.ready = dy >= threshold ? "1" : "0";
+      if (locked) {
+        // ab hier darf PTR die Geste übernehmen
+        e.preventDefault();
+
+        const bar = document.getElementById("ptr-bar");
+        if (bar) {
+          bar.style.display = "flex";
+          const y = Math.min(40, dy * 0.25);
+          bar.style.opacity = String(Math.min(1, dy / 60));
+          bar.style.transform = `translate(-50%, ${y}px)`;
+          bar.dataset.ready = dy >= threshold ? "1" : "0";
+        }
       }
     },
     { passive: false }
   );
+
+  main.addEventListener(
+    "touchend",
+    async () => {
+      if (!pulling) return;
+
+      const bar = document.getElementById("ptr-bar");
+      const ready = !!(bar && bar.dataset.ready === "1");
+
+      pulling = false;
+
+      if (bar) bar.dataset.ready = "0";
+
+      if (locked && ready && lastDy >= threshold) {
+        locked = false;
+        await refreshAppData();
+      } else {
+        locked = false;
+        resetBar();
+      }
+    },
+    { passive: true }
+  );
+}
 
   main.addEventListener(
     "touchend",
