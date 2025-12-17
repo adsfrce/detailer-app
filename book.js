@@ -647,6 +647,15 @@ function validateStep2() {
   bookingError.textContent = "";
   return true;
 }
+bookingPackageMenu.addEventListener("click", () => {
+  clearInvalid(bookingPackageToggle);
+  clearInvalid(bookingSinglesToggle);
+});
+
+bookingSinglesMenu.addEventListener("click", () => {
+  clearInvalid(bookingPackageToggle);
+  clearInvalid(bookingSinglesToggle);
+});
 
 function wireRequiredRedBorders(root = document) {
   const fields = Array.from(root.querySelectorAll("input[required], select[required], textarea[required]"));
@@ -744,6 +753,8 @@ next1.addEventListener("click", () => {
 
   showStep(2);
 });
+bookingCarInput.addEventListener("input", () => clearInvalid(bookingCarInput));
+bookingVehicleClassSelect.addEventListener("change", () => clearInvalid(bookingVehicleClassSelect));
 
 back2.addEventListener("click", () => showStep(1));
 next2.addEventListener("click", async () => {
@@ -918,3 +929,4 @@ showThankYouPage({
 });
 
 init();
+
