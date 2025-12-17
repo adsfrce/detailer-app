@@ -1303,36 +1303,36 @@ function switchTab(tabName) {
 
 // ================================
 // SETTINGS: SUB-VIEWS (Service / Business)
-// Default: nichts geöffnet. Erst nach Klick.
-// Erwartete IDs in HTML:
-// - #settings-subnav (Container mit den 2 Buttons)
-// - Button: #settings-open-service, #settings-open-business
-// - Views:  #settings-view-service, #settings-view-business
-// - Back:   [data-settings-back] innerhalb der jeweiligen View
-// Optional (um Support/Rechtliches beim Öffnen zu verstecken):
-// - Container: #settings-static (enthält Support + Rechtliches)
+// Default: Hub sichtbar, Views versteckt.
+// Öffnet erst nach Klick.
+// Erwartete IDs (wie in deiner app.html):
+// - #settings-hub
+// - Buttons: #open-service-settings, #open-business-settings
+// - Views:   #settings-view-service, #settings-view-business
+// - Back:    #back-from-service, #back-from-business
+// Support/Rechtliches bleiben im Hub sichtbar.
+// Optional: Sections mit IDs #settings-support und #settings-legal werden beim Öffnen versteckt.
 // ================================
 function setupSettingsSubViews() {
-  const subnav = document.getElementById("settings-subnav");
-  const btnService = document.getElementById("settings-open-service");
-  const btnBusiness = document.getElementById("settings-open-business");
+  const hub = document.getElementById("settings-hub");
+
+  const btnService = document.getElementById("open-service-settings");
+  const btnBusiness = document.getElementById("open-business-settings");
 
   const viewService = document.getElementById("settings-view-service");
   const viewBusiness = document.getElementById("settings-view-business");
 
-  // Support + Rechtliches Container (soll sichtbar sein, solange keine View offen ist)
-  const staticBlock =
-    document.getElementById("settings-static") ||
-    document.querySelector("[data-settings-static]");
+  const backService = document.getElementById("back-from-service");
+  const backBusiness = document.getElementById("back-from-business");
 
-  // Fallback: wenn du KEIN settings-static hast, versuchen wir zumindest einzelne Sections zu finden
+  // Support + Rechtliches (falls vorhanden – du wolltest: im Hub sichtbar, sonst verstecken wenn View offen)
   const fallbackStaticSections = Array.from(
     document.querySelectorAll("#settings-support, #settings-legal")
   ).filter(Boolean);
 
-  if (!subnav || !btnService || !btnBusiness || !viewService || !viewBusiness) {
+  if (!hub || !btnService || !btnBusiness || !viewService || !viewBusiness) {
     console.warn(
-      "DetailHQ: Settings SubViews: Container fehlen. Erwartet: #settings-subnav, #settings-open-service, #settings-open-business, #settings-view-service, #settings-view-business"
+      "DetailHQ: Settings SubViews: Fehlende Container. Erwartet: #settings-hub, #open-service-settings, #open-business-settings, #settings-view-service, #settings-view-business"
     );
     return;
   }
@@ -1340,13 +1340,8 @@ function setupSettingsSubViews() {
   const allViews = [viewService, viewBusiness];
 
   function setStaticVisible(visible) {
-    if (staticBlock) {
-      staticBlock.classList.toggle("hidden", !visible);
-    } else if (fallbackStaticSections.length) {
-      fallbackStaticSections.forEach((el) =>
-        el.classList.toggle("hidden", !visible)
-      );
-    }
+    if (!fallbackStaticSections.length) return;
+    fallbackStaticSections.forEach((el) => el.classList.toggle("hidden", !visible));
   }
 
   function hideAllViews() {
@@ -1354,44 +1349,47 @@ function setupSettingsSubViews() {
   }
 
   function openView(which) {
-    hideAllViews();
+    // Hub ausblenden
+    hub.classList.add("hidden");
+
+    // Support/Rechtliches ausblenden
     setStaticVisible(false);
 
+    // Views toggeln
+    hideAllViews();
     if (which === "service") viewService.classList.remove("hidden");
     if (which === "business") viewBusiness.classList.remove("hidden");
 
-    // nach oben scrollen, damit man nicht “mitten drin” landet
+    // nach oben scrollen
     const main = document.querySelector(".app-main");
     if (main) main.scrollTop = 0;
   }
 
   function backToHub() {
     hideAllViews();
+
+    // Hub wieder zeigen
+    hub.classList.remove("hidden");
+
+    // Support/Rechtliches wieder zeigen
     setStaticVisible(true);
 
     const main = document.querySelector(".app-main");
     if (main) main.scrollTop = 0;
   }
 
-  // Default: NICHTS offen
+  // Default: NICHTS offen (Hub sichtbar, Views zu)
   backToHub();
 
+  // Clicks
   btnService.addEventListener("click", () => openView("service"));
   btnBusiness.addEventListener("click", () => openView("business"));
 
-  // Back Buttons: in jeder View einfach ein Element mit data-settings-back setzen
-  const backButtons = document.querySelectorAll("[data-settings-back]");
-  backButtons.forEach((btn) => btn.addEventListener("click", backToHub));
+  if (backService) backService.addEventListener("click", backToHub);
+  if (backBusiness) backBusiness.addEventListener("click", backToHub);
 
-  // Wenn du in der App irgendwo anders wieder in Settings landest:
-  // -> wir lassen es standardmäßig auf Hub, außer eine View ist explizit geöffnet.
-  const settingsTab = document.querySelector('.nav-item[data-tab="settings"]');
-  if (settingsTab) {
-    settingsTab.addEventListener("click", () => {
-      const anyOpen = allViews.some((v) => !v.classList.contains("hidden"));
-      if (!anyOpen) backToHub();
-    });
-  }
+  // Wenn man auf den Settings-Tab klickt: NICHT automatisch irgendwas öffnen.
+  // (Dein Wunsch: erst nach Klick auf Service/Business)
 }
 
 // ================================
