@@ -1294,6 +1294,10 @@ function switchTab(tabName) {
   } else if (tabName === "schedule") {
     headerTitle.textContent = "Zeitplan";
     headerSubtitle.textContent = "Alle geplanten Aufträge im Blick.";
+  } else if (tabName === "orders") {
+  headerTitle.textContent = "Auftragsannahme";
+  headerSubtitle.textContent =
+    "Neue Aufträge prüfen, annehmen und steuern.";
   } else if (tabName === "settings") {
     headerTitle.textContent = "Einstellungen";
     headerSubtitle.textContent =
