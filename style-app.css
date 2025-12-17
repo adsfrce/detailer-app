@@ -605,6 +605,18 @@ body {
   -webkit-backdrop-filter: blur(14px);
 }
 
+.profile-modal {
+  isolation: isolate; /* extrem wichtig für sauberen Blur */
+}
+
+.profile-modal-backdrop {
+  z-index: 0;
+}
+
+.profile-modal-card {
+  z-index: 1;
+}
+
 .profile-modal-card {
   position: relative;
   width: 100%;
