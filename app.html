@@ -526,64 +526,98 @@
   </div>
 
   <!-- MODALS: bleiben wie sie waren (nicht anfassen) -->
-  <div id="service-modal" class="profile-modal hidden">
-    <div class="profile-modal-card glass">
-      <div class="profile-modal-header">
-        <h3 id="service-modal-title">Service bearbeiten</h3>
-        <button id="service-modal-close" class="icon-button small" title="Schließen">✕</button>
+<div id="service-modal" class="profile-modal hidden">
+  <div class="profile-modal-card glass">
+    <div class="profile-modal-header">
+      <h3 id="service-modal-title">Service bearbeiten</h3>
+      <button id="service-modal-close" class="icon-button small" title="Schließen">✕</button>
+    </div>
+
+    <!-- WICHTIG: Form + erwartete IDs -->
+    <form id="service-form" class="form">
+      <div class="form-row">
+        <label class="field-label" for="service-kind">Typ</label>
+        <select id="service-kind" class="field-input">
+          <option value="single">Einzelleistung</option>
+          <option value="package">Paket</option>
+        </select>
       </div>
 
       <div class="form-row">
-        <label class="field-label" for="service-name-input">Service Name</label>
-        <input id="service-name-input" class="field-input" type="text" placeholder="z.B. Innenraum Komplett" />
+        <label class="field-label" for="service-category">Kategorie (optional)</label>
+        <input id="service-category" class="field-input" type="text" placeholder="z.B. Innenraum" />
+      </div>
+
+      <div class="form-row">
+        <label class="field-label" for="service-name">Service Name</label>
+        <input id="service-name" class="field-input" type="text" placeholder="z.B. Innenraum Komplett" />
       </div>
 
       <div class="form-row">
         <label class="field-label" for="service-base-price-input">Basispreis (€)</label>
         <input id="service-base-price-input" class="field-input" type="number" inputmode="decimal" placeholder="z.B. 149" />
-        <div id="service-price-reco" class="service-price-reco hidden"></div>
+
+        <!-- Empfehlung: dein JS erwartet diese Unter-IDs -->
+        <div id="service-price-reco" class="service-price-reco hidden">
+          <div class="service-price-reco-row">
+            <span class="service-price-reco-label">Empfehlung:</span>
+            <span id="service-price-reco-min"></span>
+            <span>–</span>
+            <span id="service-price-reco-max"></span>
+          </div>
+          <div id="service-price-reco-hint" class="service-price-reco-hint"></div>
+        </div>
       </div>
 
       <div class="form-row">
-        <label class="field-label" for="service-duration-input">Dauer (Min.)</label>
-        <input id="service-duration-input" class="field-input" type="number" inputmode="numeric" placeholder="z.B. 120" />
+        <label class="field-label" for="service-duration-input">Dauer (Std.)</label>
+        <input id="service-duration-input" class="field-input" type="number" step="0.25" inputmode="decimal" placeholder="z.B. 2" />
       </div>
 
       <div class="form-row">
-        <label class="field-label" for="service-notes-input">Notizen</label>
+        <label class="field-label" for="service-notes-input">Notizen / Beschreibung</label>
         <textarea id="service-notes-input" class="field-input" rows="3" placeholder="Optional: Hinweise für dich"></textarea>
       </div>
 
-      <div class="modal-actions">
-        <button id="service-delete-button" class="btn btn-ghost">Löschen</button>
-        <button id="service-save-button" class="btn btn-secondary">Speichern</button>
-      </div>
-    </div>
-  </div>
+      <p id="service-modal-error" class="error-text"></p>
 
-  <div id="vehicle-class-modal" class="profile-modal hidden">
-    <div class="profile-modal-card glass">
-      <div class="profile-modal-header">
-        <h3 id="vehicle-class-modal-title">Fahrzeugklasse bearbeiten</h3>
-        <button id="vehicle-class-modal-close" class="icon-button small" title="Schließen">✕</button>
+      <div class="modal-actions">
+        <button id="service-delete-button" type="button" class="btn btn-ghost">Löschen</button>
+        <button id="service-save-button" type="submit" class="btn btn-secondary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="vehicle-class-modal" class="profile-modal hidden">
+  <div class="profile-modal-card glass">
+    <div class="profile-modal-header">
+      <h3 id="vehicle-class-modal-title">Fahrzeugklasse bearbeiten</h3>
+      <button id="vehicle-class-modal-close" class="icon-button small" title="Schließen">✕</button>
+    </div>
+
+    <!-- WICHTIG: Form + erwartete IDs -->
+    <form id="vehicle-class-form" class="form">
+      <div class="form-row">
+        <label class="field-label" for="vehicle-class-name">Name</label>
+        <input id="vehicle-class-name" class="field-input" type="text" placeholder="z.B. Kompakt" />
       </div>
 
       <div class="form-row">
-        <label class="field-label" for="vehicle-class-name-input">Name</label>
-        <input id="vehicle-class-name-input" class="field-input" type="text" placeholder="z.B. Kompakt" />
+        <label class="field-label" for="vehicle-class-price-delta">Preis-Anpassung (€)</label>
+        <input id="vehicle-class-price-delta" class="field-input" type="number" step="1" inputmode="decimal" placeholder="z.B. 20" />
+        <p class="form-hint">Beispiel: 0 = kein Aufpreis, 20 = +20€, -10 = -10€</p>
       </div>
 
-      <div class="form-row">
-        <label class="field-label" for="vehicle-class-multiplier-input">Preisfaktor</label>
-        <input id="vehicle-class-multiplier-input" class="field-input" type="number" step="0.05" inputmode="decimal" placeholder="z.B. 1.00" />
-      </div>
+      <p id="vehicle-class-modal-error" class="error-text"></p>
 
       <div class="modal-actions">
-        <button id="vehicle-class-delete-button" class="btn btn-ghost">Löschen</button>
-        <button id="vehicle-class-save-button" class="btn btn-secondary">Speichern</button>
+        <button id="vehicle-class-delete-button" type="button" class="btn btn-ghost">Löschen</button>
+        <button id="vehicle-class-save-button" type="submit" class="btn btn-secondary">Speichern</button>
       </div>
-    </div>
+    </form>
   </div>
+</div>
 </section>
         
       </main>
