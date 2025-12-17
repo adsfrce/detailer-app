@@ -2188,7 +2188,6 @@ function openServiceModal(service) {
 // Empfehlung direkt setzen, sobald Modal befüllt ist
   updateServicePriceRecommendationUI();
   serviceModal.classList.remove("hidden");
-}
 
 function closeServiceModal() {
   if (!serviceModal) return;
