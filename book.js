@@ -720,6 +720,10 @@ async function init() {
     renderVehicleClasses();
     renderPackages();
     renderSinglesMenu();
+clearInvalid(bookingCarInput);
+clearInvalid(bookingVehicleClassSelect);
+clearInvalid(bookingDateInput);
+clearInvalid(bookingTimeInput);
 
     showStep(1);
   } catch (err) {
@@ -753,8 +757,13 @@ next1.addEventListener("click", () => {
 
   showStep(2);
 });
-bookingCarInput.addEventListener("input", () => clearInvalid(bookingCarInput));
-bookingVehicleClassSelect.addEventListener("change", () => clearInvalid(bookingVehicleClassSelect));
+bookingCarInput.addEventListener("input", () => {
+  if (bookingCarInput.classList.contains("is-invalid")) clearInvalid(bookingCarInput);
+});
+
+bookingVehicleClassSelect.addEventListener("change", () => {
+  if (bookingVehicleClassSelect.classList.contains("is-invalid")) clearInvalid(bookingVehicleClassSelect);
+});
 
 back2.addEventListener("click", () => showStep(1));
 next2.addEventListener("click", async () => {
@@ -783,6 +792,13 @@ next3.addEventListener("click", () => {
   if (dBad || tBad) return;
 
   showStep(4);
+});
+bookingDateInput.addEventListener("change", () => {
+  if (bookingDateInput.classList.contains("is-invalid")) clearInvalid(bookingDateInput);
+});
+
+bookingTimeInput.addEventListener("change", () => {
+  if (bookingTimeInput.classList.contains("is-invalid")) clearInvalid(bookingTimeInput);
 });
 
 // Step 4 – rote Markierung entfernen beim Tippen
@@ -934,6 +950,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
