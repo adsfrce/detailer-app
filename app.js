@@ -304,7 +304,7 @@ const openingHoursDayOpen = {
 };
 
 // Kunde-Booking Limit pro Tag (1–10)
-const publicDailyLimitSelect = document.getElementById("public-daily-limit");
+const publicDailyLimitSelect = document.getElementById("settings-public-daily-limit");
 
 // ================================
 // ÖFFNUNGSZEITEN (Settings)
@@ -433,9 +433,10 @@ function setupOpeningHoursHandlers() {
       };
     });
 
-    const public_daily_limit = publicDailyLimitSelect
-      ? Math.max(1, Math.min(10, parseInt(publicDailyLimitSelect.value || "1", 10) || 1))
-      : null;
+const public_daily_limit = Math.max(
+  1,
+  Math.min(10, parseInt(publicDailyLimitSelect?.value || "2", 10) || 2)
+);
 
     if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Speichern...";
 
