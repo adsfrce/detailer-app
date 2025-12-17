@@ -858,6 +858,11 @@ items.push({ role: "package", kind: "package", id: packageSvc.id, name: packageS
 items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents: s.base_price_cents || 0 });
   });
 
+  // Step 4 – rote Markierung entfernen beim Tippen
+bookingCustomerNameInput.addEventListener("input", () => clearInvalid(bookingCustomerNameInput));
+bookingCustomerEmailInput.addEventListener("input", () => clearInvalid(bookingCustomerEmailInput));
+bookingCustomerPhoneInput.addEventListener("input", () => clearInvalid(bookingCustomerPhoneInput));
+
   const payload = {
     detailer_id: detailerId,
 
@@ -929,4 +934,5 @@ showThankYouPage({
 });
 
 init();
+
 
