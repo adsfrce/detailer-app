@@ -1574,3 +1574,26 @@ mask-image: linear-gradient(
   opacity: 0.65;
 }
 
+/* ================================
+   REQUIRED / INVALID STATE (global)
+================================ */
+
+.field-input.is-invalid,
+.field-input:required:invalid {
+  border-color: rgba(239, 68, 68, 0.85) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.22) !important;
+}
+
+/* Pill-Wrapper (z.B. Datum/Uhrzeit, Öffnungszeiten) */
+.booking-datetime-row.is-invalid,
+.opening-hours-pill.is-invalid {
+  border: 1px solid rgba(239, 68, 68, 0.85) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18) !important;
+}
+
+/* Custom dropdown toggle (Pakete/Einzelleistungen etc.) */
+.settings-dropdown-toggle.is-invalid {
+  border-color: rgba(239, 68, 68, 0.85) !important;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18) !important;
+}
+
