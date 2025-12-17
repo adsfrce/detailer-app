@@ -1654,3 +1654,40 @@ mask-image: linear-gradient(
   font-size: 12px;
   opacity: 0.7;
 }
+
+/* SETTINGS: Hub Switch (Service / Business) */
+.settings-switch {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.settings-switch-btn {
+  width: 100%;
+  text-align: left;
+  padding: 14px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.settings-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.settings-switch-btn:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.settings-switch-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.settings-switch-sub {
+  font-size: 12px;
+  color: var(--text-soft);
+}
