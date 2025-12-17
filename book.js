@@ -159,6 +159,19 @@ async function rebuildTimeOptionsForDay(detailerId, day, durationMinutes) {
   timeSelect.innerHTML = `<option value="">Bitte wählen</option>`;
   if (hint) hint.textContent = "Lädt verfügbare Zeiten...";
 
+    // Blockierte Zeiten laden (bereits gebuchte Slots etc.)
+  let blocked = [];
+  try {
+    const av = await fetchAvailability(detailerId, day);
+    blocked = (av && Array.isArray(av.blocked) ? av.blocked : []).map((b) => ({
+      start: new Date(b.start_at),
+      end: new Date(b.end_at),
+    }));
+  } catch (e) {
+    console.warn("DetailHQ: availability konnte nicht geladen werden, fallback ohne blocking");
+    blocked = [];
+  }
+
 const dayKey = dayKeyFromISODate(day);
 
 // Öffnungszeiten aus Provider laden (Fallback 07:00–19:00)
@@ -975,6 +988,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
