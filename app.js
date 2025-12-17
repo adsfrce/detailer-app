@@ -2159,35 +2159,48 @@ function renderServicesList() {
 
 function openServiceModal(service) {
   if (!serviceModal) return;
+  if (!serviceForm) return;
   if (!serviceKindInput) return;
 
+  // Modal öffnen
   serviceModal.classList.remove("hidden");
 
-  serviceModalTitle.textContent = service
-    ? "Service bearbeiten"
-    : "Service erstellen";
+  // Title
+  serviceModalTitle.textContent = service ? "Service bearbeiten" : "Service erstellen";
 
+  // Reset UI
   serviceForm.reset();
-  serviceModalError.textContent = "";
+  if (serviceModalError) serviceModalError.textContent = "";
 
+  // WICHTIG: ID da speichern, wo dein Save-Code sie später liest
+  if (service && service.id) {
+    serviceModal.dataset.id = service.id;
+  } else {
+    delete serviceModal.dataset.id;
+  }
+
+  // Fields korrekt befüllen (DB-Felder: base_price_cents, duration_minutes, description)
   if (service) {
     serviceKindInput.value = service.kind || "single";
-    serviceCategoryInput.value = service.category || "";
-    serviceNameInput.value = service.name || "";
-    servicePriceInput.value = service.price || "";
-    serviceDurationInput.value = service.duration || "";
-    serviceDescriptionInput.value = service.description || "";
+    if (serviceCategoryInput) serviceCategoryInput.value = service.category || "";
+    if (serviceNameInput) serviceNameInput.value = service.name || "";
 
-    serviceForm.dataset.serviceId = service.id;
+    // Preis: cents -> Euro
+    const euro = ((service.base_price_cents || 0) / 100);
+    servicePriceInput.value = euro ? String(euro) : "";
+
+    // Dauer: Minuten -> Stunden (weil dein Save später Std.->Minuten rechnet)
+    const hours = service.duration_minutes ? (service.duration_minutes / 60) : 0;
+    serviceDurationInput.value = hours ? String(Number(hours.toFixed(2))) : "";
+
+    if (serviceDescriptionInput) serviceDescriptionInput.value = service.description || "";
   } else {
     serviceKindInput.value = "single";
-    serviceForm.dataset.serviceId = "";
   }
-}
 
-// Empfehlung direkt setzen, sobald Modal befüllt ist
+  // Empfehlung direkt refreshen
   updateServicePriceRecommendationUI();
-  serviceModal.classList.remove("hidden");
+}
 
 function closeServiceModal() {
   if (!serviceModal) return;
