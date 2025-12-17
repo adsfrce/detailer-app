@@ -1295,9 +1295,9 @@ function switchTab(tabName) {
     headerTitle.textContent = "Zeitplan";
     headerSubtitle.textContent = "Alle geplanten Aufträge im Blick.";
   } else if (tabName === "orders") {
-  headerTitle.textContent = "Auftragsannahme";
+  headerTitle.textContent = "Annahmeprotokoll";
   headerSubtitle.textContent =
-    "Neue Aufträge prüfen, annehmen und steuern.";
+    "Fahrzeugannahme, Zustandsdokumentation und Freigabe.";
   } else if (tabName === "settings") {
     headerTitle.textContent = "Einstellungen";
     headerSubtitle.textContent =
