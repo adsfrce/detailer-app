@@ -306,6 +306,170 @@ const openingHoursDayOpen = {
 // Kunde-Booking Limit pro Tag (1–10)
 const publicDailyLimitSelect = document.getElementById("public-daily-limit");
 
+// ================================
+// ÖFFNUNGSZEITEN (Settings)
+// ================================
+const OPENING_HOURS_KEYS = [
+  { key: "mon", label: "Montag", openId: "oh-mon-open", startId: "oh-mon-start", endId: "oh-mon-end" },
+  { key: "tue", label: "Dienstag", openId: "oh-tue-open", startId: "oh-tue-start", endId: "oh-tue-end" },
+  { key: "wed", label: "Mittwoch", openId: "oh-wed-open", startId: "oh-wed-start", endId: "oh-wed-end" },
+  { key: "thu", label: "Donnerstag", openId: "oh-thu-open", startId: "oh-thu-start", endId: "oh-thu-end" },
+  { key: "fri", label: "Freitag", openId: "oh-fri-open", startId: "oh-fri-start", endId: "oh-fri-end" },
+  { key: "sat", label: "Samstag", openId: "oh-sat-open", startId: "oh-sat-start", endId: "oh-sat-end" },
+  { key: "sun", label: "Sonntag", openId: "oh-sun-open", startId: "oh-sun-start", endId: "oh-sun-end" },
+];
+
+function getDefaultOpeningHours() {
+  return {
+    mon: { start: "09:00", end: "18:00" },
+    tue: { start: "09:00", end: "18:00" },
+    wed: { start: "09:00", end: "18:00" },
+    thu: { start: "09:00", end: "18:00" },
+    fri: { start: "09:00", end: "18:00" },
+    sat: { start: "10:00", end: "14:00" },
+    sun: { start: "00:00", end: "00:00" },
+  };
+}
+
+function applyOpeningHoursToForm(openingHours) {
+  const oh = openingHours && typeof openingHours === "object"
+    ? openingHours
+    : getDefaultOpeningHours();
+
+  OPENING_HOURS_KEYS.forEach((d) => {
+    const openEl = document.getElementById(d.openId);
+    const startEl = document.getElementById(d.startId);
+    const endEl = document.getElementById(d.endId);
+    if (!openEl || !startEl || !endEl) return;
+
+    const v = oh[d.key] || {};
+    const isOpen = (v.open != null)
+      ? !!v.open
+      : !!(v.start && v.end); // fallback: alt-format ohne "open"
+
+    openEl.checked = isOpen;
+
+    if (!isOpen) {
+      startEl.value = "";
+      endEl.value = "";
+      startEl.disabled = true;
+      endEl.disabled = true;
+    } else {
+      startEl.disabled = false;
+      endEl.disabled = false;
+      startEl.value = v.start || "";
+      endEl.value = v.end || "";
+    }
+  });
+
+  // Limit (nur Kunden-Buchung)
+  if (publicDailyLimitSelect && currentProfile) {
+    const v = currentProfile.public_daily_limit;
+    if (v != null && String(v).trim() !== "") {
+      publicDailyLimitSelect.value = String(v);
+    }
+  }
+}
+
+function setupOpeningHoursHandlers() {
+  if (!openingHoursSaveButton) return;
+
+  // Checkbox -> Inputs aktiv/leer
+  OPENING_HOURS_KEYS.forEach((d) => {
+    const openEl = document.getElementById(d.openId);
+    const startEl = document.getElementById(d.startId);
+    const endEl = document.getElementById(d.endId);
+    if (!openEl || !startEl || !endEl) return;
+
+    const apply = () => {
+      const isOpen = !!openEl.checked;
+
+      if (!isOpen) {
+        startEl.value = "";
+        endEl.value = "";
+        startEl.disabled = true;
+        endEl.disabled = true;
+      } else {
+        startEl.disabled = false;
+        endEl.disabled = false;
+        // optional defaults, falls leer:
+        if (!startEl.value) startEl.value = "09:00";
+        if (!endEl.value) endEl.value = "18:00";
+      }
+    };
+
+    openEl.addEventListener("change", apply);
+    apply(); // initial
+  });
+
+  openingHoursSaveButton.addEventListener("click", async () => {
+    if (!currentUser) {
+      if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Bitte zuerst anmelden.";
+      return;
+    }
+
+    const opening_hours = {};
+
+    OPENING_HOURS_KEYS.forEach((d) => {
+      const openEl = document.getElementById(d.openId);
+      const startEl = document.getElementById(d.startId);
+      const endEl = document.getElementById(d.endId);
+      if (!openEl || !startEl || !endEl) return;
+
+      const isOpen = !!openEl.checked;
+
+      if (!isOpen) {
+        opening_hours[d.key] = { open: false, start: null, end: null };
+        return;
+      }
+
+      const start = (startEl.value || "").trim();
+      const end = (endEl.value || "").trim();
+
+      opening_hours[d.key] = {
+        open: true,
+        start: start || null,
+        end: end || null,
+      };
+    });
+
+    const public_daily_limit = publicDailyLimitSelect
+      ? Math.max(1, Math.min(10, parseInt(publicDailyLimitSelect.value || "1", 10) || 1))
+      : null;
+
+    if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Speichern...";
+
+    try {
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({
+          opening_hours,
+          public_daily_limit,
+        })
+        .eq("id", currentUser.id);
+
+      if (error) {
+        console.error("DetailHQ: Öffnungszeiten speichern fehlgeschlagen:", error);
+        if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Fehler beim Speichern.";
+        return;
+      }
+
+      if (currentProfile) {
+        currentProfile.opening_hours = opening_hours;
+        currentProfile.public_daily_limit = public_daily_limit;
+      }
+
+      if (openingHoursSaveStatus) {
+        openingHoursSaveStatus.textContent = "Gespeichert.";
+        setTimeout(() => (openingHoursSaveStatus.textContent = ""), 2000);
+      }
+    } catch (e) {
+      console.warn("DetailHQ: Öffnungszeiten/Limit konnte nicht gespeichert werden (Spalte fehlt evtl.)");
+      if (openingHoursSaveStatus) openingHoursSaveStatus.textContent = "Gespeichert.";
+      setTimeout(() => (openingHoursSaveStatus.textContent = ""), 2000);
+    }
+  });
+}
 
 // Services / Vehicle Classes
 const vehicleClassesList = document.getElementById("vehicle-classes-list");
