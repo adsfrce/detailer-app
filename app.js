@@ -1360,8 +1360,6 @@ function setupSettingsSubViews() {
     if (which === "service") viewService.classList.remove("hidden");
     if (which === "business") viewBusiness.classList.remove("hidden");
 
-    bindServiceAndVehicleActions();
-
     // nach oben scrollen
     const main = document.querySelector(".app-main");
     if (main) main.scrollTop = 0;
@@ -4882,55 +4880,4 @@ function setupCalendarUrlForUser() {
   if (!currentUser) return;
   const apiBase = "https://api.detailhq.de";
   currentCalendarUrl = `${apiBase}/cal/${currentUser.id}.ics`;
-}
-
-// ================================
-// FIX: Re-bind Service & Vehicle Class Actions
-// ================================
-function bindServiceAndVehicleActions() {
-  const vehicleAddBtn = document.getElementById("vehicle-class-add-button");
-  const serviceAddBtn = document.getElementById("service-add-button");
-
-  if (vehicleAddBtn) {
-    vehicleAddBtn.onclick = () => {
-      if (typeof openVehicleClassModal === "function") {
-        openVehicleClassModal(null); // NEU anlegen
-      }
-    };
-  }
-
-  if (serviceAddBtn) {
-    serviceAddBtn.onclick = () => {
-      if (typeof openServiceModal === "function") {
-        openServiceModal(null); // NEU anlegen
-      }
-    };
-  }
-
-  // Delegation für Bearbeiten per Klick auf Eintrag
-  const vehicleList = document.getElementById("vehicle-classes-list");
-  if (vehicleList) {
-    vehicleList.onclick = (e) => {
-      const item = e.target.closest("[data-vehicle-class-id]");
-      if (!item) return;
-
-      const id = item.dataset.vehicleClassId;
-      if (typeof openVehicleClassModal === "function") {
-        openVehicleClassModal(id);
-      }
-    };
-  }
-
-  const serviceList = document.getElementById("services-list");
-  if (serviceList) {
-    serviceList.onclick = (e) => {
-      const item = e.target.closest("[data-service-id]");
-      if (!item) return;
-
-      const id = item.dataset.serviceId;
-      if (typeof openServiceModal === "function") {
-        openServiceModal(id);
-      }
-    };
-  }
 }
