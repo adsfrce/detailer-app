@@ -1596,3 +1596,16 @@ mask-image: linear-gradient(
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18) !important;
 }
 
+.settings-subhead{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin: 6px 0 14px;
+}
+.settings-subtitle{
+  margin:0;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: .9;
+}
+
