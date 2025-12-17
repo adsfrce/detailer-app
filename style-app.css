@@ -1578,8 +1578,7 @@ mask-image: linear-gradient(
    REQUIRED / INVALID STATE (global)
 ================================ */
 
-.field-input.is-invalid,
-.field-input:required:invalid {
+.field-input.is-invalid {
   border-color: rgba(239, 68, 68, 0.85) !important;
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.22) !important;
 }
