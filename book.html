@@ -104,13 +104,18 @@
 
 <!-- STEP 3: Termin -->
 <div class="booking-step hidden" id="booking-step-3" data-step="3">
-  <label class="field-label" for="booking-date">Wunschtermin (Datum)</label>
-  <input id="booking-date" type="date" class="field-input" required />
+  <label class="field-label">Wunschtermin</label>
 
-  <label class="field-label" for="booking-time">Wunschtermin (Uhrzeit)</label>
-  <select id="booking-time" class="field-input" required>
-    <option value="">Bitte wählen</option>
-  </select>
+  <div class="booking-datetime-row">
+    <div>
+      <input id="booking-date" type="date" class="field-input" required />
+    </div>
+    <div>
+      <select id="booking-time" class="field-input" required>
+        <option value="">Bitte wählen</option>
+      </select>
+    </div>
+  </div>
 
   <p id="booking-time-hint" class="form-hint" style="margin-top:6px;"></p>
 
@@ -159,6 +164,7 @@
   <script src="book.js?v1.0.3"></script>
 </body>
 </html>
+
 
 
 
