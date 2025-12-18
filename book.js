@@ -804,6 +804,7 @@ bookingVehicleClassSelect.addEventListener("change", () => {
 });
 
 back2.addEventListener("click", () => showStep(1));
+back3.addEventListener("click", () => showStep(2));
 next2.addEventListener("click", async () => {
   if (!validateStep2()) return;
   showStep(3);
@@ -988,6 +989,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
