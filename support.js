@@ -100,52 +100,34 @@ async function sendSupportTicket(session) {
   submitBtn.disabled = true;
   submitBtn.textContent = "Sende...";
 
-  // 1) Primär: Make Webhook (du kannst das in Make sofort routen: Telegram/Email/DB etc.)
-  // Hinweis: Wenn dein Make-Szenario aktuell nur "new_user" verarbeitet, füge dort einfach einen Router für "support_ticket" hinzu.
-  const MAKE_WEBHOOK_URL =
-    "https://hook.eu1.make.com/6tf25stiy013xfr1v7ox1ewb9t9qdrth";
-
-  const payload = {
-    type: "support_ticket",
-    payload: {
-      user_id: user.id,
-      user_email: user.email || null,
-      topic: topicLabel,
-      message,
-      user_agent: navigator.userAgent || null,
-      page: window.location.href,
-      created_at: new Date().toISOString(),
-    },
-  };
-
-  let ok = false;
-
   try {
-    const res = await fetch(MAKE_WEBHOOK_URL, {
+    const res = await fetch("/support/ticket", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+        // wichtig: Worker prüft Supabase JWT über /auth/v1/user
+        "Authorization": `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        topic: topicLabel,
+        message
+      })
     });
-    ok = res.ok;
+
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      throw new Error(`Support send failed: ${res.status} ${t}`);
+    }
+
+    msgEl.value = "";
+    setSuccess(true);
   } catch (e) {
-    ok = false;
+    console.error(e);
+    setError("Konnte Ticket nicht senden. Bitte später erneut versuchen.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Absenden";
   }
-
-  // 2) Fallback: Mailto öffnen (damit es IMMER rausgeht)
-  if (!ok) {
-    const subject = encodeURIComponent(`DetailHQ Support: ${topicLabel}`);
-    const body = encodeURIComponent(
-      `User: ${user.email || "-"}\nUserID: ${user.id}\n\nThema: ${topicLabel}\n\nNachricht:\n${message}\n`
-    );
-    window.location.href = `mailto:support@detailhq.de?subject=${subject}&body=${body}`;
-  }
-
-  // UI success
-  msgEl.value = "";
-  setSuccess(true);
-
-  submitBtn.disabled = false;
-  submitBtn.textContent = "Absenden";
 }
 
 async function init() {
