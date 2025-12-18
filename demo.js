@@ -330,3 +330,44 @@
     } catch (_) {}
   });
 })();
+
+// Hard bypass for any auth UI that still renders.
+// Wait until app exposes its view helpers, then force app view.
+(function forceDemoAppView() {
+  const start = Date.now();
+  const max = 8000; // ms
+
+  const timer = setInterval(() => {
+    try {
+      // viele deiner Projekte haben showAuthView/showAppView oder ähnliche helpers
+      if (typeof window.showAppView === "function") {
+        // falls es eine login view gibt, wegbügeln
+        if (typeof window.showAuthView === "function") {
+          // nichts – wir zeigen einfach App
+        }
+
+        // Optional: falls es Wrapper gibt
+        const auth = document.getElementById("auth-view") || document.querySelector(".auth-view");
+        if (auth) auth.style.display = "none";
+
+        const app = document.getElementById("app-view") || document.querySelector(".app-view");
+        if (app) app.style.display = "";
+
+        window.showAppView();
+        clearInterval(timer);
+        return;
+      }
+
+      // Fallback: wenn deine App statt showAppView mit Klassen arbeitet
+      const loginScreen = document.querySelector("#login-screen, .login-screen, #auth, .auth");
+      const appShell = document.querySelector("#app, .app, #app-shell, .app-shell");
+      if (appShell && loginScreen) {
+        loginScreen.style.display = "none";
+        appShell.style.display = "";
+        clearInterval(timer);
+        return;
+      }
+    } catch (e) {}
+    if (Date.now() - start > max) clearInterval(timer);
+  }, 80);
+})();
