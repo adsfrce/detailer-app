@@ -1706,3 +1706,68 @@ mask-image: linear-gradient(
   font-size: 12px;
   color: var(--text-soft);
 }
+
+/* BOOK: split date/time als eine gemeinsame Pill (scoped, ohne Side-Effects) */
+.booking-datetime-row.booking-datetime-pill {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin-top: 4px;
+
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  overflow: hidden;
+  gap: 0;
+}
+
+.booking-datetime-row.booking-datetime-pill > .dt-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.booking-datetime-row.booking-datetime-pill > .dt-cell + .dt-cell {
+  border-left: 1px solid var(--border-subtle);
+}
+
+/* Wichtig: Input UND Select dürfen keine eigene Pill/Borders haben */
+.booking-datetime-row.booking-datetime-pill input.field-input,
+.booking-datetime-row.booking-datetime-pill select.field-input {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  width: 100%;
+  padding: 10px 14px 10px 38px; /* Platz für Icon links */
+}
+
+/* Icons (Calendar / Clock) */
+.booking-datetime-row.booking-datetime-pill .dt-cell {
+  position: relative;
+}
+
+.booking-datetime-row.booking-datetime-pill .dt-cell::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  opacity: 0.75;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+/* Kalender */
+.booking-datetime-row.booking-datetime-pill .dt-date::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2' ry='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>");
+}
+
+/* Uhr */
+.booking-datetime-row.booking-datetime-pill .dt-time::before {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/></svg>");
+}
