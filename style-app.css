@@ -1706,18 +1706,3 @@ mask-image: linear-gradient(
   font-size: 12px;
   color: var(--text-soft);
 }
-
-/* Book step 3: Datum + Uhrzeit immer gleich breit (ohne Einfluss auf interne Auftrag-UI) */
-.book-datetime-row {
-  display: flex;
-  gap: 10px;
-}
-
-.book-datetime-row > * {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.book-datetime-row .field-input {
-  width: 100%;
-}
