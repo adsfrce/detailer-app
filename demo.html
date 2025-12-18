@@ -1,1 +1,75 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DetailHQ Demo</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    html,body{height:100%;margin:0}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:#f6f7fb}
+    .demo-loader{
+      min-height:100%;
+      display:flex;align-items:center;justify-content:center;
+      color:rgba(0,0,0,.7);
+      padding:24px;text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-loader" id="demo-loader">Demo wird geladen…</div>
 
+  <script>
+    (async function () {
+      // IMPORTANT:
+      // This page dynamically loads your *current* repo app.html and injects demo.js before app.js.
+      // Adjust these paths if your repo uses different filenames/locations.
+      const APP_HTML_PATH = "/app.html";   // your up-to-date app page
+      const DEMO_JS_PATH  = "/demo/demo.js";
+
+      const loader = document.getElementById("demo-loader");
+
+      try {
+        const res = await fetch(APP_HTML_PATH, { cache: "no-store" });
+        if (!res.ok) throw new Error("Konnte app.html nicht laden (" + res.status + ")");
+        let html = await res.text();
+
+        // Ensure assets resolve from site root.
+        if (!/<base\s/i.test(html)) {
+          html = html.replace(/<head(\s[^>]*)?>/i, function (m) {
+            return m + '\n  <base href="/">';
+          });
+        }
+
+        // Inject demo.js BEFORE app.js (or before the first script if app.js not detected).
+        const demoTag = '\n  <script src="' + DEMO_JS_PATH + '" defer><\/script>\n';
+        const appJsRegex = /<script\s+[^>]*src=["'][^"']*app\.js[^"']*["'][^>]*>\s*<\/script>/i;
+
+        if (appJsRegex.test(html)) {
+          html = html.replace(appJsRegex, function (match) {
+            // Insert demo.js before app.js
+            return demoTag + match;
+          });
+        } else {
+          // Fallback: inject at end of <head>
+          html = html.replace(/<\/head>/i, demoTag + "</head>");
+        }
+
+        // Mark demo mode for any conditional UI (optional)
+        if (!/DETAILHQ_DEMO/i.test(html)) {
+          html = html.replace(/<head(\s[^>]*)?>/i, function (m) {
+            return m + "\n  <script>window.DETAILHQ_DEMO = true;<\/script>";
+          });
+        }
+
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (err) {
+        console.error(err);
+        if (loader) loader.textContent = "Demo konnte nicht geladen werden: " + (err && err.message ? err.message : String(err));
+      }
+    })();
+  </script>
+</body>
+</html>
