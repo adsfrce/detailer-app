@@ -1297,7 +1297,7 @@ function switchTab(tabName) {
   } else if (tabName === "orders") {
   headerTitle.textContent = "Annahmeprotokoll";
   headerSubtitle.textContent =
-    "Fahrzeugannahme, Zustandsdokumentation und Freigabe.";
+    "Fahrzeugannahme & Zustandsdokumentation.";
   } else if (tabName === "settings") {
     headerTitle.textContent = "Einstellungen";
     headerSubtitle.textContent =
