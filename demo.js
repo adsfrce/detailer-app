@@ -22,7 +22,6 @@
   // Utilities
   // -----------------------------
   function tzDate(d) {
-    // Keep native Date; your UI formatting already uses local time.
     return new Date(d);
   }
 
@@ -53,79 +52,201 @@
   }
 
   // -----------------------------
-  // Demo data (in-memory until reload)
+  // "Rolling today" anchor
   // -----------------------------
+  // Wichtig: Bei jedem Öffnen wird "today" neu relativ bestimmt,
+  // sodass "heute" in 7 Tagen wieder "heute" ist (rolling).
   const today = new Date();
   today.setSeconds(0, 0);
 
+  // -----------------------------
+  // Demo services (dein Wunsch)
+  // -----------------------------
+  const DEMO_SERVICES = [
+    {
+      id: "svc-ppf",
+      detailer_id: DEMO_USER_ID,
+      name: "Lackschutzfolie (PPF) – Frontpaket",
+      price: 1590,
+      type: "package",
+      description: "Stoßfänger, Motorhaube (Teil), Kotflügel (Teil), Spiegel. Steinschlag-Schutz."
+    },
+    {
+      id: "svc-wrap",
+      detailer_id: DEMO_USER_ID,
+      name: "Folierung – Komplett (Farbwechsel)",
+      price: 2990,
+      type: "package",
+      description: "Premium Vinyl, inkl. Demontage kleiner Anbauteile. Preis je nach Fahrzeug/Komplexität."
+    },
+    {
+      id: "svc-ceramic",
+      detailer_id: DEMO_USER_ID,
+      name: "Keramikversiegelung (3–5 Jahre)",
+      price: 1290,
+      type: "package",
+      description: "One-step Polish + Coating. Hydrophob, Glanz, leichte Reinigung."
+    },
+    {
+      id: "svc-paintcorrection",
+      detailer_id: DEMO_USER_ID,
+      name: "Lackkorrektur (2-Step)",
+      price: 890,
+      type: "package",
+      description: "Swirls/Hologramme raus, tiefer Glanz. Ideal vor Keramik."
+    },
+    {
+      id: "svc-detailing",
+      detailer_id: DEMO_USER_ID,
+      name: "Aufbereitung – Innen & Außen (Premium)",
+      price: 349,
+      type: "package",
+      description: "Handwäsche, Dekontamination light, Innenraum intensiv, Scheiben, Felgen."
+    }
+  ];
+
+  // -----------------------------
+  // Demo bookings (15, rolling, varied)
+  // -----------------------------
   function generateBookings() {
     const base = new Date();
     base.setSeconds(0, 0);
 
-    const statuses = ["geplant", "in_arbeit", "fertig", "storniert", "no_show"];
-    const pay = ["bezahlt", "offen", "teilzahlung"];
-
-    const cars = [
-      "BMW 3er • Schwarz",
-      "Audi A4 • Grau",
-      "VW Golf • Weiß",
-      "Porsche 911 • Blau",
-      "Tesla Model 3 • Rot",
-      "Mercedes C-Klasse • Silber",
-      "BMW X5 • Schwarz",
-      "Audi Q5 • Weiß"
+    // Viele verschiedene Status/Payment-States verteilt
+    const statuses = [
+      "geplant",
+      "in_arbeit",
+      "fertig",
+      "storniert",
     ];
 
+    const pay = [
+      "bezahlt",
+      "offen",
+      "teilzahlung"
+    ];
+
+    // Deutsche Namen (random-ish aber deterministisch via Reihenfolge)
     const customers = [
-      { name: "Max Mustermann", email: "max@example.com", phone: "+49 151 1234567" },
-      { name: "Lisa Wagner", email: "lisa@example.com", phone: "+49 160 9876543" },
-      { name: "Ali Yilmaz", email: "ali@example.com", phone: "+49 171 5551234" },
-      { name: "Sophie Becker", email: "sophie@example.com", phone: "+49 152 4443322" },
-      { name: "Jonas Klein", email: "jonas@example.com", phone: "+49 176 7788990" },
+      { name: "Maximilian Schneider", email: "maximilian.schneider@example.com", phone: "+49 151 23847612" },
+      { name: "Leonie Wagner", email: "leonie.wagner@example.com", phone: "+49 160 39811244" },
+      { name: "Emre Yilmaz", email: "emre.yilmaz@example.com", phone: "+49 176 77120933" },
+      { name: "Sophie Becker", email: "sophie.becker@example.com", phone: "+49 152 44019821" },
+      { name: "Jonas Klein", email: "jonas.klein@example.com", phone: "+49 171 55201398" },
+      { name: "Daniela Fischer", email: "daniela.fischer@example.com", phone: "+49 157 99110221" },
+      { name: "Tobias Hoffmann", email: "tobias.hoffmann@example.com", phone: "+49 151 88340177" },
+      { name: "Nina Bauer", email: "nina.bauer@example.com", phone: "+49 160 77114402" },
+      { name: "Sebastian Neumann", email: "sebastian.neumann@example.com", phone: "+49 176 44490112" },
+      { name: "Laura Richter", email: "laura.richter@example.com", phone: "+49 152 67110990" }
     ];
 
-    // 15 bookings across 0..6 days, 08:00..18:00
-    const times = [
-      [8, 0], [9, 30], [11, 0], [12, 30], [14, 0], [15, 30], [17, 0], [18, 0]
+    // Oberklasse / obere Mittelklasse / Sportwagen
+    const cars = [
+      "BMW M3 Competition • Schwarz",
+      "Audi RS6 Avant • Grau",
+      "Mercedes-AMG C63 S • Silber",
+      "Porsche 911 Carrera S • Blau",
+      "BMW M5 • Schwarz",
+      "Mercedes S500 • Anthrazit",
+      "Audi A6 Avant • Weiß",
+      "Porsche Taycan • Weiß",
+      "BMW X5 M • Schwarz",
+      "Mercedes-AMG GT • Grau",
+      "Audi RS3 • Rot",
+      "BMW 540i • Dunkelblau",
+      "Mercedes E53 AMG • Schwarz",
+      "Porsche Cayman GTS • Gelb",
+      "Audi Q8 • Schwarz"
     ];
+
+    // Zeiten so verteilt, dass es realistisch aussieht
+    const times = [
+      [8, 0],
+      [9, 30],
+      [10, 45],
+      [12, 15],
+      [13, 30],
+      [15, 0],
+      [16, 15],
+      [17, 30]
+    ];
+
+    // Service rotation
+    const svcIds = ["svc-ppf", "svc-wrap", "svc-ceramic", "svc-paintcorrection", "svc-detailing"];
+
+    // Preise passend zu Services (wird als "total_price" reingeschrieben)
+    const svcPrice = {
+      "svc-ppf": 1590,
+      "svc-wrap": 2990,
+      "svc-ceramic": 1290,
+      "svc-paintcorrection": 890,
+      "svc-detailing": 349
+    };
 
     const out = [];
     let idCounter = 1;
 
+    // 15 Bookings: immer über die nächsten 0..6 Tage verteilt (rolling)
     for (let i = 0; i < 15; i++) {
-      const dayOffset = i % 7;
+      const dayOffset = i % 7; // rolling week window
       const t = times[i % times.length];
+
       const start = setTime(addDays(base, dayOffset), t[0], t[1]);
-      const end = addMinutes(start, 90);
+
+      // Dauer je Service etwas variieren
+      const service_id = svcIds[i % svcIds.length];
+      const duration =
+        service_id === "svc-wrap" ? 300 :
+        service_id === "svc-ppf" ? 240 :
+        service_id === "svc-ceramic" ? 240 :
+        service_id === "svc-paintcorrection" ? 180 :
+        120;
+
+      const end = addMinutes(start, duration);
 
       const c = customers[i % customers.length];
       const car = cars[i % cars.length];
 
+      // Verteile Status & Payment bewusst gemischt
       const status = statuses[i % statuses.length];
-      const payment_status = pay[(i + 1) % pay.length];
+      const payment_status = pay[(i + 2) % pay.length];
+
+      const notes =
+        i % 5 === 0 ? "Kundenwunsch: Fokus auf Felgen + Innenraum, bitte kleine Kratzer prüfen." :
+        i % 5 === 2 ? "Abholung am selben Tag. Schlüssel im Safe." :
+        "";
 
       out.push({
         id: `demo-booking-${idCounter++}`,
         detailer_id: DEMO_USER_ID,
+
         customer_name: c.name,
         customer_email: c.email,
         customer_phone: c.phone,
         customer_address: "Karlsruhe, DE",
+
         car,
-        notes: i % 3 === 0 ? "Kundenwunsch: extra Fokus Felgen & Innenraum." : "",
+        notes,
+
         start_at: iso(start),
         end_at: iso(end),
+
         status,
         payment_status,
-        total_price: 149 + (i % 5) * 50,
-        vehicle_class_id: i % 2 === 0 ? "vc-1" : "vc-2",
-        service_id: i % 3 === 0 ? "svc-ppf" : (i % 3 === 1 ? "svc-keramik" : "svc-detailing")
+
+        total_price: svcPrice[service_id] ?? 199,
+
+        vehicle_class_id: i % 3 === 0 ? "vc-2" : "vc-1",
+        service_id
       });
     }
 
     return out;
   }
 
+  // -----------------------------
+  // Demo DB (in-memory until reload)
+  // -----------------------------
   const DEMO_DB = {
     profiles: [
       {
@@ -146,18 +267,18 @@
         public_daily_limit: 4
       }
     ],
+
     vehicle_classes: [
       { id: "vc-1", detailer_id: DEMO_USER_ID, name: "PKW" },
       { id: "vc-2", detailer_id: DEMO_USER_ID, name: "SUV / VAN" }
     ],
-    services: [
-      { id: "svc-detailing", detailer_id: DEMO_USER_ID, name: "Detailing Paket", price: 199, type: "package", description: "Außen + Innen, quick turnaround." },
-      { id: "svc-keramik", detailer_id: DEMO_USER_ID, name: "Keramikversiegelung", price: 599, type: "package", description: "High gloss, easy maintenance." },
-      { id: "svc-ppf", detailer_id: DEMO_USER_ID, name: "PPF Frontpaket", price: 899, type: "package", description: "Frontschutz gegen Steinschläge." },
-      { id: "svc-ozon", detailer_id: DEMO_USER_ID, name: "Ozonbehandlung", price: 79, type: "single", description: "Geruchsentfernung." },
-      { id: "svc-felgen", detailer_id: DEMO_USER_ID, name: "Felgenreinigung", price: 49, type: "single", description: "Intensivreinigung inkl. Versiegelung." }
-    ],
+
+    // <<< dein neues Services-Set >>>
+    services: deepClone(DEMO_SERVICES),
+
+    // <<< 15 rolling Aufträge >>>
     bookings: generateBookings(),
+
     signup_events: []
   };
 
@@ -168,10 +289,7 @@
     access_token: "demo-access-token",
     refresh_token: "demo-refresh-token",
     token_type: "bearer",
-    user: {
-      id: DEMO_USER_ID,
-      email: DEMO_EMAIL
-    }
+    user: { id: DEMO_USER_ID, email: DEMO_EMAIL }
   };
 
   // -----------------------------
@@ -179,7 +297,6 @@
   // -----------------------------
   function filterRows(rows, filters) {
     let out = rows.slice();
-
     for (const f of filters) {
       const { op, col, val } = f;
       if (op === "eq") out = out.filter(r => String(r[col]) === String(val));
@@ -290,7 +407,7 @@
   // -----------------------------
   // Fetch interception:
   // - Block writes to Supabase/API (POST/PUT/PATCH/DELETE)
-  // - Allow GETs (or return mocked stubs if needed)
+  // - Allow GETs
   // -----------------------------
   const realFetch = window.fetch.bind(window);
 
@@ -298,9 +415,7 @@
     const url = (typeof input === "string") ? input : (input && input.url ? input.url : "");
     const method = (init && init.method ? String(init.method).toUpperCase() : "GET");
 
-    // Block any non-GET requests to Supabase / API (no real writes)
     if ((SUPABASE_HOST_RE.test(url) || API_HOST_RE.test(url)) && method !== "GET") {
-      // In-memory only: pretend success
       return new Response(JSON.stringify({ ok: true, demo: true }), {
         status: 200,
         headers: { "Content-Type": "application/json" }
@@ -310,7 +425,9 @@
     return realFetch(input, init);
   };
 
-  // Optional: small banner marker in demo
+  // -----------------------------
+  // Demo marker
+  // -----------------------------
   window.addEventListener("DOMContentLoaded", () => {
     try {
       const tag = document.createElement("div");
@@ -329,6 +446,96 @@
       document.body.appendChild(tag);
     } catch (_) {}
   });
+
+  // -----------------------------
+  // FIX: Settings subview routing (Service / Business)
+  // -----------------------------
+  // Problem: In Demo/Defer/Timing kann es passieren, dass deine App-Handler nicht binden.
+  // Lösung: Wir fangen Klicks ab und versuchen:
+  // 1) vorhandene App-Funktionen zu callen (falls vorhanden)
+  // 2) ansonsten: DOM-Fallback -> Panels show/hide
+  function normalizeKey(s) {
+    return String(s || "").toLowerCase().trim();
+  }
+
+  function showSubviewFallback(key) {
+    const k = normalizeKey(key);
+
+    // 1) Wenn App Helper existiert: nutzen
+    const candidates = [
+      ["showSettingsSubview", [k]],
+      ["openSettingsSubview", [k]],
+      ["navigateSettingsSubview", [k]],
+      ["setSettingsSubview", [k]],
+      ["showSettingsView", []] // ggf. erst settings view
+    ];
+
+    for (const [fn, args] of candidates) {
+      if (typeof window[fn] === "function") {
+        try {
+          window[fn](...args);
+          // nach dem Call nicht returnen: manche Apps setzen erst View, dann Subview
+        } catch (_) {}
+      }
+    }
+
+    // 2) DOM-Fallback:
+    // - wir versuchen verbreitete Muster: data-subview, ids, classes
+    const allPanels = Array.from(document.querySelectorAll(
+      "[data-settings-subview], .settings-subview, .settings-view__subview, .subview"
+    ));
+
+    // Panel finden
+    const panel =
+      document.querySelector(`[data-settings-subview="${k}"]`) ||
+      document.getElementById(`settings-${k}`) ||
+      document.getElementById(`settings-subview-${k}`) ||
+      document.querySelector(`.settings-subview--${k}`) ||
+      document.querySelector(`#${k}-subview`) ||
+      document.querySelector(`.${k}-subview`);
+
+    if (allPanels.length) {
+      allPanels.forEach(p => {
+        // nur verstecken, wenn es wirklich ein Subview-Container ist
+        p.classList.add("hidden");
+        p.style.display = "none";
+      });
+    }
+
+    if (panel) {
+      panel.classList.remove("hidden");
+      panel.style.display = "";
+    }
+  }
+
+  // Click delegation: Buttons/Links die "service" / "business" heißen
+  document.addEventListener("click", (e) => {
+    const el = e.target && e.target.closest ? e.target.closest("button,a,[role='button']") : null;
+    if (!el) return;
+
+    const id = normalizeKey(el.id);
+    const txt = normalizeKey(el.textContent);
+    const data = normalizeKey(el.getAttribute("data-subview") || el.getAttribute("data-settings-subview"));
+
+    const wantsServices =
+      data === "services" || data === "service" ||
+      id.includes("service") || id.includes("services") ||
+      txt === "service" || txt === "services" || txt.includes("service");
+
+    const wantsBusiness =
+      data === "business" || data === "unternehmen" ||
+      id.includes("business") || id.includes("company") || id.includes("unternehmen") ||
+      txt === "business" || txt.includes("business") || txt.includes("unternehmen");
+
+    if (wantsServices) {
+      try { showSubviewFallback("services"); } catch (_) {}
+    }
+
+    if (wantsBusiness) {
+      try { showSubviewFallback("business"); } catch (_) {}
+    }
+  }, true);
+
 })();
 
 // Hard bypass for any auth UI that still renders.
@@ -339,14 +546,7 @@
 
   const timer = setInterval(() => {
     try {
-      // viele deiner Projekte haben showAuthView/showAppView oder ähnliche helpers
       if (typeof window.showAppView === "function") {
-        // falls es eine login view gibt, wegbügeln
-        if (typeof window.showAuthView === "function") {
-          // nichts – wir zeigen einfach App
-        }
-
-        // Optional: falls es Wrapper gibt
         const auth = document.getElementById("auth-view") || document.querySelector(".auth-view");
         if (auth) auth.style.display = "none";
 
@@ -358,7 +558,6 @@
         return;
       }
 
-      // Fallback: wenn deine App statt showAppView mit Klassen arbeitet
       const loginScreen = document.querySelector("#login-screen, .login-screen, #auth, .auth");
       const appShell = document.querySelector("#app, .app, #app-shell, .app-shell");
       if (appShell && loginScreen) {
@@ -368,6 +567,7 @@
         return;
       }
     } catch (e) {}
+
     if (Date.now() - start > max) clearInterval(timer);
   }, 80);
 })();
