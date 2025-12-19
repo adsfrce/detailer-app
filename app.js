@@ -817,17 +817,16 @@ bookingSinglesList.appendChild(opt);
 
     row.addEventListener("click", () => {
       // toggle selection in hidden multi-select
-      const opt = bookingSinglesList.querySelector(`option[value="${svc.id}"]`);
-      if (!opt) return;
+row.addEventListener("click", (e) => {
+  // wenn "Details" geklickt wurde -> nicht selektieren
+  if (e.target.closest(".service-desc-toggle")) return;
 
-      opt.selected = !opt.selected;
-      row.classList.toggle("selected", opt.selected);
+  // direkt das oben erstellte <option> nutzen (keine querySelector-Suche)
+  opt.selected = !opt.selected;
+  row.classList.toggle("selected", opt.selected);
 
-      recalcBookingSummary();
-    });
-
-    bookingSinglesMenuUI.appendChild(row);
-  });
+  recalcBookingSummary();
+});
 }
 
 function showBookingStep(step) {
