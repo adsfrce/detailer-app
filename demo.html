@@ -17,9 +17,8 @@
   <script>
     window.__DETAILHQ_DEMO = true;
     (async function () {
-      // anpassen falls dein App-Entry anders heißt:
-      const APP_HTML_PATH = "/app.html";    // deine echte App-Seite
-      const DEMO_JS_PATH  = "/demo.js";     // deine demo.js liegt laut dir im Root
+      const APP_HTML_PATH = "/app.html";  
+      const DEMO_JS_PATH  = "/demo.js?v=" + Date.now();
 
       const loader = document.getElementById("demo-loader");
 
