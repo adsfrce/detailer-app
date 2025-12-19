@@ -228,6 +228,7 @@ const bookingDetailSinglesMenu = document.getElementById(
 const bookingDetailSinglesToggle = document.getElementById(
   "booking-detail-singles-toggle"
 );
+const bookingDetailSinglesLabel = document.getElementById("booking-detail-singles-label");
 
 const bookingDetailBookingContainer = document.getElementById("booking-detail-booking");
 const bookingDetailCustomerContainer = document.getElementById("booking-detail-customer");
@@ -566,6 +567,8 @@ const bookingMainServiceSelect = document.getElementById(
 const bookingSinglesList = document.getElementById("booking-singles-list");
 const bookingSinglesToggle = document.getElementById("booking-singles-toggle");
 const bookingSinglesMenu = document.getElementById("booking-singles-menu");
+const bookingSinglesLabel = document.getElementById("booking-singles-label");
+const bookingSinglesMenuUI = bookingSinglesMenu; // Alias, damit dein renderSingles nicht crasht
 
 const bookingDateInput = document.getElementById("booking-date");
 const bookingTimeInput = document.getElementById("booking-time");
@@ -737,8 +740,8 @@ if (panel) {
 }
 
 function renderSingles() {
-  bookingSinglesMenuUI.innerHTML = "";
-  bookingSinglesLabel.textContent = "Einzelleistungen wählen";
+  if (bookingSinglesMenuUI) bookingSinglesMenuUI.innerHTML = "";
+  if (bookingSinglesLabel) bookingSinglesLabel.textContent = "Einzelleistungen wählen";
 
   const singles = services.filter((s) => s && (s.kind === "single" || s.kind === "addon"));
 
@@ -983,6 +986,8 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
 }
 attachDropdownToggle(null, "booking-package-toggle", "booking-package-menu");
 attachDropdownToggle(null, "booking-detail-package-toggle", "booking-detail-package-menu");
+attachDropdownToggle(null, "booking-singles-toggle", "booking-singles-menu");
+attachDropdownToggle(null, "booking-detail-singles-toggle", "booking-detail-singles-menu");
 
 function setupRegisterBusinessTypeDropdown() {
   if (!registerBusinessToggle || !registerBusinessMenu || !registerBusinessTypesList) return;
