@@ -818,16 +818,13 @@ bookingSinglesList.appendChild(opt);
     row.addEventListener("click", () => {
       // toggle selection in hidden multi-select
 row.addEventListener("click", (e) => {
-  // wenn "Details" geklickt wurde -> nicht selektieren
   if (e.target.closest(".service-desc-toggle")) return;
 
-  // direkt das oben erstellte <option> nutzen (keine querySelector-Suche)
   opt.selected = !opt.selected;
   row.classList.toggle("selected", opt.selected);
 
   recalcBookingSummary();
 });
-}
 
 function showBookingStep(step) {
   currentBookingStep = step;
