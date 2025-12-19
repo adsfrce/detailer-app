@@ -685,42 +685,43 @@ function renderPackages() {
 
     headerRow.appendChild(txt);
 
-    const desc = (svc.description || "").trim();
-    if (desc) {
-      const wrap = document.createElement("div");
-      wrap.className = "service-desc-wrap";
+const desc = (svc.description || "").trim();
+let panel = null;
 
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "service-desc-toggle";
-      btn.setAttribute("aria-expanded", "false");
-      btn.innerHTML =
-        `Details <span class="service-desc-chevron">▾</span>`;
+if (desc) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "service-desc-toggle";
+  btn.setAttribute("aria-expanded", "false");
+  btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
 
-      const panel = document.createElement("div");
-      panel.className = "service-desc-panel hidden";
+  panel = document.createElement("div");
+  panel.className = "service-desc-panel hidden";
 
-      const text = document.createElement("div");
-      text.className = "service-desc-text";
-      text.textContent = desc;
+  const text = document.createElement("div");
+  text.className = "service-desc-text";
+  text.textContent = desc;
 
-      panel.appendChild(text);
+  panel.appendChild(text);
 
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const open = btn.getAttribute("aria-expanded") === "true";
-        btn.setAttribute("aria-expanded", String(!open));
-        panel.classList.toggle("hidden", open);
-      });
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", String(!open));
+    panel.classList.toggle("hidden", open);
+  });
 
-      wrap.appendChild(btn);
-      wrap.appendChild(panel);
+  headerRow.appendChild(btn);
+}
 
-      col.appendChild(headerRow);
-      col.appendChild(wrap);
-    } else {
-      col.appendChild(headerRow);
-    }
+col.appendChild(headerRow);
+
+if (panel) {
+  const wrap = document.createElement("div");
+  wrap.className = "service-desc-wrap";
+  wrap.appendChild(panel);
+  col.appendChild(wrap);
+}
 
     row.appendChild(radio);
     row.appendChild(col);
