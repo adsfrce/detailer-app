@@ -46,7 +46,187 @@
     x.setHours(hh, mm, 0, 0);
     return x;
   }
+  
+  // -----------------------------
+  // Rolling "today" anchor
+  // -----------------------------
+  const now = new Date();
+  now.setSeconds(0, 0);
+  const today = new Date(now);
+  today.setHours(0,0,0,0);
 
+  // -----------------------------
+  // SERVICES (deine Zeiten!)
+  // Hinweis: Bei "Tage" rechnen wir mit 8h/Tag, damit UI nicht komplett eskaliert.
+  // -----------------------------
+  const DEMO_SERVICES = [
+    {
+      id: "svc-ppf",
+      detailer_id: DEMO_USER_ID,
+      kind: "package",
+      category: "Lackschutz / PPF",
+      name: "PPF – Frontpaket (Premium)",
+      description: "Stoßfänger, Motorhaube (Teil), Kotflügel (Teil), Spiegel.",
+      base_price_cents: 169900, // 1.699 €
+      duration_minutes: Math.round(3.5 * 8 * 60), // 3–4 Tage -> 3.5 Arbeitstage
+      is_active: true
+    },
+    {
+      id: "svc-wrap",
+      detailer_id: DEMO_USER_ID,
+      kind: "package",
+      category: "Folierung",
+      name: "Vollfolierung",
+      description: "Vollfolierung inkl. Demontage/Kanten, Premium-Folie.",
+      base_price_cents: 249900, // 2.499 €
+      duration_minutes: Math.round(2 * 8 * 60), // 2 Tage
+      is_active: true
+    },
+    {
+      id: "svc-ceramic",
+      detailer_id: DEMO_USER_ID,
+      kind: "package",
+      category: "Keramikversiegelung",
+      name: "Keramikversiegelung (2–3 Jahre)",
+      description: "Lack vorbereiten, entfetten, 1–2 Schichten, Aushärtung.",
+      base_price_cents: 89900, // 899 €
+      duration_minutes: 12 * 60, // 12h
+      is_active: true
+    },
+    {
+      id: "svc-paintcorrection",
+      detailer_id: DEMO_USER_ID,
+      kind: "package",
+      category: "Lackkorrektur",
+      name: "Lackkorrektur (1-Step / Finish)",
+      description: "Maschinelle Politur, Glanz- & Defektkorrektur.",
+      base_price_cents: 74900, // 749 €
+      duration_minutes: 10 * 60, // 10h
+      is_active: true
+    },
+    {
+      id: "svc-detailing",
+      detailer_id: DEMO_USER_ID,
+      kind: "service",
+      category: "Aufbereitung",
+      name: "Innen & Außen Aufbereitung",
+      description: "Handwäsche, Innenraum, Felgen, Glas, Finish.",
+      base_price_cents: 29900, // 299 €
+      duration_minutes: Math.round(5.5 * 60), // 5–6h
+      is_active: true
+    }
+  ];
+
+  // -----------------------------
+  // VEHICLE CLASSES (Preset)
+  // -----------------------------
+  const DEMO_VEHICLE_CLASSES = [
+    { id: "vc-1", detailer_id: DEMO_USER_ID, name: "Kompaktklasse", price_delta_cents: 0 },
+    { id: "vc-2", detailer_id: DEMO_USER_ID, name: "Mittelklasse", price_delta_cents: 4900 },
+    { id: "vc-3", detailer_id: DEMO_USER_ID, name: "Obere Mittelklasse", price_delta_cents: 9900 },
+    { id: "vc-4", detailer_id: DEMO_USER_ID, name: "Oberklasse", price_delta_cents: 14900 },
+    { id: "vc-5", detailer_id: DEMO_USER_ID, name: "SUV / VAN", price_delta_cents: 12900 },
+    { id: "vc-6", detailer_id: DEMO_USER_ID, name: "Sportwagen", price_delta_cents: 19900 }
+  ];
+
+  // -----------------------------
+  // 15 BOOKINGS, rolling (heute bleibt immer heute)
+  // über ~6–7 Tage verteilt, gemischte Status
+  // -----------------------------
+  function generateBookings() {
+    const names = [
+      "Lukas Schneider","Nina Fischer","Maximilian Weber","Sarah Hoffmann","Tim Neumann",
+      "Leonie Wagner","Jonas Becker","Laura Klein","Paul Richter","Marie Wolf",
+      "Felix Braun","Anna Krüger","David König","Sophie Hartmann","Jan Zimmermann"
+    ];
+
+    const cars = [
+      "BMW 540i G30","Audi S6 C8","Mercedes E53 AMG","Porsche 911 Carrera (992)",
+      "BMW M3 G80","Audi RS5","Mercedes C63 AMG","Porsche Taycan 4S",
+      "BMW X5 M50i","Audi SQ7","Mercedes S500","BMW 750i",
+      "Porsche Cayman GTS 4.0","Audi RS3 8Y","Mercedes AMG GT"
+    ];
+
+    const svcIds = ["svc-detailing","svc-paintcorrection","svc-ceramic","svc-wrap","svc-ppf"];
+    const jobStatuses = ["requested","planned","in_progress","done","canceled","proposed"];
+    const payStatuses = ["unpaid","partial","paid","refunded"];
+
+    // Verteilung: 1 gestern, 4 heute, Rest +1 bis +6 Tage
+    const offsets = [-1, 0,0,0,0, 1,1, 2,2, 3,3, 4,4, 5,6];
+
+    const out = [];
+    for (let i = 0; i < 15; i++) {
+      const startBase = new Date(today);
+      const startDay = new Date(startBase);
+      startDay.setDate(startDay.getDate() + offsets[i]);
+
+      // Slots über den Tag streuen
+      const startHour = [8,9,10,11,12,13,14,15][i % 8];
+      const startAt = new Date(startDay);
+      startAt.setHours(startHour, 0, 0, 0);
+
+      const service_id = svcIds[i % svcIds.length];
+      const svc = DEMO_SERVICES.find(s => s.id === service_id);
+      const durMin = svc ? Number(svc.duration_minutes || 180) : 180;
+
+      const endAt = new Date(startAt);
+      endAt.setMinutes(endAt.getMinutes() + durMin);
+
+      const vehicleClassId = (i % 5 === 0) ? "vc-6" : (i % 3 === 0) ? "vc-4" : "vc-3";
+
+      out.push({
+        id: 1001 + i,
+        detailer_id: DEMO_USER_ID,
+        customer_name: names[i],
+        customer_email: `kunde${i+1}@example.de`,
+        customer_phone: "+49 170 1234567",
+        vehicle_name: cars[i],
+        vehicle_class_id: vehicleClassId,
+        service_id,
+        service_name: svc ? svc.name : "Service",
+        category: svc ? svc.category : "",
+        notes: i % 4 === 0 ? "Kunde wünscht Abholung bis 18:00." : "",
+        start_at: startAt.toISOString(),
+        end_at: endAt.toISOString(),
+        status: jobStatuses[i % jobStatuses.length],
+        job_status: jobStatuses[i % jobStatuses.length],
+        payment_status: payStatuses[(i + 1) % payStatuses.length],
+        total_price: Math.round(((svc ? svc.base_price_cents : 29900) / 100)),
+        created_at: new Date(now.getTime() - (i * 3600 * 1000)).toISOString()
+      });
+    }
+    return out;
+  }
+
+  // -----------------------------
+  // DEMO_DB (das ist der Kern warum bei dir aktuell alles leer ist)
+  // -----------------------------
+  const DEMO_DB = {
+    profiles: [
+      {
+        id: DEMO_USER_ID,
+        company_name: DEMO_COMPANY,
+        full_name: "Demo Admin",
+        plan_status: "active",
+        trial_ends_at: null,
+        opening_hours: {
+          mon: { open: true, start: "08:00", end: "18:00" },
+          tue: { open: true, start: "08:00", end: "18:00" },
+          wed: { open: true, start: "08:00", end: "18:00" },
+          thu: { open: true, start: "08:00", end: "18:00" },
+          fri: { open: true, start: "08:00", end: "18:00" },
+          sat: { open: true, start: "09:00", end: "14:00" },
+          sun: { open: false, start: null, end: null }
+        },
+        public_daily_limit: 4
+      }
+    ],
+    vehicle_classes: deepClone(DEMO_VEHICLE_CLASSES),
+    services: deepClone(DEMO_SERVICES),
+    bookings: generateBookings(),
+    signup_events: []
+  };
+  
   // -----------------------------
   // Kill any real Supabase auth persistence (your “random account”)
   // -----------------------------
@@ -359,6 +539,7 @@
     }
 
     single() { this._single = true; return this; }
+    maybeSingle() { this._single = true; return this; }
 
     async _exec() {
       const table = this.table;
