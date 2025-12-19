@@ -1,13 +1,16 @@
-// DetailHQ Demo Mode (Supabase same project)
-// - Uses real Supabase client + maps tables to demo_*
-// - Fakes auth session (no "random account" sticking)
-// - Blocks writes (POST/PUT/PATCH/DELETE) to Supabase
+// DetailHQ Demo Mode (same repo / same project)
+// Goals:
+// - Load real app.html + app.js (always up-to-date)
+// - Force demo auth user
+// - Route reads to demo_* tables via .from() mapping
+// - Block ALL writes (Supabase REST + api.detailhq.de) without UI crashes
 
 (function () {
   "use strict";
 
-  // Only run on demo page
-  const isDemo = !!(window.__DETAILHQ_DEMO || window.DETAILHQ_DEMO || String(location.pathname).includes("demo"));
+  const isDemo =
+    !!(window.__DETAILHQ_DEMO || window.DETAILHQ_DEMO) ||
+    String(location.pathname).toLowerCase().includes("demo");
   if (!isDemo) return;
 
   const DEMO_USER_ID = "00000000-0000-4000-8000-000000000001";
@@ -20,7 +23,7 @@
     bookings: "demo_bookings",
   };
 
-  // 1) Kill any persisted real Supabase sessions (prevents "random user" auto-login)
+  // 1) Purge any persisted real sessions (prevents random user bleed)
   try {
     const purge = (store) => {
       const keys = [];
@@ -37,28 +40,40 @@
     purge(sessionStorage);
   } catch (_) {}
 
-  // 2) Block writes to Supabase (keeps demo read-only even if RLS would allow)
+  // 2) Block writes (Supabase + your API). Keep reads untouched.
   const realFetch = window.fetch.bind(window);
   const SUPABASE_HOST_RE = /\.supabase\.co\b/i;
+  const API_HOST_RE = /^https:\/\/api\.detailhq\.de\b/i;
+
+  function okJson(payload) {
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   window.fetch = async function (input, init) {
-    const url = (typeof input === "string") ? input : (input && input.url ? input.url : "");
-    const method = (init && init.method ? String(init.method).toUpperCase() : "GET");
+    const url =
+      typeof input === "string" ? input : (input && input.url ? input.url : "");
+    const method = init && init.method ? String(init.method).toUpperCase() : "GET";
 
+    // Block ALL non-GET to Supabase
     if (SUPABASE_HOST_RE.test(url) && method !== "GET") {
-      // Pretend OK (prevents UI errors)
-      return new Response(JSON.stringify({ ok: true, demo: true, blocked: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      // Supabase expects JSON; app only checks "error", not returned "data"
+      return okJson({ ok: true, demo: true, blocked: true });
     }
+
+    // Block write-ish calls to your API (confirm/propose/support etc.)
+    if (API_HOST_RE.test(url) && method !== "GET") {
+      return okJson({ ok: true, demo: true, blocked: true });
+    }
+
     return realFetch(input, init);
   };
 
-  // 3) Patch supabase.createClient so app stays unchanged
-  //    - Use real client
-  //    - Map .from("services") -> .from("demo_services") etc.
-  //    - Fake auth session methods so app thinks it's logged in as DEMO_USER_ID
+  // 3) Patch supabase.createClient:
+  // - map tables
+  // - fake auth to DEMO user
   function patchSupabaseCreateClient() {
     if (!window.supabase || typeof window.supabase.createClient !== "function") return false;
     if (window.supabase.__detailhqDemoPatched) return true;
@@ -75,7 +90,7 @@
         return realFrom(mapped);
       };
 
-      // fake auth (only for demo UI; data comes from demo_* tables via anon key + RLS select)
+      // fake auth session
       const demoSession = {
         access_token: "demo-access-token",
         refresh_token: "demo-refresh-token",
@@ -101,20 +116,20 @@
     return true;
   }
 
-  // Run patch ASAP + retry a few times (in case CDN supabase script loads slightly later)
+  // Patch ASAP (supabase UMD loads from CDN)
   if (!patchSupabaseCreateClient()) {
     let tries = 0;
     const t = setInterval(() => {
       tries++;
-      if (patchSupabaseCreateClient() || tries > 80) clearInterval(t);
+      if (patchSupabaseCreateClient() || tries > 120) clearInterval(t);
     }, 25);
   }
 
-  // 4) Small demo marker
+  // Small badge
   window.addEventListener("DOMContentLoaded", () => {
     try {
       const tag = document.createElement("div");
-      tag.textContent = "DEMO – Daten aus demo_* Tabellen (read-only)";
+      tag.textContent = "DEMO – read-only (demo_* Tabellen)";
       tag.style.position = "fixed";
       tag.style.left = "12px";
       tag.style.bottom = "12px";
