@@ -5,6 +5,22 @@
 
 (function () {
   "use strict";
+    // DEMO: kill any persisted real Supabase sessions (prevents "random user" login)
+  try {
+    const purge = (store) => {
+      const keys = [];
+      for (let i = 0; i < store.length; i++) keys.push(store.key(i));
+      keys.forEach(k => {
+        // supabase uses keys like: sb-<project-ref>-auth-token, supabase.auth.token, etc.
+        if (!k) return;
+        if (k.includes("sb-") || k.toLowerCase().includes("supabase")) {
+          store.removeItem(k);
+        }
+      });
+    };
+    purge(window.localStorage);
+    purge(window.sessionStorage);
+  } catch (_) {}
 
   const DEMO_USER_ID = "00000000-0000-4000-8000-000000000001";
   const DEMO_EMAIL = "demo@detailhq.de";
