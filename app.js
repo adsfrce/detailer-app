@@ -740,30 +740,39 @@ if (panel) {
 }
 
 function renderSingles() {
-  if (bookingSinglesMenuUI) bookingSinglesMenuUI.innerHTML = "";
-  if (bookingSinglesLabel) bookingSinglesLabel.textContent = "Einzelleistungen wählen";
-  if (bookingSinglesList) bookingSinglesList.innerHTML = "";
+  if (!bookingSinglesMenuUI || !bookingSinglesList) return;
 
-  const singles = (services || []).filter((s) => s && (s.kind === "single" || s.kind === "addon"));
+  // Selection merken (falls renderSingles erneut läuft)
+  const prevSelected = new Set(
+    Array.from(bookingSinglesList.selectedOptions || []).map((o) => String(o.value))
+  );
+
+  bookingSinglesMenuUI.innerHTML = "";
+  bookingSinglesList.innerHTML = "";
+
+  const singles = (services || []).filter(
+    (s) => s && (s.kind === "single" || s.kind === "addon")
+  );
 
   if (!singles.length) {
-    if (bookingSinglesMenuUI) {
-      bookingSinglesMenuUI.innerHTML = `<p class="form-hint">Noch keine Einzelleistungen.</p>`;
-    }
+    bookingSinglesMenuUI.innerHTML = `<p class="form-hint">Noch keine Einzelleistungen.</p>`;
+    updateBookingSinglesToggleText();
     return;
   }
 
   singles.forEach((svc) => {
-    // hidden select option (so selection toggling works)
+    // hidden select option
     const opt = document.createElement("option");
     opt.value = String(svc.id);
     opt.textContent = svc.name;
+    if (prevSelected.has(opt.value)) opt.selected = true;
     bookingSinglesList.appendChild(opt);
 
     // visible row
     const row = document.createElement("div");
     row.className = "settings-dropdown-item";
     row.dataset.value = String(svc.id);
+    row.classList.toggle("selected", opt.selected);
 
     const box = document.createElement("div");
     box.className = "booking-singles-item-checkbox";
@@ -820,18 +829,35 @@ function renderSingles() {
     row.appendChild(box);
     row.appendChild(col);
 
-    // selection toggle
     row.addEventListener("click", (e) => {
+      // wenn "Details" geklickt wurde -> nicht selektieren
       if (e.target.closest(".service-desc-toggle")) return;
 
       opt.selected = !opt.selected;
       row.classList.toggle("selected", opt.selected);
 
+      updateBookingSinglesToggleText();
       recalcBookingSummary();
     });
 
     bookingSinglesMenuUI.appendChild(row);
   });
+
+  updateBookingSinglesToggleText();
+}
+
+function updateBookingSinglesToggleText() {
+  if (!bookingSinglesToggle || !bookingSinglesList) return;
+
+  const labels = Array.from(bookingSinglesList.selectedOptions || [])
+    .map((o) => o.textContent)
+    .filter(Boolean);
+
+  const text = labels.length ? labels.join(", ") : "Einzelleistungen wählen";
+
+  const chevron = bookingSinglesToggle.querySelector(".settings-dropdown-chevron");
+  bookingSinglesToggle.textContent = text + " ";
+  if (chevron) bookingSinglesToggle.appendChild(chevron);
 }
 
 function showBookingStep(step) {
