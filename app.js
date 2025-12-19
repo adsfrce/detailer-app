@@ -4066,11 +4066,6 @@ const grouped = {
       row.appendChild(statusLine);
       row.appendChild(lineAmount);
 
-const opt = document.createElement("option");
-opt.value = String(svc.id);
-opt.textContent = svc.name;
-bookingSinglesList.appendChild(opt);
-
       row.addEventListener("click", () => {
         openBookingDetail(b);
       });
