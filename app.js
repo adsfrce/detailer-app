@@ -742,6 +742,7 @@ if (panel) {
 function renderSingles() {
   if (bookingSinglesMenuUI) bookingSinglesMenuUI.innerHTML = "";
   if (bookingSinglesLabel) bookingSinglesLabel.textContent = "Einzelleistungen wählen";
+  if (bookingSinglesList) bookingSinglesList.innerHTML = "";
 
   const singles = services.filter((s) => s && (s.kind === "single" || s.kind === "addon"));
 
@@ -751,6 +752,10 @@ function renderSingles() {
   }
 
   singles.forEach((svc) => {
+const opt = document.createElement("option");
+opt.value = String(svc.id);
+opt.textContent = svc.name;
+bookingSinglesList.appendChild(opt);
     const row = document.createElement("div");
     row.className = "settings-dropdown-item";
     row.dataset.value = String(svc.id);
