@@ -698,7 +698,20 @@
               />
 
               <label class="field-label" for="booking-main-service">Paket (optional)</label>
-              <select id="booking-main-service" class="field-input">
+              <select id="booking-main-service" class="hidden"></select>
+              <div class="settings-dropdown">
+  <button
+    type="button"
+    class="settings-dropdown-toggle"
+    id="booking-package-toggle"
+    aria-expanded="false"
+  >
+    <span id="booking-package-label">Paket wählen</span>
+    <span class="settings-dropdown-chevron">▾</span>
+  </button>
+
+  <div id="booking-package-menu" class="settings-dropdown-menu"></div>
+</div>
                 <option value="">Kein Paket</option>
               </select>
 
@@ -910,7 +923,20 @@
     <label class="field-label" for="booking-detail-main-service">
       Paket (optional)
     </label>
-    <select id="booking-detail-main-service" class="field-input">
+    <select id="booking-detail-main-service" class="hidden"></select>
+<div class="settings-dropdown">
+  <button
+    type="button"
+    class="settings-dropdown-toggle"
+    id="booking-detail-package-toggle"
+    aria-expanded="false"
+  >
+    <span id="booking-detail-package-label">Paket wählen</span>
+    <span class="settings-dropdown-chevron">▾</span>
+  </button>
+
+  <div id="booking-detail-package-menu" class="settings-dropdown-menu"></div>
+</div>
       <option value="">Kein Paket</option>
       <!-- Optionen per JS -->
     </select>
