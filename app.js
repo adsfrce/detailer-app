@@ -736,6 +736,92 @@ if (panel) {
   });
 }
 
+function renderSingles() {
+  bookingSinglesMenuUI.innerHTML = "";
+  bookingSinglesLabel.textContent = "Einzelleistungen wählen";
+
+  const singles = services.filter((s) => s && (s.kind === "single" || s.kind === "addon"));
+
+  if (!singles.length) {
+    bookingSinglesMenuUI.innerHTML = `<p class="form-hint">Noch keine Einzelleistungen.</p>`;
+    return;
+  }
+
+  singles.forEach((svc) => {
+    const row = document.createElement("div");
+    row.className = "settings-dropdown-item";
+    row.dataset.value = String(svc.id);
+
+    const box = document.createElement("div");
+    box.className = "booking-singles-item-checkbox";
+
+    const col = document.createElement("div");
+    col.className = "service-col";
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "service-header-row";
+
+    const txt = document.createElement("div");
+    txt.className = "booking-singles-item-label";
+    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+    headerRow.appendChild(txt);
+
+    const desc = (svc.description || "").trim();
+    let panel = null;
+
+    if (desc) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "service-desc-toggle";
+      btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML = `Details <span class="service-desc-chevron">▾</span>`;
+
+      panel = document.createElement("div");
+      panel.className = "service-desc-panel hidden";
+
+      const text = document.createElement("div");
+      text.className = "service-desc-text";
+      text.textContent = desc;
+
+      panel.appendChild(text);
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", String(!open));
+        panel.classList.toggle("hidden", open);
+      });
+
+      headerRow.appendChild(btn);
+    }
+
+    col.appendChild(headerRow);
+
+    if (panel) {
+      const wrap = document.createElement("div");
+      wrap.className = "service-desc-wrap";
+      wrap.appendChild(panel);
+      col.appendChild(wrap);
+    }
+
+    row.appendChild(box);
+    row.appendChild(col);
+
+    row.addEventListener("click", () => {
+      // toggle selection in hidden multi-select
+      const opt = bookingSinglesList.querySelector(`option[value="${svc.id}"]`);
+      if (!opt) return;
+
+      opt.selected = !opt.selected;
+      row.classList.toggle("selected", opt.selected);
+
+      recalcBookingSummary();
+    });
+
+    bookingSinglesMenuUI.appendChild(row);
+  });
+}
+
 function showBookingStep(step) {
   currentBookingStep = step;
 
@@ -2196,6 +2282,7 @@ async function loadServices() {
   renderServicesList();
   refreshBookingServiceOptions();
   refreshBookingDetailSinglesOptions();
+  renderSingles();
 }
 
 function renderServicesList() {
