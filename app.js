@@ -744,18 +744,23 @@ function renderSingles() {
   if (bookingSinglesLabel) bookingSinglesLabel.textContent = "Einzelleistungen wählen";
   if (bookingSinglesList) bookingSinglesList.innerHTML = "";
 
-  const singles = services.filter((s) => s && (s.kind === "single" || s.kind === "addon"));
+  const singles = (services || []).filter((s) => s && (s.kind === "single" || s.kind === "addon"));
 
   if (!singles.length) {
-    bookingSinglesMenuUI.innerHTML = `<p class="form-hint">Noch keine Einzelleistungen.</p>`;
+    if (bookingSinglesMenuUI) {
+      bookingSinglesMenuUI.innerHTML = `<p class="form-hint">Noch keine Einzelleistungen.</p>`;
+    }
     return;
   }
 
   singles.forEach((svc) => {
-const opt = document.createElement("option");
-opt.value = String(svc.id);
-opt.textContent = svc.name;
-bookingSinglesList.appendChild(opt);
+    // hidden select option (so selection toggling works)
+    const opt = document.createElement("option");
+    opt.value = String(svc.id);
+    opt.textContent = svc.name;
+    bookingSinglesList.appendChild(opt);
+
+    // visible row
     const row = document.createElement("div");
     row.className = "settings-dropdown-item";
     row.dataset.value = String(svc.id);
@@ -815,16 +820,19 @@ bookingSinglesList.appendChild(opt);
     row.appendChild(box);
     row.appendChild(col);
 
-    row.addEventListener("click", () => {
-      // toggle selection in hidden multi-select
-row.addEventListener("click", (e) => {
-  if (e.target.closest(".service-desc-toggle")) return;
+    // selection toggle
+    row.addEventListener("click", (e) => {
+      if (e.target.closest(".service-desc-toggle")) return;
 
-  opt.selected = !opt.selected;
-  row.classList.toggle("selected", opt.selected);
+      opt.selected = !opt.selected;
+      row.classList.toggle("selected", opt.selected);
 
-  recalcBookingSummary();
-});
+      recalcBookingSummary();
+    });
+
+    bookingSinglesMenuUI.appendChild(row);
+  });
+}
 
 function showBookingStep(step) {
   currentBookingStep = step;
