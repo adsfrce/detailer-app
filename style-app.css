@@ -134,9 +134,6 @@ body {
   color: var(--text);
   font-size: 14px;
   outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
 }
 
 .field-input:focus {
@@ -1115,8 +1112,9 @@ body {
 
 .booking-singles-item {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 6px 8px;
   border-radius: 10px;
   cursor: pointer;
@@ -1772,22 +1770,4 @@ mask-image: linear-gradient(
 /* Uhr */
 .booking-datetime-row.booking-datetime-pill .dt-time::before {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/></svg>");
-}
-
-/* Service-Auswahl: Header + Details korrekt layouten */
-.settings-dropdown-menu .service-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.settings-dropdown-menu .service-desc-toggle {
-  font-size: 12px;
-  color: var(--text-soft);
-}
-
-.settings-dropdown-menu .service-desc-panel {
-  margin-top: 4px;
-  padding-left: 0;
 }
