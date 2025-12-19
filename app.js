@@ -249,6 +249,13 @@ const bookingDetailPartialRow = document.querySelector(
 const bookingDetailPaidOverrideRow = document.querySelector(
   ".payment-paid-override-row"
 );
+const bookingPackageToggle = document.getElementById("booking-package-toggle");
+const bookingPackageLabel  = document.getElementById("booking-package-label");
+const bookingPackageMenu   = document.getElementById("booking-package-menu");
+
+const bookingDetailPackageToggle = document.getElementById("booking-detail-package-toggle");
+const bookingDetailPackageLabel  = document.getElementById("booking-detail-package-label");
+const bookingDetailPackageMenu   = document.getElementById("booking-detail-package-menu");
 
 // Theme
 const themeRadioInputs = document.querySelectorAll('input[name="theme"]');
@@ -766,6 +773,8 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
   });
 }
+attachDropdownToggle(null, "booking-package-toggle", "booking-package-menu");
+attachDropdownToggle(null, "booking-detail-package-toggle", "booking-detail-package-menu");
 
 function setupRegisterBusinessTypeDropdown() {
   if (!registerBusinessToggle || !registerBusinessMenu || !registerBusinessTypesList) return;
