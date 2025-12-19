@@ -156,7 +156,7 @@ const demoSession = {
   window.addEventListener("DOMContentLoaded", () => {
     try {
       const tag = document.createElement("div");
-      tag.textContent = "DEMO – read-only (demo_* Tabellen)";
+      tag.textContent = "DEMO – read-only";
       tag.style.position = "fixed";
       tag.style.left = "12px";
       tag.style.bottom = "12px";
