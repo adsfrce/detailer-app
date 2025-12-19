@@ -97,20 +97,16 @@ function patchSupabaseCreateClient() {
 
   window.supabase.createClient = function (url, key, opts = {}) {
     // Force NO session persistence (but do NOT break storage globally)
-    opts.auth = Object.assign(
-      {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        // Safe storage shim for supabase internals
-        storage: {
-          getItem: () => null,
-          setItem: () => {},
-          removeItem: () => {}
-        }
-      },
-      opts.auth || {}
-    );
+opts.auth = Object.assign({}, opts.auth || {}, {
+  persistSession: false,
+  autoRefreshToken: false,
+  detectSessionInUrl: false,
+  storage: {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {}
+  }
+});
 
     const client = originalCreateClient(url, key, opts);
 
@@ -122,12 +118,12 @@ function patchSupabaseCreateClient() {
     };
 
     // fake auth session
-    const demoSession = {
-      access_token: "demo-access-token",
-      refresh_token: "demo-refresh-token",
-      token_type: "bearer",
-      user: { id: DEMO_USER_ID, email: DEMO_EMAIL }
-    };
+const demoSession = {
+  access_token: key,
+  refresh_token: key,
+  token_type: "bearer",
+  user: { id: DEMO_USER_ID, email: DEMO_EMAIL }
+};
 
     const realAuth = client.auth;
     client.auth = Object.assign({}, realAuth, {
