@@ -614,6 +614,127 @@ const dashboardPeriodToggle = document.getElementById(
 // ================================
 // BOOKING STEP HELPER (global)
 // ================================
+// ===== BOOK PACKAGE UI (copied from book.js) =====
+function euro(cents) {
+  const v = Number(cents || 0) / 100;
+  return v.toLocaleString("de-DE", {
+    style: "currency",
+    currency: "EUR",
+  });
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+// 1:1 aus book.js
+function renderPackages() {
+  bookingMainServiceSelect.innerHTML = "";
+  bookingPackageMenu.innerHTML = "";
+
+  const packages = services.filter(
+    (s) =>
+      s &&
+      (s.kind === "package" ||
+        s.is_single_service === false ||
+        s.is_single_service === 0 ||
+        s.is_single_service === "false")
+  );
+
+  const ph = document.createElement("option");
+  ph.value = "";
+  ph.textContent = "Paket wählen";
+  bookingMainServiceSelect.appendChild(ph);
+
+  if (!packages.length) {
+    bookingPackageMenu.innerHTML =
+      `<p class="form-hint">Keine Pakete verfügbar.</p>`;
+    bookingPackageLabel.textContent = "Paket wählen";
+    return;
+  }
+
+  packages.forEach((svc) => {
+    // hidden select
+    const o = document.createElement("option");
+    o.value = String(svc.id);
+    o.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+    bookingMainServiceSelect.appendChild(o);
+
+    // visible row
+    const row = document.createElement("div");
+    row.className = "settings-dropdown-item";
+    row.dataset.value = String(svc.id);
+
+    const radio = document.createElement("div");
+    radio.className = "booking-singles-item-checkbox";
+
+    const col = document.createElement("div");
+    col.className = "service-col";
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "service-header-row";
+
+    const txt = document.createElement("div");
+    txt.className = "booking-singles-item-label";
+    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
+
+    headerRow.appendChild(txt);
+
+    const desc = (svc.description || "").trim();
+    if (desc) {
+      const wrap = document.createElement("div");
+      wrap.className = "service-desc-wrap";
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "service-desc-toggle";
+      btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML =
+        `Details <span class="service-desc-chevron">▾</span>`;
+
+      const panel = document.createElement("div");
+      panel.className = "service-desc-panel hidden";
+
+      const text = document.createElement("div");
+      text.className = "service-desc-text";
+      text.textContent = desc;
+
+      panel.appendChild(text);
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = btn.getAttribute("aria-expanded") === "true";
+        btn.setAttribute("aria-expanded", String(!open));
+        panel.classList.toggle("hidden", open);
+      });
+
+      wrap.appendChild(btn);
+      wrap.appendChild(panel);
+
+      col.appendChild(headerRow);
+      col.appendChild(wrap);
+    } else {
+      col.appendChild(headerRow);
+    }
+
+    row.appendChild(radio);
+    row.appendChild(col);
+
+    row.addEventListener("click", () => {
+      bookingMainServiceSelect.value = String(svc.id);
+      bookingPackageLabel.textContent = txt.textContent;
+      row.closest(".settings-dropdown")?.classList.remove("open");
+    });
+
+    bookingPackageMenu.appendChild(row);
+  });
+}
+
 function showBookingStep(step) {
   currentBookingStep = step;
 
@@ -775,127 +896,6 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
 }
 attachDropdownToggle(null, "booking-package-toggle", "booking-package-menu");
 attachDropdownToggle(null, "booking-detail-package-toggle", "booking-detail-package-menu");
-
-// ===== BOOK PACKAGE UI (copied from book.js) =====
-function euro(cents) {
-  const v = Number(cents || 0) / 100;
-  return v.toLocaleString("de-DE", {
-    style: "currency",
-    currency: "EUR",
-  });
-}
-
-function escapeHtml(str) {
-  return String(str || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-// 1:1 aus book.js
-function renderPackages() {
-  bookingMainServiceSelect.innerHTML = "";
-  bookingPackageMenu.innerHTML = "";
-
-  const packages = services.filter(
-    (s) =>
-      s &&
-      (s.kind === "package" ||
-        s.is_single_service === false ||
-        s.is_single_service === 0 ||
-        s.is_single_service === "false")
-  );
-
-  const ph = document.createElement("option");
-  ph.value = "";
-  ph.textContent = "Paket wählen";
-  bookingMainServiceSelect.appendChild(ph);
-
-  if (!packages.length) {
-    bookingPackageMenu.innerHTML =
-      `<p class="form-hint">Keine Pakete verfügbar.</p>`;
-    bookingPackageLabel.textContent = "Paket wählen";
-    return;
-  }
-
-  packages.forEach((svc) => {
-    // hidden select
-    const o = document.createElement("option");
-    o.value = String(svc.id);
-    o.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
-    bookingMainServiceSelect.appendChild(o);
-
-    // visible row
-    const row = document.createElement("div");
-    row.className = "settings-dropdown-item";
-    row.dataset.value = String(svc.id);
-
-    const radio = document.createElement("div");
-    radio.className = "booking-singles-item-checkbox";
-
-    const col = document.createElement("div");
-    col.className = "service-col";
-
-    const headerRow = document.createElement("div");
-    headerRow.className = "service-header-row";
-
-    const txt = document.createElement("div");
-    txt.className = "booking-singles-item-label";
-    txt.textContent = `${svc.name} · ${euro(svc.base_price_cents)}`;
-
-    headerRow.appendChild(txt);
-
-    const desc = (svc.description || "").trim();
-    if (desc) {
-      const wrap = document.createElement("div");
-      wrap.className = "service-desc-wrap";
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "service-desc-toggle";
-      btn.setAttribute("aria-expanded", "false");
-      btn.innerHTML =
-        `Details <span class="service-desc-chevron">▾</span>`;
-
-      const panel = document.createElement("div");
-      panel.className = "service-desc-panel hidden";
-
-      const text = document.createElement("div");
-      text.className = "service-desc-text";
-      text.textContent = desc;
-
-      panel.appendChild(text);
-
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const open = btn.getAttribute("aria-expanded") === "true";
-        btn.setAttribute("aria-expanded", String(!open));
-        panel.classList.toggle("hidden", open);
-      });
-
-      wrap.appendChild(btn);
-      wrap.appendChild(panel);
-
-      col.appendChild(headerRow);
-      col.appendChild(wrap);
-    } else {
-      col.appendChild(headerRow);
-    }
-
-    row.appendChild(radio);
-    row.appendChild(col);
-
-    row.addEventListener("click", () => {
-      bookingMainServiceSelect.value = String(svc.id);
-      bookingPackageLabel.textContent = txt.textContent;
-      row.closest(".settings-dropdown")?.classList.remove("open");
-    });
-
-    bookingPackageMenu.appendChild(row);
-  });
-}
 
 function setupRegisterBusinessTypeDropdown() {
   if (!registerBusinessToggle || !registerBusinessMenu || !registerBusinessTypesList) return;
