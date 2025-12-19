@@ -7,6 +7,21 @@
 
 (function () {
   "use strict";
+// Intercept window.supabase assignment to patch createClient BEFORE app.js runs
+(function interceptSupabase() {
+  const desc = Object.getOwnPropertyDescriptor(window, "supabase");
+  if (desc && desc.set) return; // already intercepted
+
+  let _sb;
+  Object.defineProperty(window, "supabase", {
+    configurable: true,
+    get() { return _sb; },
+    set(v) {
+      _sb = v;
+      try { patchSupabaseCreateClient(); } catch (_) {}
+    }
+  });
+})();
 
   const isDemo =
     !!(window.__DETAILHQ_DEMO || window.DETAILHQ_DEMO) ||
@@ -39,18 +54,6 @@
     purge(localStorage);
     purge(sessionStorage);
   } catch (_) {}
-  // Hard-disable persistence in demo (nothing survives reload)
-try {
-  const noop = () => {};
-
-  localStorage.setItem = noop;
-  localStorage.removeItem = noop;
-  localStorage.clear = noop;
-
-  sessionStorage.setItem = noop;
-  sessionStorage.removeItem = noop;
-  sessionStorage.clear = noop;
-} catch (_) {}
 
   // 2) Block writes (Supabase + your API). Keep reads untouched.
   const realFetch = window.fetch.bind(window);
@@ -86,47 +89,63 @@ try {
   // 3) Patch supabase.createClient:
   // - map tables
   // - fake auth to DEMO user
-  function patchSupabaseCreateClient() {
-    if (!window.supabase || typeof window.supabase.createClient !== "function") return false;
-    if (window.supabase.__detailhqDemoPatched) return true;
+function patchSupabaseCreateClient() {
+  if (!window.supabase || typeof window.supabase.createClient !== "function") return false;
+  if (window.supabase.__detailhqDemoPatched) return true;
 
-    const originalCreateClient = window.supabase.createClient.bind(window.supabase);
+  const originalCreateClient = window.supabase.createClient.bind(window.supabase);
 
-    window.supabase.createClient = function (...args) {
-      const client = originalCreateClient(...args);
+  window.supabase.createClient = function (url, key, opts = {}) {
+    // Force NO session persistence (but do NOT break storage globally)
+    opts.auth = Object.assign(
+      {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        // Safe storage shim for supabase internals
+        storage: {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {}
+        }
+      },
+      opts.auth || {}
+    );
 
-      // map table names
-      const realFrom = client.from.bind(client);
-      client.from = function (table) {
-        const mapped = TABLE_MAP[table] || table;
-        return realFrom(mapped);
-      };
+    const client = originalCreateClient(url, key, opts);
 
-      // fake auth session
-      const demoSession = {
-        access_token: "demo-access-token",
-        refresh_token: "demo-refresh-token",
-        token_type: "bearer",
-        user: { id: DEMO_USER_ID, email: DEMO_EMAIL },
-      };
-
-      const realAuth = client.auth;
-      client.auth = Object.assign({}, realAuth, {
-        getSession: async () => ({ data: { session: demoSession }, error: null }),
-        getUser: async () => ({ data: { user: demoSession.user }, error: null }),
-        onAuthStateChange: (cb) => {
-          try { cb("SIGNED_IN", demoSession); } catch (_) {}
-          return { data: { subscription: { unsubscribe() {} } } };
-        },
-        signOut: async () => ({ error: null }),
-      });
-
-      return client;
+    // map table names
+    const realFrom = client.from.bind(client);
+    client.from = function (table) {
+      const mapped = TABLE_MAP[table] || table;
+      return realFrom(mapped);
     };
 
-    window.supabase.__detailhqDemoPatched = true;
-    return true;
-  }
+    // fake auth session
+    const demoSession = {
+      access_token: "demo-access-token",
+      refresh_token: "demo-refresh-token",
+      token_type: "bearer",
+      user: { id: DEMO_USER_ID, email: DEMO_EMAIL }
+    };
+
+    const realAuth = client.auth;
+    client.auth = Object.assign({}, realAuth, {
+      getSession: async () => ({ data: { session: demoSession }, error: null }),
+      getUser: async () => ({ data: { user: demoSession.user }, error: null }),
+      onAuthStateChange: (cb) => {
+        try { cb("SIGNED_IN", demoSession); } catch (_) {}
+        return { data: { subscription: { unsubscribe() {} } } };
+      },
+      signOut: async () => ({ error: null })
+    });
+
+    return client;
+  };
+
+  window.supabase.__detailhqDemoPatched = true;
+  return true;
+}
 
   // Patch ASAP (supabase UMD loads from CDN)
   if (!patchSupabaseCreateClient()) {
