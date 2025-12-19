@@ -688,40 +688,6 @@ if (qs.get("reset") === "1") {
   saveAffiliateRefFirstTouch();
   showLoadingView();
 
-    // ================================
-  // DEMO MODE (no auth, no saving)
-  // ================================
-  if (window.__DETAILHQ_DEMO) {
-    try {
-      initThemeFromStorage();
-
-      // UI setup (ohne Auth / ohne DB)
-      setupNavHandlers();
-      setupThemeHandlers();
-      setupProfileMenuHandlers();
-      setupBillingHandlers();
-      setupCalendarHandlers();
-      setupTrialBannerHandlers();
-      setupReviewSettingsHandlers();
-      setupServiceManagementHandlers();
-      setupBookingHandlers();
-      setupBookingDetailHandlers();
-      setupDashboardPeriodHandlers();
-      setupReviewModalHandlers();
-      startReviewReminderTimer();
-
-      // WICHTIG: Loading beenden + App anzeigen
-      hideLoadingView();
-      showAppView();
-    } catch (e) {
-      console.error("DetailHQ DEMO init failed:", e);
-      // falls irgendein Handler crasht: trotzdem App zeigen
-      hideLoadingView();
-      showAppView();
-    }
-    return;
-  }
-
   // ================================
   // PUBLIC BOOKING ROUTE GUARD
   // Wenn URL = /<uuid>, niemals App/Dashboard laden
