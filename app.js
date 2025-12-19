@@ -1021,8 +1021,6 @@ function attachDropdownToggle(wrapperSelector, toggleId, menuId) {
 }
 attachDropdownToggle(null, "booking-package-toggle", "booking-package-menu");
 attachDropdownToggle(null, "booking-detail-package-toggle", "booking-detail-package-menu");
-attachDropdownToggle(null, "booking-singles-toggle", "booking-singles-menu");
-attachDropdownToggle(null, "booking-detail-singles-toggle", "booking-detail-singles-menu");
 
 function setupRegisterBusinessTypeDropdown() {
   if (!registerBusinessToggle || !registerBusinessMenu || !registerBusinessTypesList) return;
