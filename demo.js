@@ -39,6 +39,18 @@
     purge(localStorage);
     purge(sessionStorage);
   } catch (_) {}
+  // Hard-disable persistence in demo (nothing survives reload)
+try {
+  const noop = () => {};
+
+  localStorage.setItem = noop;
+  localStorage.removeItem = noop;
+  localStorage.clear = noop;
+
+  sessionStorage.setItem = noop;
+  sessionStorage.removeItem = noop;
+  sessionStorage.clear = noop;
+} catch (_) {}
 
   // 2) Block writes (Supabase + your API). Keep reads untouched.
   const realFetch = window.fetch.bind(window);
