@@ -10,6 +10,17 @@ const bookingError = $("booking-error");
 const publicError = $("public-error");
 const thankYouSection = $("booking-thankyou");
 const thankYouContent = $("booking-thankyou-content");
+const discountCodeInput = $("booking-discount-code");
+const discountApplyBtn = $("booking-discount-apply");
+const discountStatus = $("booking-discount-status");
+
+let appliedDiscount = {
+  applied_kind: null,
+  applied_code: null,
+  discount_cents: 0,
+  discount_type: null,
+  discount_value: null,
+};
 
 function minutesToHoursText(mins) {
   const m = Number(mins || 0) || 0;
@@ -298,6 +309,55 @@ function getPathDetailerId() {
   const d = params.get("detailer");
   const user = params.get("user");
   return u || d || user || null;
+}
+
+async function applyDiscountCode(detailerId, subtotalCents) {
+  const code = (discountCodeInput?.value || "").trim().toUpperCase();
+
+  appliedDiscount = {
+    applied_kind: null,
+    applied_code: null,
+    discount_cents: 0,
+    discount_type: null,
+    discount_value: null,
+  };
+
+  if (!code) {
+    if (discountStatus) discountStatus.textContent = "";
+    return;
+  }
+
+  if (discountStatus) discountStatus.textContent = "Prüfe Code...";
+
+  try {
+    const res = await apiPost(`/public/discount/validate`, {
+      detailer_id: detailerId,
+      code,
+      subtotal_cents: subtotalCents,
+    });
+
+    appliedDiscount = {
+      applied_kind: res.applied_kind || null,
+      applied_code: res.applied_code || null,
+      discount_cents: Number(res.discount_cents || 0) || 0,
+      discount_type: res.discount_type || null,
+      discount_value: res.discount_value != null ? res.discount_value : null,
+    };
+
+    const net = Math.max(0, Number(subtotalCents || 0) - Number(appliedDiscount.discount_cents || 0));
+    if (discountStatus) {
+      discountStatus.textContent = `Rabatt: ${euro(appliedDiscount.discount_cents)} · Neu: ${euro(net)}`;
+    }
+  } catch (e) {
+    appliedDiscount = {
+      applied_kind: null,
+      applied_code: null,
+      discount_cents: 0,
+      discount_type: null,
+      discount_value: null,
+    };
+    if (discountStatus) discountStatus.textContent = "Code ungültig.";
+  }
 }
 
 function euro(cents) {
@@ -944,9 +1004,19 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
 
     // legacy fields (optional, aber bei dir existieren sie)
     service_name: packageSvc ? packageSvc.name : (singlesSvcs[0]?.name || "Auftrag"),
-    service_price: (totalPriceCents / 100),
+service_price: (totalPriceCents / 100),
 
-    total_price: (totalPriceCents / 100),
+// total_price wird serverseitig netto gesetzt; client schickt subtotal als basis
+total_price: (totalPriceCents / 100),
+
+    // Code immer direkt vor Submit validieren (damit state aktuell ist)
+await applyDiscountCode(detailerId, totalPriceCents);
+
+// Payload updaten mit finalem State
+payload.applied_code = appliedDiscount.applied_code || null;
+payload.applied_kind = appliedDiscount.applied_kind || null;
+
+const netPriceCents = Math.max(0, totalPriceCents - (Number(appliedDiscount.discount_cents || 0) || 0));
 
     // Items im selben Format wie deine App (service_id statt id)
     items: items.map((it) => ({
@@ -989,6 +1059,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
