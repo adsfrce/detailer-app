@@ -142,6 +142,13 @@
             <label class="field-label" for="booking-notes">Anmerkungen (optional)</label>
             <textarea id="booking-notes" class="field-input" rows="4" placeholder="Sonderwünsche, worauf geachtet werden soll..."></textarea>
 
+            <label class="field-label" for="booking-discount-code" style="margin-top:12px;">Gutscheincode (optional)</label>
+<div style="display:flex; gap:10px; align-items:center;">
+  <input id="booking-discount-code" type="text" class="field-input" placeholder="CODE" style="text-transform:uppercase;" />
+  <button id="booking-discount-apply" type="button" class="btn btn-secondary" style="white-space:nowrap;">Anwenden</button>
+</div>
+<p id="booking-discount-status" class="form-hint"></p>
+
             <button type="submit" class="btn btn-primary" id="public-submit" style="margin-top:12px;">
               Termin buchen
             </button>
@@ -164,6 +171,7 @@
   <script src="book.js?v1.0.3"></script>
 </body>
 </html>
+
 
 
 
