@@ -315,7 +315,7 @@ function getCurrentSubtotalCents() {
   // gleiche Logik wie im submit, nur “leicht”
   let total = 0;
 
-  const pkgId = selectedPackageId || null;
+  const pkgId = String(bookingMainServiceSelect?.value || "").trim() || null;
   if (pkgId) {
     const pkg = (services || []).find((x) => String(x.id) === String(pkgId));
     if (pkg) total += Number(pkg.base_price_cents || 0) || 0;
@@ -867,6 +867,17 @@ bookingDateInput.addEventListener("change", async () => {
 
 next1.addEventListener("click", () => {
   bookingError.textContent = "";
+  if (discountApplyBtn) {
+    discountApplyBtn.addEventListener("click", async () => {
+      try {
+        const detailerId = getDetailerIdFromUrl();
+        const subtotalCents = getCurrentSubtotalCents();
+        await applyDiscountCode(detailerId, subtotalCents);
+      } catch (e) {
+        if (discountStatus) discountStatus.textContent = "Code konnte nicht geprüft werden.";
+      }
+    });
+  }
 
   const carBad = !safeText(bookingCarInput.value);
   const vcBad = !bookingVehicleClassSelect.value;
@@ -1082,6 +1093,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
