@@ -1820,8 +1820,9 @@ mask-image: linear-gradient(
 .date-wrap::after{
   content: "";
   position: absolute;
-  right: 14px;
-  bottom: 12px;
+top: 50%;
+right: 14px;
+transform: translateY(-50%);
   width: 18px;
   height: 18px;
   opacity: .55;
@@ -1842,5 +1843,17 @@ mask-image: linear-gradient(
   }
   .promo-save-btn{
     width: 100%;
+  }
+}
+
+/* Mobile: Date input volle Breite wie die anderen */
+@media (max-width: 520px){
+  .date-wrap{
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .date-wrap .date-input{
+    max-width: none !important;
+    width: 100% !important;
   }
 }
