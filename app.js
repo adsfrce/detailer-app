@@ -4,6 +4,7 @@
 const SUPABASE_URL = "https://qcilpodwbtbsxoabjfzc.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWxwb2R3YnRic3hvYWJqZnpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzAzNTQsImV4cCI6MjA4MDg0NjM1NH0.RZ4M0bMSVhNpYZnktEyKCuJDFEpSJoyCmLFQhQLXs_w";
+const WORKER_API_BASE = "https://api.detailhq.de";
 
 let supabaseClient = null;
 
@@ -296,6 +297,24 @@ const settingsBookingLinkInput = document.getElementById("settings-booking-link"
 const settingsBookingLinkCopyBtn = document.getElementById("settings-booking-link-copy");
 const settingsBookingLinkOpenBtn = document.getElementById("settings-booking-link-open");
 const settingsBookingLinkStatus = document.getElementById("settings-booking-link-status");
+
+// Gutscheine
+const promoCodeInput = document.getElementById("promo-code-input");
+const promoTypePercent = document.getElementById("promo-type-percent");
+const promoTypeAmount = document.getElementById("promo-type-amount");
+const promoValueInput = document.getElementById("promo-value-input");
+const promoCreateBtn = document.getElementById("promo-create-btn");
+const promoStatus = document.getElementById("promo-status");
+const promoList = document.getElementById("promo-list");
+
+const giftAmountInput = document.getElementById("gift-amount-input");
+const giftToEmail = document.getElementById("gift-to-email");
+const giftToName = document.getElementById("gift-to-name");
+const giftMessage = document.getElementById("gift-message");
+const giftIssueBtn = document.getElementById("gift-issue-btn");
+const giftStatus = document.getElementById("gift-status");
+const giftLast = document.getElementById("gift-last");
+const giftList = document.getElementById("gift-list");
 
 // Öffnungszeiten
 const openingHoursSaveButton = document.getElementById("opening-hours-save-button");
@@ -1616,8 +1635,14 @@ function setupSettingsSubViews() {
 
     // Views toggeln
     hideAllViews();
-    if (which === "service") viewService.classList.remove("hidden");
-    if (which === "business") viewBusiness.classList.remove("hidden");
+if (which === "service") {
+  viewService.classList.remove("hidden");
+  setupDiscountsUIHandlers();
+  loadPromoCodes();
+  loadGiftCards();
+}
+
+if (which === "business") viewBusiness.classList.remove("hidden");
 
     // nach oben scrollen
     const main = document.querySelector(".app-main");
