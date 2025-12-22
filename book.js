@@ -1007,6 +1007,10 @@ items.push({ role: "package", kind: "package", id: packageSvc.id, name: packageS
 items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents: s.base_price_cents || 0 });
   });
   
+  // Code immer direkt vor Submit validieren (damit state aktuell ist)
+  const subtotalCents = getCurrentSubtotalCents();
+  await applyDiscountCode(detailerId, subtotalCents);
+
   const payload = {
     detailer_id: detailerId,
 
@@ -1024,28 +1028,18 @@ items.push({ role: "single", kind: "single", id: s.id, name: s.name, price_cents
     start_at: startAt.toISOString(),
     duration_minutes: durationMinutes,
 
-    // Kompatibilität: Tabelle hat "status", App nutzt teils "job_status"
-    status: "planned",
+    status: "confirmed",
     job_status: "planned",
-
-    // App-Logik nutzt open/paid/partial (nicht "unpaid")
     payment_status: "open",
 
-    // legacy fields (optional, aber bei dir existieren sie)
+    // legacy / kompatibilität
     service_name: packageSvc ? packageSvc.name : (singlesSvcs[0]?.name || "Auftrag"),
-service_price: (totalPriceCents / 100),
+    service_price: (totalPriceCents / 100),
+    total_price: (totalPriceCents / 100),
 
-// total_price wird serverseitig netto gesetzt; client schickt subtotal als basis
-total_price: (totalPriceCents / 100),
-
-    // Code immer direkt vor Submit validieren (damit state aktuell ist)
-await applyDiscountCode(detailerId, totalPriceCents);
-
-// Payload updaten mit finalem State
-payload.applied_code = appliedDiscount.applied_code || null;
-payload.applied_kind = appliedDiscount.applied_kind || null;
-
-const netPriceCents = Math.max(0, totalPriceCents - (Number(appliedDiscount.discount_cents || 0) || 0));
+    // NEU: Rabattstate (wird serverseitig validiert und angewendet)
+    applied_code: appliedDiscount?.applied_code || null,
+    applied_kind: appliedDiscount?.applied_kind || null,
 
     // Items im selben Format wie deine App (service_id statt id)
     items: items.map((it) => ({
@@ -1088,6 +1082,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
