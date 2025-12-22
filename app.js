@@ -318,6 +318,8 @@ const promoCodeInput = document.getElementById("promo-code-input");
 const promoTypePercent = document.getElementById("promo-type-percent");
 const promoTypeAmount = document.getElementById("promo-type-amount");
 const promoValueInput = document.getElementById("promo-value-input");
+const promoMaxUsesInput = document.getElementById("promo-max-uses");
+const promoValidUntilInput = document.getElementById("promo-valid-until");
 const promoCreateBtn = document.getElementById("promo-create-btn");
 const promoStatus = document.getElementById("promo-status");
 const promoList = document.getElementById("promo-list");
@@ -406,7 +408,9 @@ async function loadPromoCodes() {
       await supabaseClient.from("promo_codes").update({ active: false }).eq("id", id);
       await loadPromoCodes();
     });
-      promoList.querySelectorAll("[data-promo-delete]").forEach((btn) => {
+  });
+
+  promoList.querySelectorAll("[data-promo-delete]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const id = btn.getAttribute("data-promo-delete");
       if (!id) return;
@@ -434,6 +438,12 @@ async function createPromoCode() {
 
   let discount_type = isPercent ? "percent" : "amount";
   let discount_value = 0;
+  const max_redemptions = promoMaxUsesInput?.value ? Math.max(1, Math.floor(Number(promoMaxUsesInput.value))) : null;
+
+  // Date -> ends_at (23:59:59)
+  const ends_at = promoValidUntilInput?.value
+    ? new Date(`${promoValidUntilInput.value}T23:59:59.000Z`).toISOString()
+    : null;
 
   if (discount_type === "percent") {
     discount_value = Math.max(1, Math.min(100, Math.round(rawVal)));
@@ -447,14 +457,17 @@ async function createPromoCode() {
   }
 
   if (promoStatus) promoStatus.textContent = "Speichere...";
-
-  const { error } = await supabaseClient.from("promo_codes").insert({
-    detailer_id: uid,
-    code,
-    discount_type,
-    discount_value,
-    active: true,
-  });
+  
+const { error } = await supabaseClient.from("promo_codes").insert({
+  detailer_id: uid,
+  code,
+  discount_type,
+  discount_value,
+  active: true,
+  max_redemptions,
+  ends_at,
+  redeemed_count: 0,
+});
 
   if (error) {
     if (promoStatus) promoStatus.textContent = "Fehler beim Speichern.";
