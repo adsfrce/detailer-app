@@ -449,9 +449,12 @@ async function createPromoCode() {
   const max_redemptions = promoMaxUsesInput?.value ? Math.max(1, Math.floor(Number(promoMaxUsesInput.value))) : null;
 
   // Date -> ends_at (23:59:59)
-  const ends_at = promoValidUntilInput?.value
-    ? new Date(`${promoValidUntilInput.value}T23:59:59.000Z`).toISOString()
-    : null;
+const v = String(promoValidUntilInput?.value || "").trim();
+let ends_at = null;
+if (v) {
+  const m = v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (m) ends_at = new Date(`${m[3]}-${m[2]}-${m[1]}T23:59:59.000Z`).toISOString();
+}
 
   if (discount_type === "percent") {
     discount_value = Math.max(1, Math.min(100, Math.round(rawVal)));
