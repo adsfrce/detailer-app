@@ -311,6 +311,29 @@ function getPathDetailerId() {
   return u || d || user || null;
 }
 
+function getCurrentSubtotalCents() {
+  // gleiche Logik wie im submit, nur “leicht”
+  let total = 0;
+
+  const pkgId = selectedPackageId || null;
+  if (pkgId) {
+    const pkg = (services || []).find((x) => String(x.id) === String(pkgId));
+    if (pkg) total += Number(pkg.base_price_cents || 0) || 0;
+  }
+
+  for (const id of (selectedAddonIds || [])) {
+    const s = (services || []).find((x) => String(x.id) === String(id));
+    if (s) total += Number(s.base_price_cents || 0) || 0;
+  }
+
+  for (const id of (selectedSingleIds || [])) {
+    const s = (services || []).find((x) => String(x.id) === String(id));
+    if (s) total += Number(s.base_price_cents || 0) || 0;
+  }
+
+  return Math.max(0, Number(total) || 0);
+}
+
 async function applyDiscountCode(detailerId, subtotalCents) {
   const code = (discountCodeInput?.value || "").trim().toUpperCase();
 
@@ -904,6 +927,12 @@ bookingTimeInput.addEventListener("change", () => {
 bookingCustomerNameInput.addEventListener("input", () => clearInvalid(bookingCustomerNameInput));
 bookingCustomerEmailInput.addEventListener("input", () => clearInvalid(bookingCustomerEmailInput));
 bookingCustomerPhoneInput.addEventListener("input", () => clearInvalid(bookingCustomerPhoneInput));
+if (discountApplyBtn) {
+  discountApplyBtn.addEventListener("click", async () => {
+    const subtotalCents = getCurrentSubtotalCents();
+    await applyDiscountCode(detailerId, subtotalCents);
+  });
+}
 
 bookingForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1059,6 +1088,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
