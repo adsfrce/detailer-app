@@ -438,9 +438,6 @@ async function createPromoCode() {
   const code = normCode(promoCodeInput?.value || "");
   const isPercent = !!promoTypePercent?.checked;
   const rawVal = Number(promoValueInput?.value || 0);
-  const max_redemptions = Number(promoMaxUsesInput?.value || 0) > 0 ? Math.round(Number(promoMaxUsesInput.value)) : null;
-  const ends_at = promoValidUntilInput?.value ? new Date(`${promoValidUntilInput.value}T23:59:59.000Z`).toISOString() : null;
-
 
   if (!code) {
     if (promoStatus) promoStatus.textContent = "Code fehlt.";
