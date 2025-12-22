@@ -6,6 +6,21 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaWxwb2R3YnRic3hvYWJqZnpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNzAzNTQsImV4cCI6MjA4MDg0NjM1NH0.RZ4M0bMSVhNpYZnktEyKCuJDFEpSJoyCmLFQhQLXs_w";
 const WORKER_API_BASE = "https://api.detailhq.de";
 
+function normCode(s) {
+  return String(s || "").trim().toUpperCase();
+}
+
+function eurToCents(eur) {
+  const x = Number(eur);
+  if (!isFinite(x)) return 0;
+  return Math.max(0, Math.round(x * 100));
+}
+
+function centsToEurText(cents) {
+  const v = (Number(cents || 0) / 100);
+  return v.toLocaleString("de-DE", { style: "currency", currency: "EUR" });
+}
+
 let supabaseClient = null;
 
 try {
@@ -332,6 +347,236 @@ const openingHoursDayOpen = {
 
 // Kunde-Booking Limit pro Tag (1–10)
 const publicDailyLimitSelect = document.getElementById("settings-public-daily-limit");
+
+async function loadPromoCodes() {
+  if (!promoList) return;
+  promoList.innerHTML = `<p class="form-hint">Lädt...</p>`;
+
+  const user = await supabaseClient.auth.getUser();
+  const uid = user?.data?.user?.id;
+  if (!uid) {
+    promoList.innerHTML = `<p class="form-hint">Nicht eingeloggt.</p>`;
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("promo_codes")
+    .select("*")
+    .eq("detailer_id", uid)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    promoList.innerHTML = `<p class="form-hint">Fehler beim Laden.</p>`;
+    return;
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  if (!rows.length) {
+    promoList.innerHTML = `<p class="form-hint">Noch keine Promo-Codes.</p>`;
+    return;
+  }
+
+  promoList.innerHTML = rows
+    .map((r) => {
+      const typ = r.discount_type === "percent" ? `${r.discount_value}%` : centsToEurText(r.discount_value);
+      const active = r.active ? "Aktiv" : "Inaktiv";
+      const code = normCode(r.code);
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid rgba(0,0,0,0.08);border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,0.6);">
+          <div>
+            <div style="font-weight:700;">${code}</div>
+            <div style="font-size:12px;color:#6b7280;">${typ} · ${active}</div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-small" data-promo-disable="${r.id}">
+            Deaktivieren
+          </button>
+        </div>
+      `;
+    })
+    .join("");
+
+  promoList.querySelectorAll("[data-promo-disable]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-promo-disable");
+      if (!id) return;
+      await supabaseClient.from("promo_codes").update({ active: false }).eq("id", id);
+      await loadPromoCodes();
+    });
+  });
+}
+
+async function createPromoCode() {
+  if (!promoCreateBtn) return;
+
+  const user = await supabaseClient.auth.getUser();
+  const uid = user?.data?.user?.id;
+  if (!uid) return;
+
+  const code = normCode(promoCodeInput?.value || "");
+  const isPercent = !!promoTypePercent?.checked;
+  const rawVal = Number(promoValueInput?.value || 0);
+
+  if (!code) {
+    if (promoStatus) promoStatus.textContent = "Code fehlt.";
+    return;
+  }
+
+  let discount_type = isPercent ? "percent" : "amount";
+  let discount_value = 0;
+
+  if (discount_type === "percent") {
+    discount_value = Math.max(1, Math.min(100, Math.round(rawVal)));
+  } else {
+    discount_value = eurToCents(rawVal);
+  }
+
+  if (!discount_value) {
+    if (promoStatus) promoStatus.textContent = "Wert fehlt.";
+    return;
+  }
+
+  if (promoStatus) promoStatus.textContent = "Speichere...";
+
+  const { error } = await supabaseClient.from("promo_codes").insert({
+    detailer_id: uid,
+    code,
+    discount_type,
+    discount_value,
+    active: true,
+  });
+
+  if (error) {
+    if (promoStatus) promoStatus.textContent = "Fehler beim Speichern.";
+    return;
+  }
+
+  if (promoStatus) promoStatus.textContent = "Gespeichert.";
+  if (promoCodeInput) promoCodeInput.value = "";
+  if (promoValueInput) promoValueInput.value = "";
+  await loadPromoCodes();
+}
+
+async function loadGiftCards() {
+  if (!giftList) return;
+  giftList.innerHTML = `<p class="form-hint">Lädt...</p>`;
+
+  const user = await supabaseClient.auth.getUser();
+  const uid = user?.data?.user?.id;
+  if (!uid) {
+    giftList.innerHTML = `<p class="form-hint">Nicht eingeloggt.</p>`;
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("gift_cards")
+    .select("*")
+    .eq("detailer_id", uid)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    giftList.innerHTML = `<p class="form-hint">Fehler beim Laden.</p>`;
+    return;
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  if (!rows.length) {
+    giftList.innerHTML = `<p class="form-hint">Noch keine Gutscheinkarten.</p>`;
+    return;
+  }
+
+  giftList.innerHTML = rows
+    .map((r) => {
+      const code = normCode(r.code);
+      const bal = centsToEurText(r.balance_cents);
+      const init = centsToEurText(r.initial_balance_cents);
+      const active = r.active ? "Aktiv" : "Inaktiv";
+      const pdfUrl = `${WORKER_API_BASE}/public/giftcard/pdf?detailer_id=${encodeURIComponent(uid)}&code=${encodeURIComponent(code)}`;
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid rgba(0,0,0,0.08);border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,0.6);">
+          <div>
+            <div style="font-weight:700;">${code}</div>
+            <div style="font-size:12px;color:#6b7280;">Saldo: ${bal} · Start: ${init} · ${active}</div>
+            <div style="margin-top:6px;">
+              <a href="${pdfUrl}" target="_blank" rel="noopener" style="font-size:12px;">PDF öffnen</a>
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-small" data-gift-disable="${r.id}">
+            Deaktivieren
+          </button>
+        </div>
+      `;
+    })
+    .join("");
+
+  giftList.querySelectorAll("[data-gift-disable]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-gift-disable");
+      if (!id) return;
+      await supabaseClient.from("gift_cards").update({ active: false }).eq("id", id);
+      await loadGiftCards();
+    });
+  });
+}
+
+async function issueGiftCard() {
+  const session = await supabaseClient.auth.getSession();
+  const token = session?.data?.session?.access_token;
+  if (!token) return;
+
+  const amountCents = eurToCents(giftAmountInput?.value || 0);
+  if (!amountCents) {
+    if (giftStatus) giftStatus.textContent = "Wert fehlt.";
+    return;
+  }
+
+  if (giftStatus) giftStatus.textContent = "Erstelle...";
+
+  const res = await fetch(`${WORKER_API_BASE}/giftcards/issue`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      amount_cents: amountCents,
+      to_email: String(giftToEmail?.value || "").trim(),
+      to_name: String(giftToName?.value || "").trim(),
+      message: String(giftMessage?.value || "").trim(),
+    }),
+  });
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.ok) {
+    if (giftStatus) giftStatus.textContent = "Fehler beim Erstellen.";
+    return;
+  }
+
+  if (giftStatus) giftStatus.textContent = `Erstellt: ${data.code}`;
+
+  if (giftLast) {
+    giftLast.style.display = "";
+    giftLast.innerHTML = `
+      <div style="padding:10px 12px;border:1px solid rgba(0,0,0,0.08);border-radius:14px;background:rgba(255,255,255,0.6);">
+        <div style="font-weight:700;">${normCode(data.code)}</div>
+        <div style="margin-top:6px;">
+          <a href="${data.pdf_url}" target="_blank" rel="noopener" style="font-size:12px;">PDF öffnen</a>
+        </div>
+      </div>
+    `;
+  }
+
+  if (giftAmountInput) giftAmountInput.value = "";
+  if (giftToEmail) giftToEmail.value = "";
+  if (giftToName) giftToName.value = "";
+  if (giftMessage) giftMessage.value = "";
+
+  await loadGiftCards();
+}
+
+function setupDiscountsUIHandlers() {
+  if (promoCreateBtn) promoCreateBtn.addEventListener("click", createPromoCode);
+  if (giftIssueBtn) giftIssueBtn.addEventListener("click", issueGiftCard);
+}
 
 // ================================
 // ÖFFNUNGSZEITEN (Settings)
