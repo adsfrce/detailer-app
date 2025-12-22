@@ -323,6 +323,8 @@ const promoValidUntilInput = document.getElementById("promo-valid-until");
 const promoCreateBtn = document.getElementById("promo-create-btn");
 const promoStatus = document.getElementById("promo-status");
 const promoList = document.getElementById("promo-list");
+const promoDetails = promoList?.closest("details");
+const giftDetails = giftList?.closest("details");
 
 const giftAmountInput = document.getElementById("gift-amount-input");
 const giftToEmail = document.getElementById("gift-to-email");
@@ -436,6 +438,9 @@ async function createPromoCode() {
   const code = normCode(promoCodeInput?.value || "");
   const isPercent = !!promoTypePercent?.checked;
   const rawVal = Number(promoValueInput?.value || 0);
+  const max_redemptions = Number(promoMaxUsesInput?.value || 0) > 0 ? Math.round(Number(promoMaxUsesInput.value)) : null;
+  const ends_at = promoValidUntilInput?.value ? new Date(`${promoValidUntilInput.value}T23:59:59.000Z`).toISOString() : null;
+
 
   if (!code) {
     if (promoStatus) promoStatus.textContent = "Code fehlt.";
@@ -464,16 +469,16 @@ async function createPromoCode() {
 
   if (promoStatus) promoStatus.textContent = "Speichere...";
   
-const { error } = await supabaseClient.from("promo_codes").insert({
-  detailer_id: uid,
-  code,
-  discount_type,
-  discount_value,
-  active: true,
-  max_redemptions,
-  ends_at,
-  redeemed_count: 0,
-});
+  const { error } = await supabaseClient.from("promo_codes").insert({
+    detailer_id: uid,
+    code,
+    discount_type,
+    discount_value,
+    active: true,
+    max_redemptions,
+    ends_at,
+    redeemed_count: 0,
+  });
 
   if (error) {
     if (promoStatus) promoStatus.textContent = "Fehler beim Speichern.";
@@ -483,12 +488,8 @@ const { error } = await supabaseClient.from("promo_codes").insert({
   if (promoStatus) promoStatus.textContent = "Gespeichert.";
   if (promoCodeInput) promoCodeInput.value = "";
   if (promoValueInput) promoValueInput.value = "";
-if (promoMaxUsesInput) promoMaxUsesInput.value = "";
-if (promoValidUntilInput) promoValidUntilInput.value = "";
-if (promoCodeInput) promoCodeInput.value = "";
-if (promoValueInput) promoValueInput.value = "";
-if (promoMaxUsesInput) promoMaxUsesInput.value = "";
-if (promoValidUntilInput) promoValidUntilInput.value = "";
+  if (promoMaxUsesInput) promoMaxUsesInput.value = "";
+  if (promoValidUntilInput) promoValidUntilInput.value = "";
   await loadPromoCodes();
 }
 
@@ -612,6 +613,8 @@ async function issueGiftCard() {
 function setupDiscountsUIHandlers() {
   if (promoCreateBtn) promoCreateBtn.addEventListener("click", createPromoCode);
   if (giftIssueBtn) giftIssueBtn.addEventListener("click", issueGiftCard);
+  if (promoDetails) promoDetails.addEventListener("toggle", () => { if (promoDetails.open) loadPromoCodes(); });
+  if (giftDetails) giftDetails.addEventListener("toggle", () => { if (giftDetails.open) loadGiftCards(); });
 }
 
 // ================================
