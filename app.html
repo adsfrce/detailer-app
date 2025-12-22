@@ -343,19 +343,29 @@
 <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
 
   <!-- Row 1: %/€ + Wert -->
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    <label class="radio-pill">
-      <input id="promo-type-percent" type="radio" name="promoType" checked />
-      <span>%</span>
-    </label>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
 
-    <label class="radio-pill">
-      <input id="promo-type-amount" type="radio" name="promoType" />
-      <span>€</span>
-    </label>
+  <!-- Wert zuerst -->
+  <input
+    id="promo-value-input"
+    type="number"
+    class="field-input"
+    placeholder="Wert (z. B. 25)"
+    style="max-width:180px;"
+  />
 
-    <input id="promo-value-input" type="number" class="field-input" placeholder="Wert (z.B. 25)" style="max-width:180px;" />
-  </div>
+  <!-- Einheit dahinter -->
+  <label class="radio-pill">
+    <input id="promo-type-percent" type="radio" name="promoType" checked />
+    <span>%</span>
+  </label>
+
+  <label class="radio-pill">
+    <input id="promo-type-amount" type="radio" name="promoType" />
+    <span>€</span>
+  </label>
+
+</div>
 
 <!-- Row 2: Max Uses + Gültig bis + Save -->
 <div class="promo-row-2" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
