@@ -387,10 +387,14 @@ async function loadPromoCodes() {
             <div style="font-weight:700;">${code}</div>
             <div style="font-size:12px;color:#6b7280;">${typ} · ${active}</div>
           </div>
-          <button type="button" class="btn btn-ghost btn-small" data-promo-disable="${r.id}">
-            Deaktivieren
-          </button>
-        </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-ghost btn-small" data-promo-disable="${r.id}">
+              Deaktivieren
+            </button>
+            <button type="button" class="btn btn-ghost btn-small" data-promo-delete="${r.id}">
+              Löschen
+            </button>
+          </div>
       `;
     })
     .join("");
@@ -400,6 +404,13 @@ async function loadPromoCodes() {
       const id = btn.getAttribute("data-promo-disable");
       if (!id) return;
       await supabaseClient.from("promo_codes").update({ active: false }).eq("id", id);
+      await loadPromoCodes();
+    });
+      promoList.querySelectorAll("[data-promo-delete]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-promo-delete");
+      if (!id) return;
+      await supabaseClient.from("promo_codes").delete().eq("id", id);
       await loadPromoCodes();
     });
   });
