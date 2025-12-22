@@ -312,7 +312,6 @@ function getPathDetailerId() {
 }
 
 function getCurrentSubtotalCents() {
-  // gleiche Logik wie im submit, nur “leicht”
   let total = 0;
 
   const pkgId = String(bookingMainServiceSelect?.value || "").trim() || null;
@@ -321,12 +320,8 @@ function getCurrentSubtotalCents() {
     if (pkg) total += Number(pkg.base_price_cents || 0) || 0;
   }
 
-  for (const id of (selectedAddonIds || [])) {
-    const s = (services || []).find((x) => String(x.id) === String(id));
-    if (s) total += Number(s.base_price_cents || 0) || 0;
-  }
-
-  for (const id of (selectedSingleIds || [])) {
+  const singles = Array.from(selectedSingles || []);
+  for (const id of singles) {
     const s = (services || []).find((x) => String(x.id) === String(id));
     if (s) total += Number(s.base_price_cents || 0) || 0;
   }
@@ -1093,6 +1088,7 @@ showThankYouPage({
 });
 
 init();
+
 
 
 
