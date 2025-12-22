@@ -477,6 +477,8 @@ const { error } = await supabaseClient.from("promo_codes").insert({
   if (promoStatus) promoStatus.textContent = "Gespeichert.";
   if (promoCodeInput) promoCodeInput.value = "";
   if (promoValueInput) promoValueInput.value = "";
+if (promoMaxUsesInput) promoMaxUsesInput.value = "";
+if (promoValidUntilInput) promoValidUntilInput.value = "";
   await loadPromoCodes();
 }
 
