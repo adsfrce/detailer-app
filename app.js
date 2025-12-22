@@ -390,12 +390,9 @@ async function loadPromoCodes() {
             <div style="font-size:12px;color:#6b7280;">${typ} · ${active}</div>
           </div>
           <div style="display:flex; gap:8px;">
-            <button type="button" class="btn btn-ghost btn-small" data-promo-disable="${r.id}">
-              Deaktivieren
-            </button>
-            <button type="button" class="btn btn-ghost btn-small" data-promo-delete="${r.id}">
-              Löschen
-            </button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="btn btn-ghost btn-small" data-promo-disable="${r.id}">Deaktivieren</button>
+            <button type="button" class="btn btn-ghost btn-small" data-promo-delete="${r.id}">Löschen</button>
           </div>
       `;
     })
@@ -403,6 +400,15 @@ async function loadPromoCodes() {
 
   promoList.querySelectorAll("[data-promo-disable]").forEach((btn) => {
     btn.addEventListener("click", async () => {
+        promoList.querySelectorAll("[data-promo-delete]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-promo-delete");
+      if (!id) return;
+      await supabaseClient.from("promo_codes").delete().eq("id", id);
+      await loadPromoCodes();
+    });
+  });
+
       const id = btn.getAttribute("data-promo-disable");
       if (!id) return;
       await supabaseClient.from("promo_codes").update({ active: false }).eq("id", id);
@@ -477,6 +483,10 @@ const { error } = await supabaseClient.from("promo_codes").insert({
   if (promoStatus) promoStatus.textContent = "Gespeichert.";
   if (promoCodeInput) promoCodeInput.value = "";
   if (promoValueInput) promoValueInput.value = "";
+  const mu = document.getElementById("promo-max-uses");
+  const vu = document.getElementById("promo-valid-until");
+  if (mu) mu.value = "";
+  if (vu) vu.value = "";
 if (promoMaxUsesInput) promoMaxUsesInput.value = "";
 if (promoValidUntilInput) promoValidUntilInput.value = "";
   await loadPromoCodes();
@@ -1914,6 +1924,11 @@ if (which === "service") {
 }
 
 if (which === "business") viewBusiness.classList.remove("hidden");
+    if (which === "service") {
+      setupDiscountsUIHandlers();
+      loadPromoCodes();
+      loadGiftCards();
+    }
 
     // nach oben scrollen
     const main = document.querySelector(".app-main");
