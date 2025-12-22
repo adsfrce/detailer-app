@@ -357,22 +357,23 @@
     <input id="promo-value-input" type="number" class="field-input" placeholder="Wert (z.B. 25)" style="max-width:180px;" />
   </div>
 
-<!-- Row 2: Max Uses + Gültig bis + Save (Save bleibt hier) -->
-<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+<!-- Row 2: Max Uses + Gültig bis + Save -->
+<div class="promo-row-2" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
 
-  <div style="display:flex;flex-direction:column;gap:6px;min-width:180px;">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:180px;">
     <div class="form-hint" style="margin:0;">Max. Nutzungen (optional)</div>
     <input id="promo-max-uses" type="number" class="field-input" placeholder="z.B. 5" style="max-width:180px;" />
   </div>
 
-  <div style="display:flex;flex-direction:column;gap:6px;min-width:220px;">
+  <div class="date-wrap" style="display:flex;flex-direction:column;gap:6px;min-width:220px;">
     <div class="form-hint" style="margin:0;">Gültig bis (optional)</div>
-    <input id="promo-valid-until" type="date" class="field-input" style="max-width:220px;" />
+    <input id="promo-valid-until" type="date" class="field-input date-input" style="max-width:220px;" />
   </div>
 
-  <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;">
+  <button id="promo-create-btn" class="btn btn-secondary promo-save-btn" type="button" style="white-space:nowrap;">
     Speichern
   </button>
+
 </div>
 
   <p id="promo-status" class="form-hint"></p>
