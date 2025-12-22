@@ -323,8 +323,6 @@ const promoValidUntilInput = document.getElementById("promo-valid-until");
 const promoCreateBtn = document.getElementById("promo-create-btn");
 const promoStatus = document.getElementById("promo-status");
 const promoList = document.getElementById("promo-list");
-const promoDetails = promoList?.closest("details");
-const giftDetails = giftList?.closest("details");
 
 const giftAmountInput = document.getElementById("gift-amount-input");
 const giftToEmail = document.getElementById("gift-to-email");
@@ -334,6 +332,8 @@ const giftIssueBtn = document.getElementById("gift-issue-btn");
 const giftStatus = document.getElementById("gift-status");
 const giftLast = document.getElementById("gift-last");
 const giftList = document.getElementById("gift-list");
+const promoDetails = promoList?.closest("details");
+const giftDetails = giftList?.closest("details");
 
 // Öffnungszeiten
 const openingHoursSaveButton = document.getElementById("opening-hours-save-button");
