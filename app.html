@@ -349,8 +349,31 @@
       <input type="radio" name="promo-type" id="promo-type-amount" />
       <span>€</span>
     </label>
-    <input id="promo-value-input" type="number" class="field-input" placeholder="25" style="max-width:160px;" />
-    <input id="promo-max-uses" type="number" class="field-input" placeholder="Max. Nutzungen" style="max-width:160px;" />
+<div style="display:flex;flex-direction:column;gap:10px;">
+
+  <!-- Row 1: Typ + Wert + Max Uses -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <label class="radio-pill">
+      <input id="promo-type-percent" type="radio" name="promoType" checked />
+      <span>Prozent</span>
+    </label>
+
+    <label class="radio-pill">
+      <input id="promo-type-amount" type="radio" name="promoType" />
+      <span>Euro</span>
+    </label>
+
+    <input id="promo-value-input" type="number" class="field-input" placeholder="Wert (z.B. 25)" style="max-width:180px;" />
+    <input id="promo-max-uses" type="number" class="field-input" placeholder="Max. Nutzungen" style="max-width:180px;" />
+  </div>
+
+  <!-- Row 2: Ablaufdatum + Save -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <input id="promo-valid-until" type="date" class="field-input" style="max-width:220px;" />
+    <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;">Speichern</button>
+  </div>
+
+</div>
     <input id="promo-valid-until" type="date" class="field-input" style="max-width:200px;" />
     <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;">Speichern</button>
   </div>
