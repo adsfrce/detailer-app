@@ -1800,7 +1800,7 @@ mask-image: linear-gradient(
   border-radius: 14px;
   background: rgba(255,255,255,0.6);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .settings-dropdown[open] .settings-dropdown-toggle {
