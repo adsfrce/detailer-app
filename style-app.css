@@ -1806,3 +1806,8 @@ mask-image: linear-gradient(
 .settings-dropdown[open] .settings-dropdown-toggle {
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
+
+/* DETAILS-DROPDOWNS: Menü anzeigen wenn open */
+.settings-dropdown[open] .settings-dropdown-menu{
+  display: block !important;
+}
