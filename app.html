@@ -340,43 +340,43 @@
   <label class="field-label" for="promo-code-input">Code</label>
   <input id="promo-code-input" type="text" class="field-input" placeholder="WINTER25" style="text-transform:uppercase;" />
 
-  <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
 
-    <!-- Row 1: Typ + Wert + Max Uses -->
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <label class="radio-pill">
-        <input id="promo-type-percent" type="radio" name="promoType" checked />
-        <span>%</span>
-      </label>
+  <!-- Row 1: %/€ + Wert -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <label class="radio-pill">
+      <input id="promo-type-percent" type="radio" name="promoType" checked />
+      <span>%</span>
+    </label>
 
-      <label class="radio-pill">
-        <input id="promo-type-amount" type="radio" name="promoType" />
-        <span>€</span>
-      </label>
+    <label class="radio-pill">
+      <input id="promo-type-amount" type="radio" name="promoType" />
+      <span>€</span>
+    </label>
 
-      <input id="promo-value-input" type="number" class="field-input" placeholder="Wert (z.B. 25)" style="max-width:180px;" />
-      <input id="promo-max-uses" type="number" class="field-input" placeholder="Max. Nutzungen" style="max-width:180px;" />
-    </div>
-
-    <!-- Row 2: Gültig bis + Save -->
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div class="form-hint" style="margin:0;">Gültig bis (optional)</div>
-        <input id="promo-valid-until" type="date" class="field-input" style="max-width:220px;" />
-      </div>
-
-      <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;align-self:flex-end;">
-        Speichern
-      </button>
-    </div>
-
+    <input id="promo-value-input" type="number" class="field-input" placeholder="Wert (z.B. 25)" style="max-width:180px;" />
   </div>
+
+  <!-- Row 2: Max Uses + Gültig bis + Save (Save bleibt hier) -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <input id="promo-max-uses" type="number" class="field-input" placeholder="Max. Nutzungen" style="max-width:180px;" />
+    <input id="promo-valid-until" type="date" class="field-input" style="max-width:220px;" />
+
+    <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;">
+      Speichern
+    </button>
+  </div>
+
+</div>
 
   <p id="promo-status" class="form-hint"></p>
 
-<div id="promo-list" class="settings-list" style="margin-top:10px;">
+<details class="settings-dropdown" style="margin-top:10px;">
+  <summary class="settings-dropdown-toggle">Promo-Codes verwalten</summary>
+  <div id="promo-list" class="settings-dropdown-menu">
     <p class="form-hint">Lädt...</p>
   </div>
+</details>
 
   <div style="height:14px;"></div>
 
@@ -402,9 +402,12 @@
   
 <div id="gift-last" class="settings-list" style="margin-top:10px; display:none;"></div>
 
-<div id="gift-list" class="settings-list" style="margin-top:10px;">
+<details class="settings-dropdown" style="margin-top:10px;">
+  <summary class="settings-dropdown-toggle">Gutscheinkarten verwalten</summary>
+  <div id="gift-list" class="settings-dropdown-menu">
     <p class="form-hint">Lädt...</p>
   </div>
+</details>
 </div>
 
 <div class="settings-group glass" id="settings-opening-hours">
