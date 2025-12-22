@@ -485,6 +485,10 @@ const { error } = await supabaseClient.from("promo_codes").insert({
   if (promoValueInput) promoValueInput.value = "";
 if (promoMaxUsesInput) promoMaxUsesInput.value = "";
 if (promoValidUntilInput) promoValidUntilInput.value = "";
+if (promoCodeInput) promoCodeInput.value = "";
+if (promoValueInput) promoValueInput.value = "";
+if (promoMaxUsesInput) promoMaxUsesInput.value = "";
+if (promoValidUntilInput) promoValidUntilInput.value = "";
   await loadPromoCodes();
 }
 
