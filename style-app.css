@@ -1782,3 +1782,27 @@ mask-image: linear-gradient(
 .booking-datetime-row.booking-datetime-pill .dt-time::before {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M12 7v5l3 2'/></svg>");
 }
+
+.settings-dropdown > summary {
+  list-style: none;
+}
+.settings-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.settings-dropdown[open] .settings-dropdown-toggle {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
