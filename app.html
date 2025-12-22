@@ -326,10 +326,69 @@
         Link öffnen
       </button>
 
-      <p id="settings-booking-link-status" class="form-hint"></p>
-    </div>
+<p id="settings-booking-link-status" class="form-hint"></p>
+</div>
 
-    <div class="settings-group glass" id="settings-opening-hours">
+<div class="settings-group glass" id="settings-discounts">
+  <h3>Gutscheine</h3>
+  <p class="settings-help">
+    Promo-Codes und Gutscheinkarten für dein Kunden-Buchungsportal.
+  </p>
+
+  <h4 class="settings-subtitle">Promo-Code anlegen</h4>
+
+  <label class="field-label" for="promo-code-input">Code</label>
+  <input id="promo-code-input" type="text" class="field-input" placeholder="WINTER25" style="text-transform:uppercase;" />
+
+  <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+    <label style="display:flex; gap:8px; align-items:center;">
+      <input type="radio" name="promo-type" id="promo-type-percent" checked />
+      <span>%</span>
+    </label>
+    <label style="display:flex; gap:8px; align-items:center;">
+      <input type="radio" name="promo-type" id="promo-type-amount" />
+      <span>€</span>
+    </label>
+    <input id="promo-value-input" type="number" class="field-input" placeholder="25" style="max-width:160px;" />
+    <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;">Speichern</button>
+  </div>
+
+  <p id="promo-status" class="form-hint"></p>
+
+  <div id="promo-list" class="settings-dropdown-menu" style="margin-top:10px;">
+    <p class="form-hint">Lädt...</p>
+  </div>
+
+  <div style="height:14px;"></div>
+
+  <h4 class="settings-subtitle">Gutscheinkarte ausstellen</h4>
+
+  <label class="field-label" for="gift-amount-input">Wert (in €)</label>
+  <input id="gift-amount-input" type="number" class="field-input" placeholder="50" />
+
+  <label class="field-label" for="gift-to-email" style="margin-top:10px;">Empfänger E-Mail (optional)</label>
+  <input id="gift-to-email" type="email" class="field-input" placeholder="kunde@email.de" />
+
+  <label class="field-label" for="gift-to-name" style="margin-top:10px;">Empfänger Name (optional)</label>
+  <input id="gift-to-name" type="text" class="field-input" placeholder="Max Mustermann" />
+
+  <label class="field-label" for="gift-message" style="margin-top:10px;">Text (optional)</label>
+  <textarea id="gift-message" class="field-input" placeholder="Kurzer Text für die Mail / PDF"></textarea>
+
+  <button id="gift-issue-btn" class="btn btn-primary btn-block" type="button" style="margin-top:12px;">
+    Gutscheinkarte erstellen
+  </button>
+
+  <p id="gift-status" class="form-hint"></p>
+
+  <div id="gift-last" class="settings-dropdown-menu" style="margin-top:10px; display:none;"></div>
+
+  <div id="gift-list" class="settings-dropdown-menu" style="margin-top:10px;">
+    <p class="form-hint">Lädt...</p>
+  </div>
+</div>
+
+<div class="settings-group glass" id="settings-opening-hours">
       <h3>Öffnungszeiten</h3>
       <p class="settings-help">
         Diese Zeiten gelten nur für Kunden-Buchungen über deinen Buchungslink.
