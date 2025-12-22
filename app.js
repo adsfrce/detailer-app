@@ -534,22 +534,23 @@ async function loadGiftCards() {
               <a href="${pdfUrl}" target="_blank" rel="noopener" style="font-size:12px;">PDF öffnen</a>
             </div>
           </div>
-          <button type="button" class="btn btn-ghost btn-small" data-gift-disable="${r.id}">
-            Deaktivieren
-          </button>
+<div style="display:flex;gap:8px;">
+  <button type="button" class="btn btn-ghost btn-small" data-gift-disable="${r.id}">Deaktivieren</button>
+  <button type="button" class="btn btn-ghost btn-small" data-gift-delete="${r.id}">Löschen</button>
+</div>
         </div>
       `;
     })
     .join("");
 
-  giftList.querySelectorAll("[data-gift-disable]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.getAttribute("data-gift-disable");
-      if (!id) return;
-      await supabaseClient.from("gift_cards").update({ active: false }).eq("id", id);
-      await loadGiftCards();
-    });
+giftList.querySelectorAll("[data-gift-delete]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const id = btn.getAttribute("data-gift-delete");
+    if (!id) return;
+    await supabaseClient.from("gift_cards").delete().eq("id", id);
+    await loadGiftCards();
   });
+});
 }
 
 async function issueGiftCard() {
