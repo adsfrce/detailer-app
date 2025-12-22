@@ -359,8 +359,12 @@
 
   <!-- Row 2: Max Uses + Gültig bis + Save (Save bleibt hier) -->
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    <input id="promo-max-uses" type="number" class="field-input" placeholder="Max. Nutzungen" style="max-width:180px;" />
-    <input id="promo-valid-until" type="date" class="field-input" style="max-width:220px;" />
+<input id="promo-max-uses" type="number" class="field-input" placeholder="Max. Nutzungen" style="max-width:180px;" />
+
+<div style="display:flex;flex-direction:column;gap:6px;min-width:220px;">
+  <div class="form-hint" style="margin:0;">Gültig bis (optional)</div>
+  <input id="promo-valid-until" type="date" class="field-input" style="max-width:220px;" />
+</div>
 
     <button id="promo-create-btn" class="btn btn-secondary" type="button" style="white-space:nowrap;">
       Speichern
