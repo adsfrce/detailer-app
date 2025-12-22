@@ -483,10 +483,6 @@ const { error } = await supabaseClient.from("promo_codes").insert({
   if (promoStatus) promoStatus.textContent = "Gespeichert.";
   if (promoCodeInput) promoCodeInput.value = "";
   if (promoValueInput) promoValueInput.value = "";
-  const mu = document.getElementById("promo-max-uses");
-  const vu = document.getElementById("promo-valid-until");
-  if (mu) mu.value = "";
-  if (vu) vu.value = "";
 if (promoMaxUsesInput) promoMaxUsesInput.value = "";
 if (promoValidUntilInput) promoValidUntilInput.value = "";
   await loadPromoCodes();
@@ -1924,11 +1920,6 @@ if (which === "service") {
 }
 
 if (which === "business") viewBusiness.classList.remove("hidden");
-    if (which === "service") {
-      setupDiscountsUIHandlers();
-      loadPromoCodes();
-      loadGiftCards();
-    }
 
     // nach oben scrollen
     const main = document.querySelector(".app-main");
